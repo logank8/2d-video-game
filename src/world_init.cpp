@@ -165,3 +165,65 @@ Entity createEgg(vec2 pos, vec2 size)
 
 	return entity;
 }
+
+Entity createWalls(RenderSystem* renderer, vec2 pos, vec2 size)
+{
+	auto entity = Entity();
+	// TODO: Add mesh for ground
+	// Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	// registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.scale = size; // Will likely change this to a constant size for all ground tiles
+
+	// create an empty component for our eggs
+	registry.walls.emplace(entity);
+	// TODO: get sprite for the ground and complete below
+	/*
+	registry.renderRequests.insert(
+		entity, {
+			TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::EGG,
+			GEOMETRY_BUFFER_ID::EGG
+		});
+	*/
+
+	
+	// Add wall to solid objects - player can't move through walls
+	registry.solidObjs.emplace(entity);
+
+	return entity;
+}
+
+Entity createGround(RenderSystem* renderer, vec2 pos, vec2 size)
+{
+	auto entity = Entity();
+	// TODO: Add mesh for ground
+	// Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	// registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.scale = size; // Will likely change this to a constant size for all ground tiles
+
+	// create an empty component for our eggs
+	registry.groundTiles.emplace(entity);
+	// TODO: get sprite for the ground and complete below
+	/*
+	registry.renderRequests.insert(
+		entity, {
+			TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::EGG,
+			GEOMETRY_BUFFER_ID::EGG
+		});
+	*/
+
+	return entity;
+}
