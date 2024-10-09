@@ -50,6 +50,12 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 			GEOMETRY_BUFFER_ID::SPRITE
 		}
 	);
+
+	// Add damage to player
+	Damage& damage = registry.damages.emplace(entity);
+	// Add health to player
+	Health& health = registry.healths.emplace(entity);
+
 	return entity;
 }
 
