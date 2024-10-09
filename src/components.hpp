@@ -22,6 +22,18 @@ struct Eatable
 
 };
 
+// anything that can cause damage
+struct Damage
+{
+	float damage = 10.f;
+};
+
+// anything that has health
+struct Health
+{
+	float hit_points = 100.f;
+};
+
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2 position = { 0, 0 };
@@ -113,7 +125,8 @@ struct Mesh
 enum class TEXTURE_ASSET_ID {
 	FISH = 0,
 	EEL = FISH + 1,
-	TEXTURE_COUNT = EEL + 1
+	PLAYER = EEL + 1,
+	TEXTURE_COUNT = PLAYER + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

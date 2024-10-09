@@ -160,16 +160,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
         createEel(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
 	}
 
-	// spawn fish
-	next_fish_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.eatables.components.size() <= MAX_NUM_FISH && next_fish_spawn < 0.f) {
-		// !!!  TODO A1: create new fish with createFish({0,0}), see eels above
-	}
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A2: HANDLE EGG SPAWN HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 2
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	
 
 	// Processing the salmon state
 	assert(registry.screenStates.components.size() <= 1);
@@ -218,8 +209,8 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// create a new Salmon
-	player_salmon = createSalmon(renderer, { window_width_px/2, window_height_px - 200 });
-	registry.colors.insert(player_salmon, {1, 0.8f, 0.8f});
+	my_player = createPlayer(renderer, { window_width_px/2, window_height_px - 200 });
+	registry.colors.insert(my_player, {1, 0.8f, 0.8f});
 
 	// !! TODO A2: Enable static eggs on the ground, for reference
 	// Create eggs on the floor, use this for reference

@@ -28,6 +28,37 @@ Entity createSalmon(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
+Entity createPlayer(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 100 };
+	motion.position = pos;
+	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
+
+	registry.players.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{
+			TEXTURE_ASSET_ID::PLAYER,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE
+		}
+	);
+
+	// Add damage to player
+	Damage& damage = registry.damages.emplace(entity);
+	// Add health to player
+	Health& health = registry.healths.emplace(entity);
+
+	return entity;
+}
+
 Entity createFish(RenderSystem* renderer, vec2 position)
 {
 	// Reserve en entity
