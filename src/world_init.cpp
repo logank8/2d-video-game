@@ -180,9 +180,9 @@ Entity createWalls(RenderSystem* renderer, vec2 pos, vec2 size)
 	motion.velocity = { 0.f, 0.f };
 	motion.scale = size; // Will likely change this to a constant size for all ground tiles
 
-	// create an empty component for our eggs
+	// create an empty component for the walls
 	registry.walls.emplace(entity);
-	// TODO: get sprite for the ground and complete below
+	// TODO: get sprite for the walls and complete below
 	/*
 	registry.renderRequests.insert(
 		entity, {
@@ -213,8 +213,37 @@ Entity createGround(RenderSystem* renderer, vec2 pos, vec2 size)
 	motion.velocity = { 0.f, 0.f };
 	motion.scale = size; // Will likely change this to a constant size for all ground tiles
 
-	// create an empty component for our eggs
+	// create an empty component for the ground tile
 	registry.groundTiles.emplace(entity);
+	// TODO: get sprite for the ground and complete below
+	/*
+	registry.renderRequests.insert(
+		entity, {
+			TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::EGG,
+			GEOMETRY_BUFFER_ID::EGG
+		});
+	*/
+
+	return entity;
+}
+
+Entity createFurniture(RenderSystem* renderer, vec2 pos, vec2 size)
+{
+	auto entity = Entity();
+	// TODO: Add mesh for ground
+	// Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	// registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.scale = size; // Will likely change this to a constant size for all ground tiles
+
+	// create an empty component for the furniture as a solid object
+	registry.solidObjs.emplace(entity);
 	// TODO: get sprite for the ground and complete below
 	/*
 	registry.renderRequests.insert(
