@@ -273,6 +273,11 @@ void WorldSystem::handle_collisions() {
 					Mix_PlayChannel(-1, salmon_dead_sound, 0);
 
 					// !!! TODO A1: change the salmon's orientation and color on death
+					// Control what happens when the player dies here
+					Motion& motion = registry.motions.get(my_player);
+					motion.velocity[0] = 0.0f;
+					motion.velocity[1] = 0.0f;
+
 				}
 			}
 			// Checking Player - Eatable collisions
@@ -305,7 +310,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// key is of 'type' GLFW_KEY_
 	// action can be GLFW_PRESS GLFW_RELEASE GLFW_REPEAT
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;
@@ -315,11 +319,51 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Debugging
-	if (key == GLFW_KEY_D) {
+	/*if (key == GLFW_KEY_D) {
 		if (action == GLFW_RELEASE)
 			debugging.in_debug_mode = false;
 		else
 			debugging.in_debug_mode = true;
+	}*/
+
+	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) {
+		Motion& motion = registry.motions.get(my_player);
+		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player)) {
+			motion.velocity[0] = motion.speed;
+		}
+		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
+			motion.velocity[0] = 0.f;
+		}
+	}
+
+	if (key == GLFW_KEY_LEFT || key == GLFW_KEY_A) {
+		Motion& motion = registry.motions.get(my_player);
+		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player)) {
+			motion.velocity[0] = -1.0 * motion.speed;
+		}
+		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
+			motion.velocity[0] = 0.f;
+		}
+	}
+
+	if (key == GLFW_KEY_UP || key == GLFW_KEY_W) {
+		Motion& motion = registry.motions.get(my_player);
+		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player)) {
+			motion.velocity[1] = -1.0 * motion.speed;
+		}
+		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
+			motion.velocity[1] = 0.f;
+		}
+	}
+
+	if (key == GLFW_KEY_DOWN || key == GLFW_KEY_S) {
+		Motion& motion = registry.motions.get(my_player);
+		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player)) {
+			motion.velocity[1] = motion.speed;
+		}
+		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
+			motion.velocity[1] = 0.f;
+		}
 	}
 
 	// Control the current speed with `<` `>`
