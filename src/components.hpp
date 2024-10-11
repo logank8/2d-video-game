@@ -40,6 +40,7 @@ struct Motion {
 	float angle = 0;
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { 10, 10 };
+	float speed = 150.0f; // To control player speed
 };
 
 // Stucture to store collision information

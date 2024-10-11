@@ -37,7 +37,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0, 100 };
+	motion.velocity = { 0, 0 };
 	motion.position = pos;
 	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
 
