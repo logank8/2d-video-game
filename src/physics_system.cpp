@@ -37,8 +37,18 @@ void PhysicsSystem::step(float elapsed_ms)
 		Motion& motion = motion_registry.components[i];
 		Entity entity = motion_registry.entities[i];
 		float step_seconds = elapsed_ms / 1000.f;
-		motion.position[0] += motion.velocity[0] * step_seconds;
-		motion.position[1] += motion.velocity[1] * step_seconds;
+    if (registry.players.has(entity)) {
+      motion.position[0] += motion.velocity[0] * step_seconds;
+		  motion.position[1] += motion.velocity[1] * step_seconds;
+    } else {
+			//Handle contact damage enemies
+			if (!registry.players.has(entity)) {
+				Motion& player_motion = registry.motions.get(registry.players.entities[0]);
+				motion.angle = atan2(motion.position.y - player_motion.position.y, motion.position.x - player_motion.position.x);
+				motion.position.x -= cos(motion.angle) * motion.velocity.x * step_seconds;
+				motion.position.y -= sin(motion.angle) * motion.velocity.y * step_seconds;
+			}
+		}
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

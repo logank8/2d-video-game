@@ -16,6 +16,33 @@ struct Deadly
 
 };
 
+// Walls component
+struct Wall
+{
+	
+};
+
+// Ground component
+struct Ground
+{
+	
+};
+
+
+// player can't move through
+struct Solid
+{
+	
+};
+
+// slows player down when walked on - applied to specific ground tiles
+struct Slows
+{
+	float speed_dec = 20;
+};
+
+
+
 // anything the player can eat
 struct Eatable
 {

@@ -25,6 +25,10 @@ public:
 	ComponentContainer<vec3> colors;
 	ComponentContainer<Health> healths;
 	ComponentContainer<Damage> damages;
+	ComponentContainer<Wall> walls;
+	ComponentContainer<Ground> groundTiles;
+	ComponentContainer<Solid> solidObjs;
+	ComponentContainer<Slows> slows;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -44,6 +48,10 @@ public:
 		registry_list.push_back(&colors);
 		registry_list.push_back(&healths);
 		registry_list.push_back(&damages);
+		registry_list.push_back(&walls);
+		registry_list.push_back(&groundTiles);
+		registry_list.push_back(&solidObjs);
+		registry_list.push_back(&slows);
 	}
 
 	void clear_all_components() {
