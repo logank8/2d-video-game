@@ -78,7 +78,9 @@ Entity createFish(RenderSystem* renderer, vec2 position)
 	motion.scale = vec2({ -FISH_BB_WIDTH, FISH_BB_HEIGHT });
 
 	// Create an (empty) Bug component to be able to refer to all bug
-	registry.eatables.emplace(entity);
+	registry.deadlys.emplace(entity);
+	registry.healths.emplace(entity);
+	registry.damages.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{
@@ -109,6 +111,10 @@ Entity createEel(RenderSystem* renderer, vec2 position)
 
 	// create an empty Eel component to be able to refer to all eels
 	registry.deadlys.emplace(entity);
+	registry.healths.emplace(entity);
+	auto& damage = registry.damages.emplace(entity);
+	//TODO: adjust	 damage amounts
+	damage.damage = 25.0;
 	registry.renderRequests.insert(
 		entity,
 		{

@@ -150,14 +150,36 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// spawn new eels
+	
+	vec2 player_pos = motions_registry.get(my_player).position;
+	//TODO: spawn frequencies and spawn radius to be adjusted
+	// Spawn Level 1 type enemy: slow with contact damage
+	next_fish_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (registry.eatables.components.size() <= MAX_NUM_FISH && next_fish_spawn < 0.f) {
+		next_fish_spawn = (FISH_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (FISH_SPAWN_DELAY_MS / 2);
+		vec2 fish_pos;
+		float distance_to_player;
+		do {
+			fish_pos = { 50.0f + uniform_dist(rng) * (window_width_px - 100.f), 50.f + uniform_dist(rng) * (window_height_px - 100.f) };
+			distance_to_player = sqrt(pow(fish_pos.x - player_pos.x, 2) + pow(fish_pos.y - player_pos.y, 2));
+		} while (distance_to_player < 500.f);
+		Entity fish = createFish(renderer, fish_pos);
+		registry.motions.get(fish).velocity = { 50.f, 50.f };
+	}
+
+	// Spawn Level 2 type enemy: fast with contact damage
 	next_eel_spawn -= elapsed_ms_since_last_update * current_speed;
 	if (registry.deadlys.components.size() <= MAX_NUM_EELS && next_eel_spawn < 0.f) {
 		// reset timer
 		next_eel_spawn = (EEL_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (EEL_SPAWN_DELAY_MS / 2);
-
-		// create Eel with random initial position
-        createEel(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
+		vec2 eel_pos;
+		float distance_to_player;
+		do {
+			eel_pos = { 10.0f + uniform_dist(rng) * (window_width_px - 100.f), 50.f + uniform_dist(rng) * (window_height_px - 100.f) };
+			distance_to_player = sqrt(pow(eel_pos.x - player_pos.x, 2) + pow(eel_pos.y - player_pos.y, 2));
+		} while (distance_to_player < 500.f);
+		Entity eel = createEel(renderer, eel_pos);
+		registry.motions.get(eel).velocity = { 100.f, 100.f};
 	}
 
 	
@@ -242,8 +264,10 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Player - Deadly collisions
 			if (registry.deadlys.has(entity_other)) {
-				// initiate death unless already dying
-				if (!registry.deathTimers.has(entity)) {
+				// player takes contact damage
+				float& player_hp = registry.healths.get(entity).hit_points;
+				player_hp -= registry.damages.get(entity_other).damage;
+				if (!registry.deathTimers.has(entity) && player_hp < 0.f) {
 					// Scream, reset timer, and make the salmon sink
 					registry.deathTimers.emplace(entity);
 					Mix_PlayChannel(-1, salmon_dead_sound, 0);
