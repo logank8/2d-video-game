@@ -126,6 +126,77 @@ Entity createEel(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
+Entity createRangedEnemy(RenderSystem* renderer, vec2 position)
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ -FISH_BB_WIDTH, FISH_BB_HEIGHT });
+
+	// Create an (empty) Bug component to be able to refer to all bug
+	auto& enemy = registry.deadlys.emplace(entity);
+	enemy.enemy_type = ENEMY_TYPES::RANGED;
+	registry.healths.emplace(entity);
+	registry.damages.emplace(entity);
+	registry.ranged.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{
+			TEXTURE_ASSET_ID::RANGED_ENEMY,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE
+		});
+
+	return entity;
+}
+
+Entity createRangedProjectile(RenderSystem* renderer, vec2 position)
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ -FISH_BB_WIDTH, FISH_BB_HEIGHT });
+
+	// Create an (empty) Bug component to be able to refer to all bug
+	auto& enemy = registry.deadlys.emplace(entity);
+	enemy.enemy_type = ENEMY_TYPES::PROJECTILE;
+	registry.healths.emplace(entity);
+	auto& damage = registry.damages.emplace(entity);
+	damage.damage = 25.f;
+	registry.projectiles.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{
+			TEXTURE_ASSET_ID::RANGED_PROJECTILE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE
+		});
+
+	return entity;
+}
+
 Entity createLine(vec2 position, vec2 scale)
 {
 	Entity entity = Entity();

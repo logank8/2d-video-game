@@ -29,6 +29,8 @@ public:
 	ComponentContainer<Ground> groundTiles;
 	ComponentContainer<Solid> solidObjs;
 	ComponentContainer<Slows> slows;
+	ComponentContainer<Ranged> ranged;
+	ComponentContainer<Projectile> projectiles;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -52,6 +54,8 @@ public:
 		registry_list.push_back(&groundTiles);
 		registry_list.push_back(&solidObjs);
 		registry_list.push_back(&slows);
+		registry_list.push_back(&ranged);
+		registry_list.push_back(&projectiles);
 	}
 
 	void clear_all_components() {

@@ -10,8 +10,25 @@ struct Player
 
 };
 
+enum class ENEMY_TYPES {
+	CONTACT_DMG = 0,
+	RANGED = CONTACT_DMG + 1,
+	PROJECTILE = RANGED + 1
+};
+
+
 // anything that is deadly to the player
 struct Deadly
+{
+	ENEMY_TYPES enemy_type = ENEMY_TYPES::CONTACT_DMG;
+};
+
+struct Ranged
+{
+	float projectile_delay = 1000.f;
+};
+
+struct Projectile
 {
 
 };
@@ -154,7 +171,9 @@ enum class TEXTURE_ASSET_ID {
 	FISH = 0,
 	EEL = FISH + 1,
 	PLAYER = EEL + 1,
-	TEXTURE_COUNT = PLAYER + 1
+	RANGED_ENEMY = PLAYER + 1,
+	RANGED_PROJECTILE = RANGED_ENEMY + 1,
+	TEXTURE_COUNT = RANGED_PROJECTILE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

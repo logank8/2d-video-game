@@ -25,6 +25,10 @@ Entity createFish(RenderSystem* renderer, vec2 position);
 // the enemy
 Entity createEel(RenderSystem* renderer, vec2 position);
 
+Entity createRangedEnemy(RenderSystem* renderer, vec2 position);
+
+Entity createRangedProjectile(RenderSystem* renderer, vec2 position);
+
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
 

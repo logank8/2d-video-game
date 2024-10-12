@@ -13,12 +13,16 @@ const size_t MAX_NUM_EELS = 15;
 const size_t MAX_NUM_FISH = 5;
 const size_t EEL_SPAWN_DELAY_MS = 2000 * 3;
 const size_t FISH_SPAWN_DELAY_MS = 5000 * 3;
+const size_t MAX_NUM_RANGED_ENEMY = 1;
+const size_t RANGED_ENEMY_SPAWN_DELAY_MS = 5000 * 3;
+const size_t RANGED_ENEMY_PROJECTILE_DELAY_MS = 2000 * 3;
 
 // create the underwater world
 WorldSystem::WorldSystem()
 	: points(0)
 	, next_eel_spawn(0.f)
-	, next_fish_spawn(0.f) {
+	, next_fish_spawn(0.f)
+	, next_ranged_spawn(0.f) {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 }
@@ -182,7 +186,35 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.motions.get(eel).velocity = { 100.f, 100.f};
 	}
 
+	// Spawn Level 3 type enemy: slow ranged enemy
+	next_ranged_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (registry.ranged.components.size() <= MAX_NUM_RANGED_ENEMY && next_ranged_spawn < 0.f) {
+		// reset timer
+		next_ranged_spawn = (RANGED_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_SPAWN_DELAY_MS / 2);
+		vec2 ranged_enemy_pos;
+		float distance_to_player;
+		do {
+			ranged_enemy_pos = { 10.0f + uniform_dist(rng) * (window_width_px - 100.f), 50.f + uniform_dist(rng) * (window_height_px - 100.f) };
+			distance_to_player = sqrt(pow(ranged_enemy_pos.x - player_pos.x, 2) + pow(ranged_enemy_pos.y - player_pos.y, 2));
+		} while (distance_to_player < 500.f);
+		Entity ranged_enemy = createRangedEnemy(renderer, ranged_enemy_pos);
+		registry.motions.get(ranged_enemy).velocity = { 10.f, 10.f };
+	}
 	
+	// Spawn projectiles for ranged enemies
+	for (auto& ranged : registry.ranged.entities) {
+		float& projectile_delay = registry.ranged.get(ranged).projectile_delay;
+		projectile_delay -= elapsed_ms_since_last_update * current_speed;
+		if (projectile_delay < 0.f) {
+			// reset timer
+			projectile_delay = (RANGED_ENEMY_PROJECTILE_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_PROJECTILE_DELAY_MS / 2);
+			Entity projectile = createRangedProjectile(renderer, registry.motions.get(ranged).position);
+			Motion& projectile_motion = registry.motions.get(projectile);
+			projectile_motion.velocity = { 200.f, 200.f };
+			projectile_motion.angle = registry.motions.get(ranged).angle;
+		}
+
+	}
 
 	// Processing the salmon state
 	assert(registry.screenStates.components.size() <= 1);
@@ -267,6 +299,9 @@ void WorldSystem::handle_collisions() {
 				// player takes contact damage
 				float& player_hp = registry.healths.get(entity).hit_points;
 				player_hp -= registry.damages.get(entity_other).damage;
+				if (registry.deadlys.get(entity_other).enemy_type == ENEMY_TYPES::PROJECTILE) {
+					registry.remove_all_components_of(entity_other);
+				}
 				if (!registry.deathTimers.has(entity) && player_hp < 0.f) {
 					// Scream, reset timer, and make the salmon sink
 					registry.deathTimers.emplace(entity);
