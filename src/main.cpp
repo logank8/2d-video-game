@@ -44,9 +44,10 @@ int main()
 		float elapsed_ms =
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
-
-		world.step(elapsed_ms);
-		physics.step(elapsed_ms);
+		if (!world.is_paused) {
+			world.step(elapsed_ms);
+			physics.step(elapsed_ms);
+		}
 		world.handle_collisions();
 
 		renderer.draw();

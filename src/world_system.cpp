@@ -5,6 +5,7 @@
 // stlib
 #include <cassert>
 #include <sstream>
+#include <iostream>
 
 #include "physics_system.hpp"
 
@@ -138,7 +139,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
-	    registry.remove_all_components_of(registry.debugComponents.entities.back());
+		registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
@@ -147,7 +148,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current)
 	for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
-	    Motion& motion = motions_registry.components[i];
+		Motion& motion = motions_registry.components[i];
 		if (motion.position.x + abs(motion.scale.x) < 0.f) {
 			if(!registry.players.has(motions_registry.entities[i])) // don't remove the player
 				registry.remove_all_components_of(motions_registry.entities[i]);
@@ -218,22 +219,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Processing the salmon state
 	assert(registry.screenStates.components.size() <= 1);
-    ScreenState &screen = registry.screenStates.components[0];
+	ScreenState &screen = registry.screenStates.components[0];
 
-    float min_counter_ms = 3000.f;
+	float min_counter_ms = 3000.f;
 	for (Entity entity : registry.deathTimers.entities) {
 		// progress timer
 		DeathTimer& counter = registry.deathTimers.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
 		if(counter.counter_ms < min_counter_ms){
-		    min_counter_ms = counter.counter_ms;
+			min_counter_ms = counter.counter_ms;
 		}
 
 		// restart the game once the death timer expired
 		if (counter.counter_ms < 0) {
 			registry.deathTimers.remove(entity);
 			screen.darken_screen_factor = 0;
-            restart_game();
+			restart_game();
 			return true;
 		}
 	}
@@ -253,6 +254,7 @@ void WorldSystem::restart_game() {
 
 	// Reset the game speed
 	current_speed = 1.f;
+	is_paused = false;
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all fish, eels, ... but that would be more cumbersome
@@ -351,6 +353,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		glfwGetWindowSize(window, &w, &h);
 
         restart_game();
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
+		is_paused = !is_paused;
+		std::cout << is_paused << std::endl;
 	}
 
 	// Debugging
