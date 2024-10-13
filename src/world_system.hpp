@@ -59,6 +59,7 @@ private:
 	float next_fish_spawn;
 	float next_ranged_spawn;
 	Entity my_player;
+	Entity hp_bar;
 
 	// music references
 	Mix_Music* background_music;

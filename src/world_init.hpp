@@ -12,12 +12,17 @@ const float PLAYER_BB_HEIGHT = 0.6f * 200.f;
 const float FISH_BB_HEIGHT = 0.6f * 165.f;
 const float EEL_BB_WIDTH   = 0.6f * 300.f;	// 1001
 const float EEL_BB_HEIGHT  = 0.6f * 202.f;	// 870
+const float HPBAR_BB_WIDTH = 96.f;
+const float HPBAR_BB_HEIGHT = 16.f;
 
 // the player
 Entity createSalmon(RenderSystem* renderer, vec2 pos);
 
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
+
+// the hp bar
+Entity createHPBar(RenderSystem* renderer, vec2 pos);
 
 // the prey
 Entity createFish(RenderSystem* renderer, vec2 position);

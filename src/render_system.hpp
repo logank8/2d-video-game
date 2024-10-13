@@ -34,7 +34,8 @@ class RenderSystem {
 			textures_path("eel.png"),
 			textures_path("adventurer.png"),
 			textures_path("red_fish.png"),
-			textures_path("puffer_fish.png")
+			textures_path("puffer_fish.png"),
+			textures_path("bar_square_small.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

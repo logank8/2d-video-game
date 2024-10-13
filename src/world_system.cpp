@@ -264,9 +264,12 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
-	// create a new Salmon
+	// create a new Player
 	my_player = createPlayer(renderer, { window_width_px/2, window_height_px - 200 });
 	registry.colors.insert(my_player, {1, 0.8f, 0.8f});
+
+	// create health bar
+	hp_bar = createHPBar(renderer, { window_width_px - 60, HPBAR_BB_HEIGHT });
 
 	// !! TODO A2: Enable static eggs on the ground, for reference
 	// Create eggs on the floor, use this for reference
@@ -304,7 +307,7 @@ void WorldSystem::handle_collisions() {
 				if (registry.deadlys.get(entity_other).enemy_type == ENEMY_TYPES::PROJECTILE) {
 					registry.remove_all_components_of(entity_other);
 				}
-				if (!registry.deathTimers.has(entity) && player_hp < 0.f) {
+				if (!registry.deathTimers.has(entity) && player_hp <= 0.f) {
 					// Scream, reset timer, and make the salmon sink
 					registry.deathTimers.emplace(entity);
 					Mix_PlayChannel(-1, salmon_dead_sound, 0);
@@ -315,6 +318,14 @@ void WorldSystem::handle_collisions() {
 					motion.velocity[0] = 0.0f;
 					motion.velocity[1] = 0.0f;
 
+				}
+
+				// modify hp bar
+				std::cout << "Player hp: " << player_hp <<"\n";
+				if (player_hp <= 100 && player_hp >= 0) {
+					Motion& motion = registry.motions.get(hp_bar);
+					motion.scale.x = HPBAR_BB_WIDTH * (player_hp / 100);
+					motion.position.x += HPBAR_BB_WIDTH * (player_hp / 400);
 				}
 			}
 			// Checking Player - Eatable collisions
