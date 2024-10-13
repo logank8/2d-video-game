@@ -14,6 +14,8 @@ const float EEL_BB_WIDTH   = 0.6f * 300.f;	// 1001
 const float EEL_BB_HEIGHT  = 0.6f * 202.f;	// 870
 const float HPBAR_BB_WIDTH = 96.f;
 const float HPBAR_BB_HEIGHT = 16.f;
+const float FURNITURE_WIDTH = 16.f;
+const float FURNITURE_HEIGHT = 16.f;
 
 // the player
 Entity createSalmon(RenderSystem* renderer, vec2 pos);
@@ -39,3 +41,9 @@ Entity createLine(vec2 position, vec2 size);
 
 // a egg
 Entity createEgg(vec2 pos, vec2 size);
+
+// a wall
+Entity createWalls(RenderSystem* renderer, vec2 pos, bool is_side_wall);
+
+// a piece of furniture
+Entity createFurniture(RenderSystem* renderer, vec2 pos);

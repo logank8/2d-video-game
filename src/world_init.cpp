@@ -268,32 +268,39 @@ Entity createEgg(vec2 pos, vec2 size)
 	return entity;
 }
 
-Entity createWalls(RenderSystem* renderer, vec2 pos, vec2 size)
+Entity createWalls(RenderSystem* renderer, vec2 pos, bool is_side_wall)
 {
 	auto entity = Entity();
-	// TODO: Add mesh for ground
-	// Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	// registry.meshPtrs.emplace(entity, &mesh);
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Setting initial motion values
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = size; // Will likely change this to a constant size for all ground tiles
+	motion.scale = vec2({ FURNITURE_WIDTH * 3, FURNITURE_HEIGHT * 3 });
 
 	// create an empty component for the walls
 	registry.walls.emplace(entity);
-	// TODO: get sprite for the walls and complete below
-	/*
-	registry.renderRequests.insert(
-		entity, {
-			TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
-			EFFECT_ASSET_ID::EGG,
-			GEOMETRY_BUFFER_ID::EGG
-		});
-	*/
-
+	if (is_side_wall) {
+		registry.renderRequests.insert(
+			entity, {
+				TEXTURE_ASSET_ID::SIDE_WALL,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE
+			}
+		);
+	} else {
+		registry.renderRequests.insert(
+			entity, {
+				TEXTURE_ASSET_ID::WALL,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE
+			}
+		);
+	}
+	
 	
 	// Add wall to solid objects - player can't move through walls
 	registry.solidObjs.emplace(entity);
@@ -313,7 +320,7 @@ Entity createGround(RenderSystem* renderer, vec2 pos, vec2 size)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = size; // Will likely change this to a constant size for all ground tiles
+	motion.scale = size; // Will likely change this to a constant size for all tiles
 
 	// create an empty component for the ground tile
 	registry.groundTiles.emplace(entity);
@@ -330,31 +337,28 @@ Entity createGround(RenderSystem* renderer, vec2 pos, vec2 size)
 	return entity;
 }
 
-Entity createFurniture(RenderSystem* renderer, vec2 pos, vec2 size)
+Entity createFurniture(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
-	// TODO: Add mesh for ground
-	// Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	// registry.meshPtrs.emplace(entity, &mesh);
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Setting initial motion values
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = size; // Will likely change this to a constant size for all ground tiles
+	motion.scale = vec2({ FURNITURE_WIDTH * 3, FURNITURE_HEIGHT * 3 });
 
 	// create an empty component for the furniture as a solid object
 	registry.solidObjs.emplace(entity);
-	// TODO: get sprite for the ground and complete below
-	/*
 	registry.renderRequests.insert(
 		entity, {
-			TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
-			EFFECT_ASSET_ID::EGG,
-			GEOMETRY_BUFFER_ID::EGG
-		});
-	*/
+			TEXTURE_ASSET_ID::FURNITURE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE
+		}
+	);
 
 	return entity;
 }

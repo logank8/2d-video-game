@@ -268,8 +268,22 @@ void WorldSystem::restart_game() {
 	my_player = createPlayer(renderer, { window_width_px/2, window_height_px - 200 });
 	registry.colors.insert(my_player, {1, 0.8f, 0.8f});
 
+	// create furniture/table (for testing)
+	createFurniture(renderer, { window_width_px / 4, window_height_px * 3 / 4 });
+
+	// create walls on screen boundary (top & bottom)
+	for (int i = 0; i < window_width_px + FURNITURE_WIDTH * 3; i += FURNITURE_WIDTH * 3) {
+		createWalls(renderer, { i, 0 }, false);
+		createWalls(renderer, { i, window_height_px }, false);
+	}
+	// create walls on screen boundary (sides)
+	for (int j = 0; j < window_height_px + FURNITURE_WIDTH * 3; j += FURNITURE_WIDTH * 3) {
+		createWalls(renderer, { 0, j }, true);
+		createWalls(renderer, { window_width_px, j }, true);
+	}
+
 	// create health bar
-	hp_bar = createHPBar(renderer, { window_width_px - 60, HPBAR_BB_HEIGHT });
+	hp_bar = createHPBar(renderer, { window_width_px - 80, 40 });
 
 	// !! TODO A2: Enable static eggs on the ground, for reference
 	// Create eggs on the floor, use this for reference
@@ -322,10 +336,12 @@ void WorldSystem::handle_collisions() {
 
 				// modify hp bar
 				std::cout << "Player hp: " << player_hp <<"\n";
+				Motion& motion = registry.motions.get(hp_bar);
 				if (player_hp <= 100 && player_hp >= 0) {
-					Motion& motion = registry.motions.get(hp_bar);
 					motion.scale.x = HPBAR_BB_WIDTH * (player_hp / 100);
 					motion.position.x += HPBAR_BB_WIDTH * (player_hp / 400);
+				} else if (player_hp < 0) {
+					motion.scale.x = 0;
 				}
 			}
 			// Checking Player - Eatable collisions
@@ -339,6 +355,43 @@ void WorldSystem::handle_collisions() {
 					// !!! TODO A1: create a new struct called LightUp in components.hpp and add an instance to the salmon entity by modifying the ECS registry
 				}
 			}
+		}
+
+		// Checking collision with solid object
+		if (registry.solidObjs.has(entity_other)) {
+			Motion& motion_moving = registry.motions.get(entity);
+			Motion& motion_solid = registry.motions.get(entity_other);
+
+			if (registry.players.has(entity)) {
+				if (motion_moving.position.x < motion_solid.position.x - (motion_solid.scale.x / 2) && motion_moving.velocity.x > 0) {
+					motion_moving.velocity.x = 0.f;
+				} else if (motion_moving.position.x > motion_solid.position.x + (motion_solid.scale.x / 2) && motion_moving.velocity.x < 0)
+				{
+					motion_moving.velocity.x = 0.f;
+				} else if (motion_moving.position.y < motion_solid.position.y - (motion_solid.scale.y / 2) && motion_moving.velocity.y > 0)
+				{
+					motion_moving.velocity.y = 0.f;
+				} else if (motion_moving.position.y > motion_solid.position.y + (motion_solid.scale.y / 2) && motion_moving.velocity.y < 0)
+				{
+					motion_moving.velocity.y = 0.f;
+				}
+			} else if (registry.deadlys.has(entity) && registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::PROJECTILE) {
+				registry.remove_all_components_of(entity);
+			} else if (registry.deadlys.has(entity)) {
+				// if (motion_moving.position.x < motion_solid.position.x - (motion_solid.scale.x / 2) && motion_moving.velocity.x > 0) {
+				// 	motion_moving.velocity.x = 0.f;
+				// } else if (motion_moving.position.x > motion_solid.position.x + (motion_solid.scale.x / 2) && motion_moving.velocity.x < 0)
+				// {
+				// 	motion_moving.velocity.x = 0.f;
+				// } else if (motion_moving.position.y < motion_solid.position.y - (motion_solid.scale.y / 2) && motion_moving.velocity.y > 0)
+				// {
+				// 	motion_moving.velocity.y = 0.f;
+				// } else if (motion_moving.position.y > motion_solid.position.y + (motion_solid.scale.y / 2) && motion_moving.velocity.y < 0)
+				// {
+				// 	motion_moving.velocity.y = 0.f;
+				// }
+			}
+			
 		}
 	}
 
