@@ -29,7 +29,7 @@ WorldSystem::WorldSystem()
 }
 
 WorldSystem::~WorldSystem() {
-	
+
 	// destroy music components
 	if (background_music != nullptr)
 		Mix_FreeMusic(background_music);
@@ -127,7 +127,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	fprintf(stderr, "Loaded music\n");
 
 	// Set all states to default
-    restart_game();
+	restart_game();
 }
 
 // Update our game world
@@ -155,7 +155,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	
+
 	vec2 player_pos = motions_registry.get(my_player).position;
 	//TODO: spawn frequencies and spawn radius to be adjusted
 	// Spawn Level 1 type enemy: slow with contact damage
@@ -184,7 +184,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			distance_to_player = sqrt(pow(eel_pos.x - player_pos.x, 2) + pow(eel_pos.y - player_pos.y, 2));
 		} while (distance_to_player < 500.f);
 		Entity eel = createEel(renderer, eel_pos);
-		registry.motions.get(eel).velocity = { 100.f, 100.f};
+		registry.motions.get(eel).velocity = { 100.f, 100.f };
 	}
 
 	// Spawn Level 3 type enemy: slow ranged enemy
@@ -201,7 +201,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Entity ranged_enemy = createRangedEnemy(renderer, ranged_enemy_pos);
 		registry.motions.get(ranged_enemy).velocity = { 10.f, 10.f };
 	}
-	
+
 	// Spawn projectiles for ranged enemies
 	for (auto& ranged : registry.ranged.entities) {
 		float& projectile_delay = registry.ranged.get(ranged).projectile_delay;
@@ -215,6 +215,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			projectile_motion.angle = registry.motions.get(ranged).angle;
 		}
 
+	}
+
+	// Check if player is invlunerable
+	Player& player = registry.players.get(my_player);
+	if (player.invlunerable) {
+		player.invulnerable_duration_ms -= elapsed_ms_since_last_update;
+		if (player.invulnerable_duration_ms < 0.f) {
+			player.invlunerable = false;
+			player.invulnerable_duration_ms = 1000.f;
+		}
 	}
 
 	// Processing the salmon state
@@ -259,7 +269,7 @@ void WorldSystem::restart_game() {
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all fish, eels, ... but that would be more cumbersome
 	while (registry.motions.entities.size() > 0)
-	    registry.remove_all_components_of(registry.motions.entities.back());
+		registry.remove_all_components_of(registry.motions.entities.back());
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -279,7 +289,7 @@ void WorldSystem::restart_game() {
 		glfwGetWindowSize(window, &w, &h);
 		float radius = 30 * (uniform_dist(rng) + 0.3f); // range 0.3 .. 1.3
 		Entity egg = createEgg({ uniform_dist(rng) * w, h - uniform_dist(rng) * 20 },
-			         { radius, radius });
+					 { radius, radius });
 		float brightness = uniform_dist(rng) * 0.5 + 0.5;
 		registry.colors.insert(egg, { brightness, brightness, brightness});
 	}
@@ -301,9 +311,23 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Player - Deadly collisions
 			if (registry.deadlys.has(entity_other)) {
-				// player takes contact damage
 				float& player_hp = registry.healths.get(entity).hit_points;
-				player_hp -= registry.damages.get(entity_other).damage;
+				Player& player = registry.players.get(entity);
+				if (!player.invlunerable) {
+					// player takes damage
+					player_hp -= registry.damages.get(entity_other).damage;
+					// avoid negative hp values for hp bar
+					player_hp = max(0.f, player_hp);
+					// modify hp bar
+					std::cout << "Player hp: " << player_hp << "\n";
+					if (player_hp <= 100 && player_hp >= 0) {
+						Motion& motion = registry.motions.get(hp_bar);
+						motion.scale.x = HPBAR_BB_WIDTH * (player_hp / 100);
+						motion.position.x += HPBAR_BB_WIDTH * (player_hp / 400);
+					}
+					player.invlunerable = true;
+					player.invulnerable_duration_ms = 1000.f;
+				}
 				if (registry.deadlys.get(entity_other).enemy_type == ENEMY_TYPES::PROJECTILE) {
 					registry.remove_all_components_of(entity_other);
 				}
@@ -318,14 +342,6 @@ void WorldSystem::handle_collisions() {
 					motion.velocity[0] = 0.0f;
 					motion.velocity[1] = 0.0f;
 
-				}
-
-				// modify hp bar
-				std::cout << "Player hp: " << player_hp <<"\n";
-				if (player_hp <= 100 && player_hp >= 0) {
-					Motion& motion = registry.motions.get(hp_bar);
-					motion.scale.x = HPBAR_BB_WIDTH * (player_hp / 100);
-					motion.position.x += HPBAR_BB_WIDTH * (player_hp / 400);
 				}
 			}
 			// Checking Player - Eatable collisions
@@ -363,7 +379,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
 
-        restart_game();
+		restart_game();
 	}
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
@@ -381,7 +397,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) {
 		Motion& motion = registry.motions.get(my_player);
-		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player)) {
+		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
 			motion.velocity[0] = motion.speed;
 		}
 		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
@@ -391,7 +407,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (key == GLFW_KEY_LEFT || key == GLFW_KEY_A) {
 		Motion& motion = registry.motions.get(my_player);
-		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player)) {
+		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
 			motion.velocity[0] = -1.0 * motion.speed;
 		}
 		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
@@ -401,7 +417,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (key == GLFW_KEY_UP || key == GLFW_KEY_W) {
 		Motion& motion = registry.motions.get(my_player);
-		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player)) {
+		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
 			motion.velocity[1] = -1.0 * motion.speed;
 		}
 		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
@@ -411,7 +427,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (key == GLFW_KEY_DOWN || key == GLFW_KEY_S) {
 		Motion& motion = registry.motions.get(my_player);
-		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player)) {
+		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
 			motion.velocity[1] = motion.speed;
 		}
 		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {

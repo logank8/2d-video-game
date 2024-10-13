@@ -7,7 +7,9 @@
 // Player component
 struct Player
 {
-
+	// For dashing and after taking damage;
+	bool invlunerable = false;
+	float invulnerable_duration_ms = 1000.f;
 };
 
 enum class ENEMY_TYPES {
@@ -36,20 +38,20 @@ struct Projectile
 // Walls component
 struct Wall
 {
-	
+
 };
 
 // Ground component
 struct Ground
 {
-	
+
 };
 
 
 // player can't move through
 struct Solid
 {
-	
+
 };
 
 // slows player down when walked on - applied to specific ground tiles
