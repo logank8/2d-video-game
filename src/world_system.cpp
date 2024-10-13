@@ -5,6 +5,10 @@
 // stlib
 #include <cassert>
 #include <sstream>
+#include <iostream>
+
+#include <cmath>
+#include <tgmath.h>
 
 #include "physics_system.hpp"
 
@@ -13,6 +17,8 @@ const size_t MAX_NUM_EELS = 15;
 const size_t MAX_NUM_FISH = 5;
 const size_t EEL_SPAWN_DELAY_MS = 2000 * 3;
 const size_t FISH_SPAWN_DELAY_MS = 5000 * 3;
+
+vec2 mousePos;
 
 // create the underwater world
 WorldSystem::WorldSystem()
@@ -205,6 +211,50 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			return true;
 		}
 	}
+
+
+	// distance tracking:
+	// min distance between player pos and target will be 10.0 for standard i guess, idk
+	// 
+
+	vec2 min_dash_diff = vec2(10.f, 10.f);
+	float min_counter_ms_stamina = 1000.f;
+	for (Entity entity : registry.dashing.entities) {
+		// progress diff value
+		Dash& player_dash = registry.dashing.get(entity);
+		if (player_dash.diff != vec2(0.f, 0.f)) {
+
+			player_dash.diff = player_dash.target - registry.motions.get(my_player).position;
+
+			min_dash_diff = player_dash.diff;
+
+			if ((player_dash.diff.x <= 0) && (player_dash.diff.y <= 0)) {
+				// target reached - change velocity
+				player_dash.diff = vec2(0.f, 0.f);
+				registry.motions.get(my_player).velocity = vec2(0,0);
+			} else if (player_dash.diff.x <= 0) {
+				player_dash.diff = vec2(0.f, player_dash.diff.y);
+			} else if (player_dash.diff.y <= 0) {
+				player_dash.diff = vec2(player_dash.diff.x, 0.f);
+			}
+		}
+
+		
+		
+		player_dash.stamina_timer_ms -= elapsed_ms_since_last_update;
+		if(player_dash.stamina_timer_ms < min_counter_ms_stamina){
+		    min_counter_ms_stamina = player_dash.stamina_timer_ms;
+		}
+
+		std::cout << player_dash.stamina_timer_ms << std::endl;
+		if (player_dash.stamina_timer_ms < 0) {
+			registry.dashing.remove(my_player);
+			continue;
+		}
+
+	}
+
+	
 	// reduce window brightness if the salmon is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
@@ -247,6 +297,19 @@ void WorldSystem::restart_game() {
 		registry.colors.insert(egg, { brightness, brightness, brightness});
 	}
 	*/
+}
+
+// utility functions for dash mvmnt implementation
+vec2 lerp(vec2 start, vec2 end, float t) {
+	return start * (1-t) + end*t;
+}
+
+float distance(vec2 coord1, vec2 coord2) {
+	return sqrt(powf(coord2.x - coord1.x, 2.f) + powf(coord2.y - coord1.y, 2.f));
+}
+
+vec2 norm(vec2 vec) {
+	return (vec / (vec.x + vec.y));
 }
 
 // Compute collisions between entities
@@ -305,11 +368,8 @@ bool WorldSystem::is_over() const {
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: HANDLE SALMON MOVEMENT HERE
 	// key is of 'type' GLFW_KEY_
 	// action can be GLFW_PRESS GLFW_RELEASE GLFW_REPEAT
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;
@@ -376,6 +436,32 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("Current speed = %f\n", current_speed);
 	}
 	current_speed = fmax(0.f, current_speed);
+
+	if (key == GLFW_KEY_X) {
+		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player)) {
+			if (!registry.dashing.has(my_player)) {
+				Dash new_dash = {registry.motions.get(my_player).position + vec2(200, 0), registry.motions.get(my_player).position - (registry.motions.get(my_player).position + vec2(0, 5)), 1000};
+				// std::cout << "position: " << registry.motions.get(my_player).position.x << " " << registry.motions.get(my_player).position.y << " target: " << new_dash.target.x << " " << new_dash.target.y << std::endl;
+
+				registry.dashing.insert(my_player, new_dash);
+			} 
+			
+		}
+	}
+
+	Motion& motion = registry.motions.get(my_player);
+
+	// Dash movement
+	if (registry.dashing.has(my_player)) {
+		if (registry.dashing.get(my_player).diff != vec2(0.f, 0.f)) {
+			motion.velocity = lerp(vec2(0, 0), registry.dashing.get(my_player).target - motion.position, 0.2);
+			std::cout << "velocity: " << registry.motions.get(my_player).velocity.x << " " << registry.motions.get(my_player).velocity.y << std::endl;
+			motion.velocity = 10 * motion.speed * norm(motion.velocity);
+		}
+	}
+	
+	
+	// std::cout << motion.velocity.x << " " << motion.velocity.y << std::endl;
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
@@ -384,6 +470,9 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// xpos and ypos are relative to the top-left of the window, the salmon's
 	// default facing direction is (1, 0)
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+	//std::cout << "salmon: " << registry.motions.get(my_player).position.x << " " << registry.motions.get(my_player).position.y << std::endl;
+	//std::cout << "mouse: " << mouse_position.x << " " << mouse_position.y << std::endl;
 
 	(vec2)mouse_position; // dummy to avoid compiler warning
 }

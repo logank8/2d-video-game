@@ -126,6 +126,14 @@ struct Mesh
 	std::vector<uint16_t> vertex_indices;
 };
 
+
+struct Dash
+{
+	vec2 target;
+	vec2 diff;
+	float stamina_timer_ms = 1000;
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
