@@ -18,6 +18,11 @@ const size_t MAX_NUM_RANGED_ENEMY = 1;
 const size_t RANGED_ENEMY_SPAWN_DELAY_MS = 5000 * 3;
 const size_t RANGED_ENEMY_PROJECTILE_DELAY_MS = 2000 * 3;
 
+bool rstuck = false;
+bool lstuck = false;
+bool ustuck = false;
+bool dstuck = false;
+
 // create the underwater world
 WorldSystem::WorldSystem()
 	: points(0)
@@ -379,15 +384,23 @@ void WorldSystem::handle_collisions() {
 			if (registry.players.has(entity)) {
 				if (motion_moving.position.x < motion_solid.position.x - (motion_solid.scale.x / 2) && motion_moving.velocity.x > 0) {
 					motion_moving.velocity.x = 0.f;
+					rstuck = true;
+					// motion_moving.position.x = motion_solid.position.x - motion_solid.scale.x;
 				} else if (motion_moving.position.x > motion_solid.position.x + (motion_solid.scale.x / 2) && motion_moving.velocity.x < 0)
 				{
 					motion_moving.velocity.x = 0.f;
+					lstuck = true;
+					// motion_moving.position.x = motion_solid.position.x + motion_solid.scale.x;
 				} else if (motion_moving.position.y < motion_solid.position.y - (motion_solid.scale.y / 2) && motion_moving.velocity.y > 0)
 				{
 					motion_moving.velocity.y = 0.f;
+					dstuck = true;
+					// motion_moving.position.y = motion_solid.position.y - motion_solid.scale.y;
 				} else if (motion_moving.position.y > motion_solid.position.y + (motion_solid.scale.y / 2) && motion_moving.velocity.y < 0)
 				{
 					motion_moving.velocity.y = 0.f;
+					ustuck = true;
+					// motion_moving.position.y = motion_solid.position.y + motion_solid.scale.y;
 				}
 			} else if (registry.deadlys.has(entity) && registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::PROJECTILE) {
 				registry.remove_all_components_of(entity);
@@ -448,8 +461,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) {
 		Motion& motion = registry.motions.get(my_player);
-		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
+		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player) && !rstuck) {
 			motion.velocity[0] = motion.speed;
+			lstuck = false;
 		}
 		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
 			motion.velocity[0] = 0.f;
@@ -458,8 +472,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (key == GLFW_KEY_LEFT || key == GLFW_KEY_A) {
 		Motion& motion = registry.motions.get(my_player);
-		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
+		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player) && !lstuck) {
 			motion.velocity[0] = -1.0 * motion.speed;
+			rstuck = false;
 		}
 		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
 			motion.velocity[0] = 0.f;
@@ -468,8 +483,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (key == GLFW_KEY_UP || key == GLFW_KEY_W) {
 		Motion& motion = registry.motions.get(my_player);
-		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
+		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player) && !ustuck) {
 			motion.velocity[1] = -1.0 * motion.speed;
+			dstuck = false;
 		}
 		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
 			motion.velocity[1] = 0.f;
@@ -478,8 +494,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (key == GLFW_KEY_DOWN || key == GLFW_KEY_S) {
 		Motion& motion = registry.motions.get(my_player);
-		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
+		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player) && !dstuck) {
 			motion.velocity[1] = motion.speed;
+			ustuck = false;
 		}
 		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
 			motion.velocity[1] = 0.f;
