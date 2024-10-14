@@ -13,6 +13,7 @@ public:
 	// Manually created list of all components this game has
 	// TODO: A1 add a LightUp component
 	ComponentContainer<DeathTimer> deathTimers;
+	ComponentContainer<BlockedTimer> blockedTimers;
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
 	ComponentContainer<Player> players;
@@ -31,6 +32,8 @@ public:
 	ComponentContainer<Slows> slows;
 	ComponentContainer<Dash> dashing;
 	ComponentContainer<OnMap> onMap;
+	ComponentContainer<Ranged> ranged;
+	ComponentContainer<Projectile> projectiles;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -38,6 +41,7 @@ public:
 	{
 		// TODO: A1 add a LightUp component
 		registry_list.push_back(&deathTimers);
+		registry_list.push_back(&blockedTimers);
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
 		registry_list.push_back(&players);
@@ -56,6 +60,8 @@ public:
 		registry_list.push_back(&slows);
 		registry_list.push_back(&dashing);
 		registry_list.push_back(&onMap);
+		registry_list.push_back(&ranged);
+		registry_list.push_back(&projectiles);
 	}
 
 	void clear_all_components() {

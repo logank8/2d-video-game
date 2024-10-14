@@ -1,2 +1,12 @@
 .vs/
 out/
+
+/build/
+/CMakeFiles/
+/CMakeCache.txt
+/cmake_install.cmake
+/Makefile
+/ext/project_path.hpp
+
+/*.exe
+/salmon

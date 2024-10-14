@@ -37,6 +37,7 @@ public:
 
 	// Should the game be over ?
 	bool is_over()const;
+	bool is_paused;
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -56,7 +57,9 @@ private:
 	float current_speed;
 	float next_eel_spawn;
 	float next_fish_spawn;
+	float next_ranged_spawn;
 	Entity my_player;
+	Entity hp_bar;
 
 	// music references
 	Mix_Music* background_music;

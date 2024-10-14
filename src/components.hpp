@@ -7,11 +7,30 @@
 // Player component
 struct Player
 {
-
+	// For dashing and after taking damage;
+	bool invlunerable = false;
+	float invulnerable_duration_ms = 1000.f;
 };
+
+enum class ENEMY_TYPES {
+	CONTACT_DMG = 0,
+	RANGED = CONTACT_DMG + 1,
+	PROJECTILE = RANGED + 1
+};
+
 
 // anything that is deadly to the player
 struct Deadly
+{
+	ENEMY_TYPES enemy_type = ENEMY_TYPES::CONTACT_DMG;
+};
+
+struct Ranged
+{
+	float projectile_delay = 1000.f;
+};
+
+struct Projectile
 {
 
 };
@@ -19,20 +38,20 @@ struct Deadly
 // Walls component
 struct Wall
 {
-	
+
 };
 
 // Ground component
 struct Ground
 {
-	
+
 };
 
 
 // player can't move through
 struct Solid
 {
-	
+
 };
 
 // slows player down when walked on - applied to specific ground tiles
@@ -103,6 +122,12 @@ struct DeathTimer
 	float counter_ms = 3000;
 };
 
+// A timer that will be associated to enemy blocked by a solid object
+struct BlockedTimer
+{
+	float counter_ms = 100;
+};
+
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & salmon.vs.glsl)
 struct ColoredVertex
 {
@@ -167,7 +192,14 @@ enum class TEXTURE_ASSET_ID {
 	FISH = 0,
 	EEL = FISH + 1,
 	PLAYER = EEL + 1,
-	TEXTURE_COUNT = PLAYER + 1
+	RANGED_ENEMY = PLAYER + 1,
+	RANGED_PROJECTILE = RANGED_ENEMY + 1,
+	HP_BAR = RANGED_PROJECTILE + 1,
+	HP_BAR_EMPTY = HP_BAR + 1,
+	FURNITURE = HP_BAR_EMPTY + 1,
+	WALL = FURNITURE + 1,
+	SIDE_WALL = WALL + 1,
+	TEXTURE_COUNT = SIDE_WALL + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
