@@ -20,6 +20,7 @@ const size_t FISH_SPAWN_DELAY_MS = 5000 * 3;
 const vec2 INIT_PLAYER_POS = { 25.f, 44.f };
 const float TILE_SIZE = 100.f;
 const vec2 MAP_SIZE = { 58, 46};
+std::vector<vec2> tile_vec;
 vec2 mousePos;
 
 // create the underwater world
@@ -147,19 +148,67 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
 
-	// Remove entities that leave the screen on the left side
+	// Remove entities that leave the screen
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current)
-	for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
-	    Motion& motion = motions_registry.components[i];
-		if (motion.position.x + abs(motion.scale.x) < 0.f) {
-			if(!registry.players.has(motions_registry.entities[i])) // don't remove the player
-				registry.remove_all_components_of(motions_registry.entities[i]);
+	
+	
+	/*
+	for (int i = INIT_PLAYER_POS.x - ceil(window_width_px / 100); i < INIT_PLAYER_POS.x + ceil(window_width_px / 100); i++) {
+		for (int j = INIT_PLAYER_POS.y - ceil(window_height_px / 100); j < INIT_PLAYER_POS.y + ceil(window_height_px / 100); j++) {
+			Entity tile = createGround(renderer, vec2(i,j));
+			registry.onMap.insert(tile, {vec2(i, j) - INIT_PLAYER_POS});
+		}
+	}
+	*/
+	// remove any tiles outside of player's immediate view 
+	// TODO: figure out what to do for enemies here
+
+	vec2 player_pos = motions_registry.get(my_player).position;
+
+	for (int i = (int) motions_registry.components.size()-1; i >= 0; --i) {
+		Motion& motion = motions_registry.components[i];
+		if (!registry.players.has(motions_registry.entities[i])) { // don't remove the player 
+			if ((motion.position.x < player_pos.x - ceil(window_width_px / 200)) || (motion.position.x > player_pos.x + ceil(window_width_px / 200)) || 
+				(motion.position.y < player_pos.y - ceil(window_height_px / 200)) || (motion.position.y > player_pos.y + ceil(window_height_px / 200))) {
+					if (std::find(tile_vec.begin(), tile_vec.end(), vec2(floor(motion.position.x), floor(motion.position.y))) != tile_vec.end()) {
+						tile_vec.erase(std::find(tile_vec.begin(), tile_vec.end(), vec2(floor(motion.position.x), floor(motion.position.y))));
+						registry.remove_all_components_of(motions_registry.entities[i]);
+					}
+			}
 		}
 	}
 
+	// adding tile locations:
+	// check if tile_vec[i][j] is already true
+	// if i, j out of bounds: store with unique loc and trust it will be destroyed when needed
+	// if else: create tile entity with coords (i, j) (reverse indexing should be ONLY for looking at map1, afaik)
+	for (int i = player_pos.x - ceil(window_width_px / 100); i < player_pos.x + ceil(window_width_px / 100); i++) {
+		for (int j = player_pos.y - ceil(window_height_px / 100); j < player_pos.y + ceil(window_height_px / 100); j++) {
+			// if tile is not already placed:
+			if ((std::find(tile_vec.begin(), tile_vec.end(), vec2(i, j)) == tile_vec.end())) {
+				// check value in map - if out of bounds render wall
+				if ((i >= map1[0].size()) || i < 0 || (j >= map1.size()) || j < 0) {
+					Entity tile = createGround(renderer, vec2(i,j));
+					tile_vec.push_back(vec2(i, j));
+					registry.onMap.insert(tile, {vec2(i, j) - player_pos});
+					continue;
+				}
+				
+				if (map1[j][i] == 0) {
+					Entity tile = createGround(renderer, vec2(i,j));
+					tile_vec.push_back(vec2(i, j));
+					registry.onMap.insert(tile, {vec2(i, j) - player_pos});
+				}
+			}
+		}
+	}
+
+	std::cout << registry.onMap.components.size() << std::endl;
+
 	
-	vec2 player_pos = motions_registry.get(my_player).position;
+	
+
 	/*
 	//TODO: spawn frequencies and spawn radius to be adjusted
 	// Spawn Level 1 type enemy: slow with contact damage
@@ -217,16 +266,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 
-	// distance tracking:
-	// min distance between player pos and target will be 10.0 for standard i guess, idk
-	// 
-
+	// distance tracking in dash:
+	// min distance between player pos and target will be 10.0 for standard
 	vec2 min_dash_diff = vec2(10.f, 10.f);
 	float min_counter_ms_stamina = 1000.f;
 	for (Entity entity : registry.dashing.entities) {
 		// progress diff value
 		Dash& player_dash = registry.dashing.get(entity);
 		if (player_dash.diff != vec2(0.f, 0.f)) {
+			std::cout << player_dash.diff.x << " " << player_dash.diff.y << std::endl;
 
 			player_dash.diff = player_dash.target - registry.motions.get(my_player).position;
 
@@ -243,8 +291,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 		}
 
-		
-		
 		player_dash.stamina_timer_ms -= elapsed_ms_since_last_update;
 		if(player_dash.stamina_timer_ms < min_counter_ms_stamina){
 		    min_counter_ms_stamina = player_dash.stamina_timer_ms;
@@ -261,9 +307,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	
 	// reduce window brightness if the salmon is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
-
-	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the death counter
-
 	return true;
 }
 
@@ -283,12 +326,29 @@ void WorldSystem::restart_game() {
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
-	for (int i = INIT_PLAYER_POS.x - ceil(window_width_px / 100); i < INIT_PLAYER_POS.x + ceil(window_width_px / 100); i++) {
-		for (int j = INIT_PLAYER_POS.y - ceil(window_height_px / 100); j < INIT_PLAYER_POS.y + ceil(window_height_px / 100); j++) {
-			Entity tile = createGround(renderer, vec2(i,j));
-			registry.onMap.insert(tile, {vec2(i, j) - INIT_PLAYER_POS});
+
+	// vector to track created entity tiles (should be kept minimal for computational efficiency)
+	// map1.size() extends over y range, map1[0].size() extends over x range
+	int height = map1.size(), width = map1[0].size();
+
+	// adding tiles
+	for (int i = INIT_PLAYER_POS.x - ceil(window_width_px / 200); i < INIT_PLAYER_POS.x + ceil(window_width_px / 200); i++) {
+		for (int j = INIT_PLAYER_POS.y - ceil(window_height_px / 200); j < INIT_PLAYER_POS.y + ceil(window_height_px / 200); j++) {
+
+			if ((i >= map1[0].size()) || (i < 0) || (j >= map1.size()) || (j < 0)) {
+				Entity tile = createGround(renderer, vec2(i,j));
+				tile_vec.push_back(vec2(i, j));
+				registry.onMap.insert(tile, {vec2(i, j) - INIT_PLAYER_POS});				
+			} else {
+				if (map1[j][i] == 0) {
+					Entity tile = createGround(renderer, vec2(i,j));
+					tile_vec.push_back(vec2(i, j));
+					registry.onMap.insert(tile, {vec2(i, j) - INIT_PLAYER_POS});
+				}
+			}
 		}
 	}
+
 
 	// create a new Player
 	my_player = createPlayer(renderer, INIT_PLAYER_POS);
@@ -444,7 +504,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			
 		}
 	}
-	// std::cout << "position: " << registry.motions.get(my_player).position.x << " " << registry.motions.get(my_player).position.y << std::endl;
 
 	Motion& motion = registry.motions.get(my_player);
 	
@@ -454,14 +513,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (registry.dashing.get(my_player).diff != vec2(0.f, 0.f)) {
 			motion.velocity = lerp(vec2(0, 0), registry.dashing.get(my_player).target - motion.position, 0.2);
 			std::cout << "velocity: " << registry.motions.get(my_player).velocity.x << " " << registry.motions.get(my_player).velocity.y << std::endl;
-			motion.velocity = motion.speed * norm(motion.velocity);
+			motion.velocity = 5 * motion.speed * norm(motion.velocity);
 		}
 	}
 
-	motion.velocity = vec2(motion.velocity.x / 20, motion.velocity.y / 20);
 	
 	
-	// std::cout << motion.velocity.x << " " << motion.velocity.y << std::endl;
+	std::cout << "position: " << motion.position.x << " " << motion.position.y << std::endl;
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
