@@ -30,6 +30,8 @@ public:
 	ComponentContainer<Ground> groundTiles;
 	ComponentContainer<Solid> solidObjs;
 	ComponentContainer<Slows> slows;
+	ComponentContainer<Dash> dashing;
+	ComponentContainer<OnMap> onMap;
 	ComponentContainer<Ranged> ranged;
 	ComponentContainer<Projectile> projectiles;
 
@@ -56,6 +58,8 @@ public:
 		registry_list.push_back(&groundTiles);
 		registry_list.push_back(&solidObjs);
 		registry_list.push_back(&slows);
+		registry_list.push_back(&dashing);
+		registry_list.push_back(&onMap);
 		registry_list.push_back(&ranged);
 		registry_list.push_back(&projectiles);
 	}

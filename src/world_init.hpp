@@ -43,6 +43,7 @@ Entity createLine(vec2 position, vec2 size);
 // a egg
 Entity createEgg(vec2 pos, vec2 size);
 
+Entity createGround(RenderSystem* renderer, vec2 pos);
 // a wall
 Entity createWalls(RenderSystem* renderer, vec2 pos, bool is_side_wall);
 
