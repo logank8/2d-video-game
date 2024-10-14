@@ -2,20 +2,47 @@
 #include "render_system.hpp"
 #include <SDL.h>
 
+// stlib
+#include <cassert>
+#include <sstream>
+#include <iostream>
+
 #include "tiny_ecs_registry.hpp"
+
+const vec2 PLAYER_POS_FIXED_MAP = { 25, 44 };
+const float TILE_SIZE_PX = 100.f;
 
 void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3 &projection)
 {
 	Motion &motion = registry.motions.get(entity);
+	// calculate screen position relative to fixed player screen position INIT_PLAYER_POS = { window_width_px/2, window_height_px - 200 };
+	// in map: player starts at [25, 44]
+	
+	float xdiff = registry.onMap.get(entity).player_pos_diff.x;
+	float ydiff = registry.onMap.get(entity).player_pos_diff.y;
+
+	vec2 screen_position = TILE_SIZE_PX * vec2(xdiff, ydiff) + vec2(window_width_px / 2, window_height_px / 2);
+
+	if ((screen_position.x <= -100) || (screen_position.y <= -100) || (screen_position.x >= window_width_px + 100) || (screen_position.y >= window_height_px + 100)) {
+		return;
+	}
+	
+
+	Motion screen_motion = {
+		screen_position,
+		motion.angle,
+		vec2(motion.velocity.x * 100, motion.velocity.y * 100),
+		motion.scale,
+		motion.speed,
+	};
+
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,
 	// thus ORDER IS IMPORTANT
 	Transform transform;
-	transform.translate(motion.position);
-	transform.scale(motion.scale);
-	// !!! TODO A1: add rotation to the chain of transformations, mind the order
-	// of transformations
+	transform.translate(screen_motion.position);
+	transform.scale(screen_motion.scale);
 
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest &render_request = registry.renderRequests.get(entity);
@@ -67,7 +94,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
 	}
-	else if (render_request.used_effect == EFFECT_ASSET_ID::SALMON || render_request.used_effect == EFFECT_ASSET_ID::EGG)
+	else if (render_request.used_effect == EFFECT_ASSET_ID::SALMON || render_request.used_effect == EFFECT_ASSET_ID::EGG || render_request.used_effect == EFFECT_ASSET_ID::GROUND)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_color_loc = glGetAttribLocation(program, "in_color");
@@ -82,18 +109,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
 							  sizeof(ColoredVertex), (void *)sizeof(vec3));
 		gl_has_errors();
-
-		if (render_request.used_effect == EFFECT_ASSET_ID::SALMON)
-		{
-			// Light up?
-			GLint light_up_uloc = glGetUniformLocation(program, "light_up");
-			assert(light_up_uloc >= 0);
-
-			// !!! TODO A1: set the light_up shader variable using glUniform1i,
-			// similar to the glUniform1f call below. The 1f or 1i specified the type, here a single int.
-			gl_has_errors();
-		}
-	}
+	} 
 	else
 	{
 		assert(false && "Type of render request not supported");

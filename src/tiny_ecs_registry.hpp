@@ -30,6 +30,7 @@ public:
 	ComponentContainer<Solid> solidObjs;
 	ComponentContainer<Slows> slows;
 	ComponentContainer<Dash> dashing;
+	ComponentContainer<OnMap> onMap;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -54,6 +55,7 @@ public:
 		registry_list.push_back(&solidObjs);
 		registry_list.push_back(&slows);
 		registry_list.push_back(&dashing);
+		registry_list.push_back(&onMap);
 	}
 
 	void clear_all_components() {

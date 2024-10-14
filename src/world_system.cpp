@@ -17,7 +17,9 @@ const size_t MAX_NUM_EELS = 15;
 const size_t MAX_NUM_FISH = 5;
 const size_t EEL_SPAWN_DELAY_MS = 2000 * 3;
 const size_t FISH_SPAWN_DELAY_MS = 5000 * 3;
-
+const vec2 INIT_PLAYER_POS = { 25.f, 44.f };
+const float TILE_SIZE = 100.f;
+const vec2 MAP_SIZE = { 58, 46};
 vec2 mousePos;
 
 // create the underwater world
@@ -124,7 +126,7 @@ GLFWwindow* WorldSystem::create_window() {
 void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 	// Playing background music indefinitely
-	Mix_PlayMusic(background_music, -1);
+	// AUDIO Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
 
 	// Set all states to default
@@ -158,6 +160,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	
 	vec2 player_pos = motions_registry.get(my_player).position;
+	/*
 	//TODO: spawn frequencies and spawn radius to be adjusted
 	// Spawn Level 1 type enemy: slow with contact damage
 	next_fish_spawn -= elapsed_ms_since_last_update * current_speed;
@@ -166,11 +169,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		vec2 fish_pos;
 		float distance_to_player;
 		do {
-			fish_pos = { 50.0f + uniform_dist(rng) * (window_width_px - 100.f), 50.f + uniform_dist(rng) * (window_height_px - 100.f) };
+			fish_pos = { 0.5f + uniform_dist(rng) * (MAP_SIZE.x - 1.f), 50.f + uniform_dist(rng) * (MAP_SIZE.y - 1.f) };
 			distance_to_player = sqrt(pow(fish_pos.x - player_pos.x, 2) + pow(fish_pos.y - player_pos.y, 2));
-		} while (distance_to_player < 500.f);
+		} while (distance_to_player < 5.f);
 		Entity fish = createFish(renderer, fish_pos);
-		registry.motions.get(fish).velocity = { 50.f, 50.f };
+		registry.motions.get(fish).velocity = { 0.5f, 0.5f };
 	}
 
 	// Spawn Level 2 type enemy: fast with contact damage
@@ -181,12 +184,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		vec2 eel_pos;
 		float distance_to_player;
 		do {
-			eel_pos = { 10.0f + uniform_dist(rng) * (window_width_px - 100.f), 50.f + uniform_dist(rng) * (window_height_px - 100.f) };
+			eel_pos = { 10.0f + uniform_dist(rng) * (MAP_SIZE.x - 100.f), 50.f + uniform_dist(rng) * (MAP_SIZE.y - 100.f) };
 			distance_to_player = sqrt(pow(eel_pos.x - player_pos.x, 2) + pow(eel_pos.y - player_pos.y, 2));
 		} while (distance_to_player < 500.f);
 		Entity eel = createEel(renderer, eel_pos);
 		registry.motions.get(eel).velocity = { 100.f, 100.f};
 	}
+	*/
 
 	
 
@@ -246,7 +250,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		    min_counter_ms_stamina = player_dash.stamina_timer_ms;
 		}
 
-		std::cout << player_dash.stamina_timer_ms << std::endl;
+		// std::cout << player_dash.stamina_timer_ms << std::endl;
 		if (player_dash.stamina_timer_ms < 0) {
 			registry.dashing.remove(my_player);
 			continue;
@@ -279,24 +283,17 @@ void WorldSystem::restart_game() {
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
-
-	// create a new Salmon
-	my_player = createPlayer(renderer, { window_width_px/2, window_height_px - 200 });
-	registry.colors.insert(my_player, {1, 0.8f, 0.8f});
-
-	// !! TODO A2: Enable static eggs on the ground, for reference
-	// Create eggs on the floor, use this for reference
-	/*
-	for (uint i = 0; i < 20; i++) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
-		float radius = 30 * (uniform_dist(rng) + 0.3f); // range 0.3 .. 1.3
-		Entity egg = createEgg({ uniform_dist(rng) * w, h - uniform_dist(rng) * 20 },
-			         { radius, radius });
-		float brightness = uniform_dist(rng) * 0.5 + 0.5;
-		registry.colors.insert(egg, { brightness, brightness, brightness});
+	for (int i = INIT_PLAYER_POS.x - ceil(window_width_px / 100); i < INIT_PLAYER_POS.x + ceil(window_width_px / 100); i++) {
+		for (int j = INIT_PLAYER_POS.y - ceil(window_height_px / 100); j < INIT_PLAYER_POS.y + ceil(window_height_px / 100); j++) {
+			Entity tile = createGround(renderer, vec2(i,j));
+			registry.onMap.insert(tile, {vec2(i, j) - INIT_PLAYER_POS});
+		}
 	}
-	*/
+
+	// create a new Player
+	my_player = createPlayer(renderer, INIT_PLAYER_POS);
+	registry.colors.insert(my_player, {1, 0.8f, 0.8f});
+	
 }
 
 // utility functions for dash mvmnt implementation
@@ -440,25 +437,28 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_X) {
 		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player)) {
 			if (!registry.dashing.has(my_player)) {
-				Dash new_dash = {registry.motions.get(my_player).position + vec2(200, 0), registry.motions.get(my_player).position - (registry.motions.get(my_player).position + vec2(0, 5)), 1000};
-				// std::cout << "position: " << registry.motions.get(my_player).position.x << " " << registry.motions.get(my_player).position.y << " target: " << new_dash.target.x << " " << new_dash.target.y << std::endl;
+				Dash new_dash = {registry.motions.get(my_player).position + vec2(2, 0), registry.motions.get(my_player).position - (registry.motions.get(my_player).position + vec2(0, 5)), 1000};
 
 				registry.dashing.insert(my_player, new_dash);
 			} 
 			
 		}
 	}
+	// std::cout << "position: " << registry.motions.get(my_player).position.x << " " << registry.motions.get(my_player).position.y << std::endl;
 
 	Motion& motion = registry.motions.get(my_player);
+	
 
 	// Dash movement
 	if (registry.dashing.has(my_player)) {
 		if (registry.dashing.get(my_player).diff != vec2(0.f, 0.f)) {
 			motion.velocity = lerp(vec2(0, 0), registry.dashing.get(my_player).target - motion.position, 0.2);
 			std::cout << "velocity: " << registry.motions.get(my_player).velocity.x << " " << registry.motions.get(my_player).velocity.y << std::endl;
-			motion.velocity = 10 * motion.speed * norm(motion.velocity);
+			motion.velocity = motion.speed * norm(motion.velocity);
 		}
 	}
+
+	motion.velocity = vec2(motion.velocity.x / 20, motion.velocity.y / 20);
 	
 	
 	// std::cout << motion.velocity.x << " " << motion.velocity.y << std::endl;
@@ -470,9 +470,6 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// xpos and ypos are relative to the top-left of the window, the salmon's
 	// default facing direction is (1, 0)
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-	//std::cout << "salmon: " << registry.motions.get(my_player).position.x << " " << registry.motions.get(my_player).position.y << std::endl;
-	//std::cout << "mouse: " << mouse_position.x << " " << mouse_position.y << std::endl;
 
 	(vec2)mouse_position; // dummy to avoid compiler warning
 }

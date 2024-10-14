@@ -134,6 +134,11 @@ struct Dash
 	float stamina_timer_ms = 1000;
 };
 
+struct OnMap 
+{
+	vec2 player_pos_diff = {0.f, 0.f};
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -172,7 +177,8 @@ enum class EFFECT_ASSET_ID {
 	SALMON = EGG + 1,
 	TEXTURED = SALMON + 1,
 	WATER = TEXTURED + 1,
-	EFFECT_COUNT = WATER + 1
+	GROUND = WATER + 1,
+	EFFECT_COUNT = GROUND + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -182,7 +188,8 @@ enum class GEOMETRY_BUFFER_ID {
 	EGG = SPRITE + 1,
 	DEBUG_LINE = EGG + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
-	GEOMETRY_COUNT = SCREEN_TRIANGLE + 1
+	GROUND = SCREEN_TRIANGLE + 1,
+	GEOMETRY_COUNT = GROUND + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
