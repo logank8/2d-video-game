@@ -164,6 +164,10 @@ struct OnMap
 	vec2 player_pos_diff = {0.f, 0.f};
 };
 
+struct ScreenUI {
+
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture

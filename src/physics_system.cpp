@@ -10,8 +10,8 @@ vec2 get_bounding_box(const Motion& motion)
 }
 
 bool collides(const Motion& motion1, const Motion& motion2) {
-	vec2 box1 = get_bounding_box(motion1) / 2.f;
-	vec2 box2 = get_bounding_box(motion2) / 2.f;
+	vec2 box1 = get_bounding_box(motion1) / 200.f;
+	vec2 box2 = get_bounding_box(motion2) / 200.f;
 
 	// Approximate a circle for each entity in the quadrant
 	float radius1 = length(box1) / 2.f; 
@@ -50,11 +50,11 @@ void PhysicsSystem::step(float elapsed_ms)
 						float damage = registry.damages.get(entity).damage;
 
 						if (registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::RANGED) { // Level 3 type enemy: slow ranged enemy
-							motion.velocity = { 10.f, 10.f };
+							motion.velocity = { 1.f, 1.f };
 						} else if (damage == 10) {	// Level 1 type enemy: slow with contact damage
-							motion.velocity = { 50.f, 50.f };
+							motion.velocity = { 5.f, 5.f };
 						} else if (damage == 25) {	// Level 2 type enemy: fast with contact damage
-							motion.velocity = { 100.f, 100.f };
+							motion.velocity = { 10.f, 10.f };
 						}
 					}
 
