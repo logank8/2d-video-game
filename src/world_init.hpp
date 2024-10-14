@@ -25,6 +25,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos);
 
 // the hp bar
 Entity createHPBar(RenderSystem* renderer, vec2 pos);
+Entity createHPBarEmpty(RenderSystem* renderer, vec2 pos);
 
 // the prey
 Entity createFish(RenderSystem* renderer, vec2 position);

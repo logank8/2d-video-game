@@ -185,7 +185,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		vec2 eel_pos;
 		float distance_to_player;
 		do {
-			eel_pos = { 10.0f + uniform_dist(rng) * (window_width_px - 100.f), 50.f + uniform_dist(rng) * (window_height_px - 100.f) };
+			eel_pos = { 100.0f + uniform_dist(rng) * (window_width_px - 150.f), 50.f + uniform_dist(rng) * (window_height_px - 100.f) };
 			distance_to_player = sqrt(pow(eel_pos.x - player_pos.x, 2) + pow(eel_pos.y - player_pos.y, 2));
 		} while (distance_to_player < 500.f);
 		Entity eel = createEel(renderer, eel_pos);
@@ -298,7 +298,9 @@ void WorldSystem::restart_game() {
 	}
 
 	// create health bar
-	hp_bar = createHPBar(renderer, { window_width_px / 2, 40 });
+	vec2 hp_bar_pos = { window_width_px / 2, 40 };
+	createHPBarEmpty(renderer, hp_bar_pos);
+	hp_bar = createHPBar(renderer, hp_bar_pos);
 
 	// !! TODO A2: Enable static eggs on the ground, for reference
 	// Create eggs on the floor, use this for reference
