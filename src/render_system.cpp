@@ -18,24 +18,29 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	Motion &motion = registry.motions.get(entity);
 	// calculate screen position relative to fixed player screen position INIT_PLAYER_POS = { window_width_px/2, window_height_px - 200 };
 	// in map: player starts at [25, 44]
+	Motion screen_motion = motion;
 	
-	float xdiff = registry.onMap.get(entity).player_pos_diff.x;
-	float ydiff = registry.onMap.get(entity).player_pos_diff.y;
+	if (registry.onMap.has(entity)) {
+		float xdiff = registry.onMap.get(entity).player_pos_diff.x;
+		float ydiff = registry.onMap.get(entity).player_pos_diff.y;
 
-	vec2 screen_position = TILE_SIZE_PX * vec2(xdiff, ydiff) + vec2(window_width_px / 2, window_height_px / 2);
+		vec2 screen_position = TILE_SIZE_PX * vec2(xdiff, ydiff) + vec2(window_width_px / 2, window_height_px / 2);
 
-	if ((screen_position.x <= -100) || (screen_position.y <= -100) || (screen_position.x >= window_width_px + 100) || (screen_position.y >= window_height_px + 100)) {
-		return;
-	}
+		if ((screen_position.x <= -TILE_SIZE_PX) || (screen_position.y <= -TILE_SIZE_PX) || (screen_position.x >= window_width_px + TILE_SIZE_PX) || (screen_position.y >= window_height_px + TILE_SIZE_PX)) {
+			return;
+		}
+		
+
+		screen_motion = {
+			screen_position,
+			motion.angle,
+			vec2(motion.velocity.x * TILE_SIZE_PX, motion.velocity.y * TILE_SIZE_PX),
+			motion.scale,
+			motion.speed,
+		};
+	} 
+
 	
-
-	Motion screen_motion = {
-		screen_position,
-		motion.angle,
-		vec2(motion.velocity.x * 100, motion.velocity.y * 100),
-		motion.scale,
-		motion.speed,
-	};
 
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,

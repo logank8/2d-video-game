@@ -165,10 +165,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	vec2 player_pos = motions_registry.get(my_player).position;
 
-  // TODO: make it clear this is ONLY for tiles
+	// ONLY used on wall tiles
 	for (int i = (int) motions_registry.components.size()-1; i >= 0; --i) {
 		Motion& motion = motions_registry.components[i];
-		if (!registry.players.has(motions_registry.entities[i])) { // don't remove the player 
+		if (registry.walls.has(motions_registry.entities[i])) { // only for wall tiles 
 			if ((motion.position.x < player_pos.x - ceil(window_width_px / 200)) || (motion.position.x > player_pos.x + ceil(window_width_px / 200)) || 
 				(motion.position.y < player_pos.y - ceil(window_height_px / 200)) || (motion.position.y > player_pos.y + ceil(window_height_px / 200))) {
 					if (std::find(tile_vec.begin(), tile_vec.end(), vec2(floor(motion.position.x), floor(motion.position.y))) != tile_vec.end()) {
@@ -183,20 +183,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// check if tile_vec[i][j] is already true
 	// if i, j out of bounds: store with unique loc and trust it will be destroyed when needed
 	// if else: create tile entity with coords (i, j) (reverse indexing should be ONLY for looking at map1, afaik)
-	for (int i = player_pos.x - ceil(window_width_px / 100); i < player_pos.x + ceil(window_width_px / 100); i++) {
-		for (int j = player_pos.y - ceil(window_height_px / 100); j < player_pos.y + ceil(window_height_px / 100); j++) {
+	for (int i = player_pos.x - ceil(window_width_px / TILE_SIZE); i < player_pos.x + ceil(window_width_px / TILE_SIZE); i++) {
+		for (int j = player_pos.y - ceil(window_height_px / TILE_SIZE); j < player_pos.y + ceil(window_height_px / TILE_SIZE); j++) {
 			// if tile is not already placed:
 			if ((std::find(tile_vec.begin(), tile_vec.end(), vec2(i, j)) == tile_vec.end())) {
 				// check value in map - if out of bounds render wall
 				if ((i >= map1[0].size()) || i < 0 || (j >= map1.size()) || j < 0) {
-					Entity tile = createGround(renderer, vec2(i,j));
+					Entity tile = createWalls(renderer, vec2(i,j), true);
 					tile_vec.push_back(vec2(i, j));
 					registry.onMap.insert(tile, {vec2(i, j) - player_pos});
 					continue;
 				}
 				
 				if (map1[j][i] == 0) {
-					Entity tile = createGround(renderer, vec2(i,j));
+					Entity tile = createWalls(renderer, vec2(i,j), true);
 					tile_vec.push_back(vec2(i, j));
 					registry.onMap.insert(tile, {vec2(i, j) - player_pos});
 				}
@@ -204,12 +204,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	std::cout << registry.onMap.components.size() << std::endl;
-
 	
-	
-
-	/*
 	//TODO: spawn frequencies and spawn radius to be adjusted
 	// Spawn Level 1 type enemy: slow with contact damage
 	next_fish_spawn -= elapsed_ms_since_last_update * current_speed;
@@ -218,10 +213,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		vec2 fish_pos;
 		float distance_to_player;
 		do {
-			fish_pos = { 0.5f + uniform_dist(rng) * (MAP_SIZE.x - 1.f), 50.f + uniform_dist(rng) * (MAP_SIZE.y - 1.f) };
+			fish_pos = { uniform_dist(rng) * (MAP_SIZE.x - 1.f), uniform_dist(rng) * (MAP_SIZE.y - 1.f) };
 			distance_to_player = sqrt(pow(fish_pos.x - player_pos.x, 2) + pow(fish_pos.y - player_pos.y, 2));
-		} while (distance_to_player < 5.f);
+		} while ((distance_to_player < 5.f) || (map1[floor(fish_pos.y)][floor(fish_pos.x)] == 0));
 		Entity fish = createFish(renderer, fish_pos);
+		registry.onMap.insert(fish, {fish_pos - player_pos});
+		std::cout << "Fish created at " << fish_pos.x << " " << fish_pos.y << std::endl;
 		registry.motions.get(fish).velocity = { 0.5f, 0.5f };
 	}
 
@@ -234,13 +231,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		float distance_to_player;
 		do {
 
-			eel_pos = { 100.0f + uniform_dist(rng) * (window_width_px - 150.f), 50.f + uniform_dist(rng) * (window_height_px - 100.f) };
+			eel_pos = { uniform_dist(rng) * (MAP_SIZE.x - 1.5f), uniform_dist(rng) * (MAP_SIZE.y - 1.f) };
 			distance_to_player = sqrt(pow(eel_pos.x - player_pos.x, 2) + pow(eel_pos.y - player_pos.y, 2));
-		} while (distance_to_player < 500.f);
+		} while ((distance_to_player < 5.f) || (map1[floor(eel_pos.y)][floor(eel_pos.x)] == 0));
+		std::cout << "Eel created at " << eel_pos.x << " " << eel_pos.y << std::endl;
 		Entity eel = createEel(renderer, eel_pos);
+		registry.onMap.insert(eel, {eel_pos - player_pos});
 		registry.motions.get(eel).velocity = { 100.f, 100.f };
 	}
-	*/
+	
 
 	// Spawn Level 3 type enemy: slow ranged enemy
 	next_ranged_spawn -= elapsed_ms_since_last_update * current_speed;
@@ -254,6 +253,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			distance_to_player = sqrt(pow(ranged_enemy_pos.x - player_pos.x, 2) + pow(ranged_enemy_pos.y - player_pos.y, 2));
 		} while (distance_to_player < 500.f);
 		Entity ranged_enemy = createRangedEnemy(renderer, ranged_enemy_pos);
+		registry.onMap.insert(ranged_enemy, {ranged_enemy_pos - INIT_PLAYER_POS});				
 		registry.motions.get(ranged_enemy).velocity = { 10.f, 10.f };
 	}
 
@@ -265,6 +265,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			// reset timer
 			projectile_delay = (RANGED_ENEMY_PROJECTILE_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_PROJECTILE_DELAY_MS / 2);
 			Entity projectile = createRangedProjectile(renderer, registry.motions.get(ranged).position);
+			registry.onMap.insert(projectile, {registry.motions.get(ranged).position - registry.motions.get(my_player).position});
+			
 			Motion& projectile_motion = registry.motions.get(projectile);
 			projectile_motion.velocity = { 200.f, 200.f };
 			projectile_motion.angle = registry.motions.get(ranged).angle;
@@ -313,7 +315,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// progress diff value
 		Dash& player_dash = registry.dashing.get(entity);
 		if (player_dash.diff != vec2(0.f, 0.f)) {
-			std::cout << player_dash.diff.x << " " << player_dash.diff.y << std::endl;
 
 			player_dash.diff = player_dash.target - registry.motions.get(my_player).position;
 
@@ -376,12 +377,12 @@ void WorldSystem::restart_game() {
 		for (int j = INIT_PLAYER_POS.y - ceil(window_height_px / 200); j < INIT_PLAYER_POS.y + ceil(window_height_px / 200); j++) {
 
 			if ((i >= map1[0].size()) || (i < 0) || (j >= map1.size()) || (j < 0)) {
-				Entity tile = createGround(renderer, vec2(i,j));
+				Entity tile = createWalls(renderer, vec2(i,j), true);
 				tile_vec.push_back(vec2(i, j));
 				registry.onMap.insert(tile, {vec2(i, j) - INIT_PLAYER_POS});				
 			} else {
 				if (map1[j][i] == 0) {
-					Entity tile = createGround(renderer, vec2(i,j));
+					Entity tile = createWalls(renderer, vec2(i,j), true);
 					tile_vec.push_back(vec2(i, j));
 					registry.onMap.insert(tile, {vec2(i, j) - INIT_PLAYER_POS});
 				}
@@ -393,9 +394,10 @@ void WorldSystem::restart_game() {
 	// create a new Player
 	my_player = createPlayer(renderer, INIT_PLAYER_POS);
 	registry.colors.insert(my_player, {1, 0.8f, 0.8f});
-	
+	/*
   // create furniture/table (for testing)
 	createFurniture(renderer, { window_width_px / 4, window_height_px * 3 / 4 });
+
 
 	// create walls on screen boundary (top & bottom)
 	for (int i = 0; i < window_width_px + FURNITURE_WIDTH * 3; i += FURNITURE_WIDTH * 3) {
@@ -407,12 +409,14 @@ void WorldSystem::restart_game() {
 		createWalls(renderer, { 0, j }, true);
 		createWalls(renderer, { window_width_px, j }, true);
 	}
+	*/
 
 	// create health bar
-	vec2 hp_bar_pos = { window_width_px / 2, 40 };
+	vec2 hp_bar_pos = { window_width_px / 2, 40.f };
 	createHPBarEmpty(renderer, hp_bar_pos);
 	hp_bar = createHPBar(renderer, hp_bar_pos);
-
+	// registry.ui.emplace(hp_bar_empty);
+	registry.ui.emplace(hp_bar);
 }
 
 // utility functions for dash mvmnt implementation
@@ -467,9 +471,7 @@ void WorldSystem::handle_collisions() {
 				if (!registry.deathTimers.has(entity) && player_hp <= 0.f) {
 					// Scream, reset timer, and make the salmon sink
 					registry.deathTimers.emplace(entity);
-					Mix_PlayChannel(-1, salmon_dead_sound, 0);
 
-					// !!! TODO A1: change the salmon's orientation and color on death
 					// Control what happens when the player dies here
 					Motion& motion = registry.motions.get(my_player);
 					motion.velocity[0] = 0.0f;
@@ -595,6 +597,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		restart_game();
 	}
+	
+	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
+		exit(0);
+	}
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
 		is_paused = !is_paused;
@@ -682,14 +688,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (registry.dashing.has(my_player)) {
 		if (registry.dashing.get(my_player).diff != vec2(0.f, 0.f)) {
 			motion.velocity = lerp(vec2(0, 0), registry.dashing.get(my_player).target - motion.position, 0.2);
-			std::cout << "velocity: " << registry.motions.get(my_player).velocity.x << " " << registry.motions.get(my_player).velocity.y << std::endl;
 			motion.velocity = 5 * motion.speed * norm(motion.velocity);
 		}
 	}
 
 	
 	
-	std::cout << "position: " << motion.position.x << " " << motion.position.y << std::endl;
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
