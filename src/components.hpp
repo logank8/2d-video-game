@@ -122,6 +122,12 @@ struct DeathTimer
 	float counter_ms = 3000;
 };
 
+// A timer that will be associated to enemy blocked by a solid object
+struct BlockedTimer
+{
+	float counter_ms = 100;
+};
+
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & salmon.vs.glsl)
 struct ColoredVertex
 {

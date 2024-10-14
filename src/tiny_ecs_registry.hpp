@@ -13,6 +13,7 @@ public:
 	// Manually created list of all components this game has
 	// TODO: A1 add a LightUp component
 	ComponentContainer<DeathTimer> deathTimers;
+	ComponentContainer<BlockedTimer> blockedTimers;
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
 	ComponentContainer<Player> players;
@@ -38,6 +39,7 @@ public:
 	{
 		// TODO: A1 add a LightUp component
 		registry_list.push_back(&deathTimers);
+		registry_list.push_back(&blockedTimers);
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
 		registry_list.push_back(&players);

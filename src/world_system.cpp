@@ -298,7 +298,7 @@ void WorldSystem::restart_game() {
 	}
 
 	// create health bar
-	hp_bar = createHPBar(renderer, { window_width_px - 80, 40 });
+	hp_bar = createHPBar(renderer, { window_width_px / 2, 40 });
 
 	// !! TODO A2: Enable static eggs on the ground, for reference
 	// Create eggs on the floor, use this for reference
@@ -342,7 +342,7 @@ void WorldSystem::handle_collisions() {
 					if (player_hp <= 100 && player_hp >= 0) {
 						Motion& motion = registry.motions.get(hp_bar);
 						motion.scale.x = HPBAR_BB_WIDTH * (player_hp / 100);
-						motion.position.x += HPBAR_BB_WIDTH * (player_hp / 400);
+						// motion.position.x += HPBAR_BB_WIDTH * (player_hp / 400);
 					}
 					player.invlunerable = true;
 					player.invulnerable_duration_ms = 1000.f;
@@ -374,52 +374,91 @@ void WorldSystem::handle_collisions() {
 					// !!! TODO A1: create a new struct called LightUp in components.hpp and add an instance to the salmon entity by modifying the ECS registry
 				}
 			}
-		}
-
-		// Checking collision with solid object
-		if (registry.solidObjs.has(entity_other)) {
-			Motion& motion_moving = registry.motions.get(entity);
-			Motion& motion_solid = registry.motions.get(entity_other);
-
-			if (registry.players.has(entity)) {
+			// Checking player collision with solid object
+			if (registry.solidObjs.has(entity_other)) {
+				Motion& motion_moving = registry.motions.get(entity);
+				Motion& motion_solid = registry.motions.get(entity_other);
 				if (motion_moving.position.x < motion_solid.position.x - (motion_solid.scale.x / 2) && motion_moving.velocity.x > 0) {
 					motion_moving.velocity.x = 0.f;
 					rstuck = true;
-					// motion_moving.position.x = motion_solid.position.x - motion_solid.scale.x;
 				} else if (motion_moving.position.x > motion_solid.position.x + (motion_solid.scale.x / 2) && motion_moving.velocity.x < 0)
 				{
 					motion_moving.velocity.x = 0.f;
 					lstuck = true;
-					// motion_moving.position.x = motion_solid.position.x + motion_solid.scale.x;
 				} else if (motion_moving.position.y < motion_solid.position.y - (motion_solid.scale.y / 2) && motion_moving.velocity.y > 0)
 				{
 					motion_moving.velocity.y = 0.f;
 					dstuck = true;
-					// motion_moving.position.y = motion_solid.position.y - motion_solid.scale.y;
 				} else if (motion_moving.position.y > motion_solid.position.y + (motion_solid.scale.y / 2) && motion_moving.velocity.y < 0)
 				{
 					motion_moving.velocity.y = 0.f;
 					ustuck = true;
-					// motion_moving.position.y = motion_solid.position.y + motion_solid.scale.y;
 				}
-			} else if (registry.deadlys.has(entity) && registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::PROJECTILE) {
-				registry.remove_all_components_of(entity);
-			} else if (registry.deadlys.has(entity)) {
-				// if (motion_moving.position.x < motion_solid.position.x - (motion_solid.scale.x / 2) && motion_moving.velocity.x > 0) {
-				// 	motion_moving.velocity.x = 0.f;
-				// } else if (motion_moving.position.x > motion_solid.position.x + (motion_solid.scale.x / 2) && motion_moving.velocity.x < 0)
-				// {
-				// 	motion_moving.velocity.x = 0.f;
-				// } else if (motion_moving.position.y < motion_solid.position.y - (motion_solid.scale.y / 2) && motion_moving.velocity.y > 0)
-				// {
-				// 	motion_moving.velocity.y = 0.f;
-				// } else if (motion_moving.position.y > motion_solid.position.y + (motion_solid.scale.y / 2) && motion_moving.velocity.y < 0)
-				// {
-				// 	motion_moving.velocity.y = 0.f;
-				// }
 			}
-			
+		} else if (registry.deadlys.has(entity)) {
+			if (registry.solidObjs.has(entity_other) && registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::PROJECTILE) {
+				registry.remove_all_components_of(entity);
+			} else if (registry.solidObjs.has(entity_other)) {
+				if (!registry.blockedTimers.has(entity)) registry.blockedTimers.emplace(entity);
+
+				Motion& motion_moving = registry.motions.get(entity);
+				Motion& motion_solid = registry.motions.get(entity_other);
+
+				if (motion_moving.position.x < motion_solid.position.x - (motion_moving.scale.x / 2) && motion_moving.velocity.x > 0) {
+					motion_moving.velocity.x = 0.f;
+				} else if (motion_moving.position.x > motion_solid.position.x + (motion_moving.scale.x / 2) && motion_moving.velocity.x < 0)
+				{
+					motion_moving.velocity.x = 0.f;
+				} else if (motion_moving.position.y < motion_solid.position.y - (motion_moving.scale.y / 2) && motion_moving.velocity.y > 0)
+				{
+					motion_moving.velocity.y = 0.f;
+				} else if (motion_moving.position.y > motion_solid.position.y + (motion_moving.scale.y / 2) && motion_moving.velocity.y < 0)
+				{
+					motion_moving.velocity.y = 0.f;
+				}
+			}
 		}
+		// Checking collision with solid object
+		// if (registry.solidObjs.has(entity_other)) {
+		// 	Motion& motion_moving = registry.motions.get(entity);
+		// 	Motion& motion_solid = registry.motions.get(entity_other);
+
+		// 	if (registry.players.has(entity)) {
+		// 		if (motion_moving.position.x < motion_solid.position.x - (motion_solid.scale.x / 2) && motion_moving.velocity.x > 0) {
+		// 			motion_moving.velocity.x = 0.f;
+		// 			rstuck = true;
+		// 		} else if (motion_moving.position.x > motion_solid.position.x + (motion_solid.scale.x / 2) && motion_moving.velocity.x < 0)
+		// 		{
+		// 			motion_moving.velocity.x = 0.f;
+		// 			lstuck = true;
+		// 		} else if (motion_moving.position.y < motion_solid.position.y - (motion_solid.scale.y / 2) && motion_moving.velocity.y > 0)
+		// 		{
+		// 			motion_moving.velocity.y = 0.f;
+		// 			dstuck = true;
+		// 		} else if (motion_moving.position.y > motion_solid.position.y + (motion_solid.scale.y / 2) && motion_moving.velocity.y < 0)
+		// 		{
+		// 			motion_moving.velocity.y = 0.f;
+		// 			ustuck = true;
+		// 		}
+		// 	} else if (registry.deadlys.has(entity) && registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::PROJECTILE) {
+		// 		registry.remove_all_components_of(entity);
+		// 	} else if (registry.deadlys.has(entity)) {
+		// 		if (!registry.blockedTimers.has(entity)) registry.blockedTimers.emplace(entity);
+
+		// 		if (motion_moving.position.x < motion_solid.position.x - (motion_solid.scale.x / 2) && motion_moving.velocity.x > 0) {
+		// 			motion_moving.velocity.x = 0.f;
+		// 		} else if (motion_moving.position.x > motion_solid.position.x + (motion_solid.scale.x / 2) && motion_moving.velocity.x < 0)
+		// 		{
+		// 			motion_moving.velocity.x = 0.f;
+		// 		} else if (motion_moving.position.y < motion_solid.position.y - (motion_solid.scale.y / 2) && motion_moving.velocity.y > 0)
+		// 		{
+		// 			motion_moving.velocity.y = 0.f;
+		// 		} else if (motion_moving.position.y > motion_solid.position.y + (motion_solid.scale.y / 2) && motion_moving.velocity.y < 0)
+		// 		{
+		// 			motion_moving.velocity.y = 0.f;
+		// 		}
+		// 	}
+		// }
 	}
 
 	// Remove all collisions from this simulation step
