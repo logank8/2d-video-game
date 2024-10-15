@@ -215,7 +215,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		do {
 			fish_pos = { uniform_dist(rng) * (MAP_SIZE.x - 1.f), uniform_dist(rng) * (MAP_SIZE.y - 1.f) };
 			distance_to_player = sqrt(pow(fish_pos.x - player_pos.x, 2) + pow(fish_pos.y - player_pos.y, 2));
-		} while ((distance_to_player < 10.f) || (map1[floor(fish_pos.y)][floor(fish_pos.x)] == 0));
+		} while ((distance_to_player < 5.f) || (map1[floor(fish_pos.y)][floor(fish_pos.x)] == 0));
 		Entity fish = createFish(renderer, fish_pos);
 		registry.onMap.insert(fish, {fish_pos - player_pos});
 		std::cout << "Fish created at " << fish_pos.x << " " << fish_pos.y << std::endl;
@@ -233,11 +233,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			eel_pos = { uniform_dist(rng) * (MAP_SIZE.x - 1.5f), uniform_dist(rng) * (MAP_SIZE.y - 1.f) };
 			distance_to_player = sqrt(pow(eel_pos.x - player_pos.x, 2) + pow(eel_pos.y - player_pos.y, 2));
-		} while ((distance_to_player < 10.f) || (map1[floor(eel_pos.y)][floor(eel_pos.x)] == 0));
+		} while ((distance_to_player < 5.f) || (map1[floor(eel_pos.y)][floor(eel_pos.x)] == 0));
 		std::cout << "Eel created at " << eel_pos.x << " " << eel_pos.y << std::endl;
 		Entity eel = createEel(renderer, eel_pos);
 		registry.onMap.insert(eel, {eel_pos - player_pos});
-		registry.motions.get(eel).velocity = { 1.f, 1.f };
+		registry.motions.get(eel).velocity = { 100.f, 100.f };
 	}
 	
 
@@ -492,7 +492,6 @@ void WorldSystem::handle_collisions() {
 			}
 			// Checking player collision with solid object
 			if (registry.solidObjs.has(entity_other)) {
-				std::cout << "player collision" << std::endl;
 				Motion& motion_moving = registry.motions.get(entity);
 				Motion& motion_solid = registry.motions.get(entity_other);
 				if (motion_moving.position.x < motion_solid.position.x - (motion_solid.scale.x / 2) && motion_moving.velocity.x > 0) {
@@ -535,6 +534,47 @@ void WorldSystem::handle_collisions() {
 				}
 			}
 		}
+		// Checking collision with solid object
+		// if (registry.solidObjs.has(entity_other)) {
+		// 	Motion& motion_moving = registry.motions.get(entity);
+		// 	Motion& motion_solid = registry.motions.get(entity_other);
+
+		// 	if (registry.players.has(entity)) {
+		// 		if (motion_moving.position.x < motion_solid.position.x - (motion_solid.scale.x / 2) && motion_moving.velocity.x > 0) {
+		// 			motion_moving.velocity.x = 0.f;
+		// 			rstuck = true;
+		// 		} else if (motion_moving.position.x > motion_solid.position.x + (motion_solid.scale.x / 2) && motion_moving.velocity.x < 0)
+		// 		{
+		// 			motion_moving.velocity.x = 0.f;
+		// 			lstuck = true;
+		// 		} else if (motion_moving.position.y < motion_solid.position.y - (motion_solid.scale.y / 2) && motion_moving.velocity.y > 0)
+		// 		{
+		// 			motion_moving.velocity.y = 0.f;
+		// 			dstuck = true;
+		// 		} else if (motion_moving.position.y > motion_solid.position.y + (motion_solid.scale.y / 2) && motion_moving.velocity.y < 0)
+		// 		{
+		// 			motion_moving.velocity.y = 0.f;
+		// 			ustuck = true;
+		// 		}
+		// 	} else if (registry.deadlys.has(entity) && registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::PROJECTILE) {
+		// 		registry.remove_all_components_of(entity);
+		// 	} else if (registry.deadlys.has(entity)) {
+		// 		if (!registry.blockedTimers.has(entity)) registry.blockedTimers.emplace(entity);
+
+		// 		if (motion_moving.position.x < motion_solid.position.x - (motion_solid.scale.x / 2) && motion_moving.velocity.x > 0) {
+		// 			motion_moving.velocity.x = 0.f;
+		// 		} else if (motion_moving.position.x > motion_solid.position.x + (motion_solid.scale.x / 2) && motion_moving.velocity.x < 0)
+		// 		{
+		// 			motion_moving.velocity.x = 0.f;
+		// 		} else if (motion_moving.position.y < motion_solid.position.y - (motion_solid.scale.y / 2) && motion_moving.velocity.y > 0)
+		// 		{
+		// 			motion_moving.velocity.y = 0.f;
+		// 		} else if (motion_moving.position.y > motion_solid.position.y + (motion_solid.scale.y / 2) && motion_moving.velocity.y < 0)
+		// 		{
+		// 			motion_moving.velocity.y = 0.f;
+		// 		}
+		// 	}
+		// }
 	}
 
 	// Remove all collisions from this simulation step
