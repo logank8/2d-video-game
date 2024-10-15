@@ -338,7 +338,7 @@ void WorldSystem::restart_game() {
 	}
 
 	// create health bar
-	vec2 hp_bar_pos = { window_width_px / 2, 40 };
+	vec2 hp_bar_pos = { -0.75, 0.8f };
 	createHPBarEmpty(renderer, hp_bar_pos);
 	hp_bar = createHPBar(renderer, hp_bar_pos);
 
@@ -395,8 +395,10 @@ void WorldSystem::handle_collisions() {
 					// modify hp bar
 					std::cout << "Player hp: " << player_hp << "\n";
 					if (player_hp <= 100 && player_hp >= 0) {
-						Motion& motion = registry.motions.get(hp_bar);
-						motion.scale.x = HPBAR_BB_WIDTH * (player_hp / 100);
+						// Motion& motion = registry.motions.get(hp_bar);
+						// motion.scale.x = HPBAR_BB_WIDTH * (player_hp / 100);
+						UserInterface& userInterface = registry.userInterfaces.get(hp_bar);
+						userInterface.scale.x = HPBAR_BB_WIDTH * (player_hp / 100);
 						// motion.position.x += HPBAR_BB_WIDTH * (player_hp / 400);
 					}
 					player.invlunerable = true;
