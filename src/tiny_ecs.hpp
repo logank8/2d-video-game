@@ -8,11 +8,6 @@
 #include <typeindex>
 #include <assert.h>
 
-// stlib
-#include <cassert>
-#include <sstream>
-#include <iostream>
-
 // Unique identifyer for all entities
 class Entity
 {
@@ -80,7 +75,7 @@ public:
 
 	// A wrapper to return the component of an entity
 	Component& get(Entity e) {
-		assert(has(e) && ("Entity not contained in ECS registry"));
+		assert(has(e) && "Entity not contained in ECS registry");
 		return components[map_entity_componentID[e]];
 	}
 

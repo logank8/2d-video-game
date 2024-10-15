@@ -307,7 +307,7 @@ Entity createWalls(RenderSystem* renderer, vec2 pos, bool is_side_wall)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = vec2({ FURNITURE_WIDTH * 6.25, FURNITURE_HEIGHT * 6.25 });
+	motion.scale = vec2({ FURNITURE_WIDTH * 3, FURNITURE_HEIGHT * 3 });
 
 	// create an empty component for the walls
 	registry.walls.emplace(entity);
