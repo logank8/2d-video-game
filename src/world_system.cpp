@@ -222,12 +222,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	}
 
-	// Check if player is invlunerable
+	// Check if player is invulnerable
 	Player& player = registry.players.get(my_player);
-	if (player.invlunerable) {
+	if (player.invulnerable) {
 		player.invulnerable_duration_ms -= elapsed_ms_since_last_update;
 		if (player.invulnerable_duration_ms < 0.f) {
-			player.invlunerable = false;
+			player.invulnerable = false;
 			player.invulnerable_duration_ms = 1000.f;
 		}
 	}
@@ -387,7 +387,7 @@ void WorldSystem::handle_collisions() {
 			if (registry.deadlys.has(entity_other)) {
 				float& player_hp = registry.healths.get(entity).hit_points;
 				Player& player = registry.players.get(entity);
-				if (!player.invlunerable) {
+				if (!player.invulnerable) {
 					// player takes damage
 					player_hp -= registry.damages.get(entity_other).damage;
 					// avoid negative hp values for hp bar
@@ -401,7 +401,7 @@ void WorldSystem::handle_collisions() {
 						userInterface.scale.x = HPBAR_BB_WIDTH * (player_hp / 100);
 						// motion.position.x += HPBAR_BB_WIDTH * (player_hp / 400);
 					}
-					player.invlunerable = true;
+					player.invulnerable = true;
 					player.invulnerable_duration_ms = 1000.f;
 				}
 				if (registry.deadlys.get(entity_other).enemy_type == ENEMY_TYPES::PROJECTILE) {

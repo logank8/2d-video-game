@@ -8,7 +8,7 @@
 struct Player
 {
 	// For dashing and after taking damage;
-	bool invlunerable = false;
+	bool invulnerable = false;
 	float invulnerable_duration_ms = 1000.f;
 };
 

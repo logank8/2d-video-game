@@ -101,7 +101,16 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	// Getting uniform locations for glUniform* calls
 	GLint color_uloc = glGetUniformLocation(program, "fcolor");
-	const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
+	vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
+
+	if (registry.colors.has(entity)) {
+		if (registry.players.has(entity) && registry.players.get(entity).invulnerable) {
+			color = vec3(1, 0, 0);
+		} else {
+			color = registry.colors.get(entity);
+		}
+	}
+
 	glUniform3fv(color_uloc, 1, (float *)&color);
 	gl_has_errors();
 
