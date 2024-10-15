@@ -207,7 +207,11 @@ void RenderSystem::draw()
 							  // and alpha blending, one would have to sort
 							  // sprites back to front
 	gl_has_errors();
-	mat3 projection_2D = createProjectionMatrix();
+	Entity player_entity = registry.players.entities.front();
+	vec2 player_position = registry.motions.get(player_entity).position;
+	mat3 projection_2D = createPlayerProjectionMatrix(player_position);
+
+	// mat3 projection_2D = createProjectionMatrix();
 	// Draw all textured meshes that have a position and size component
 	for (Entity entity : registry.renderRequests.entities)
 	{
@@ -224,6 +228,23 @@ void RenderSystem::draw()
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
+}
+
+mat3 RenderSystem::createPlayerProjectionMatrix(vec2 position)
+{
+	// Fake projection matrix, scales with respect to window coordinates
+	float left = 0.f;
+	float top = 0.f;
+
+	gl_has_errors();
+	float right = (float) window_width_px;
+	float bottom = (float) window_height_px;
+
+	float sx = 2.f / (right - left);
+	float sy = 2.f / (top - bottom);
+	float tx = -(right + left) / (right - left) - (position.x - window_width_px / 2.f) * sx;
+	float ty = -(top + bottom) / (top - bottom) - (position.y - window_height_px / 2.f)  * sy;
+	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
 }
 
 mat3 RenderSystem::createProjectionMatrix()

@@ -75,6 +75,7 @@ public:
 	void draw();
 
 	mat3 createProjectionMatrix();
+	mat3 createPlayerProjectionMatrix(vec2 position);
 
 private:
 	// Internal drawing functions for each entity type
