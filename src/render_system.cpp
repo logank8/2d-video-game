@@ -126,6 +126,84 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	gl_has_errors();
 }
 
+void RenderSystem::drawScreenSpaceObject(Entity entity) {
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h);
+
+	UserInterface& userInterface = registry.userInterfaces.get(entity);
+
+	mat3 screen_projection = mat3(1.0f); // Identity for 2D rendering
+    screen_projection[0][0] = userInterface.scale.x;
+    screen_projection[1][1] = userInterface.scale.y;
+    screen_projection[2][0] = userInterface.position.x;
+    screen_projection[2][1] = userInterface.position.y;
+
+	assert(registry.renderRequests.has(entity));
+	const RenderRequest &render_request = registry.renderRequests.get(entity);
+
+	const GLuint used_effect_enum = (GLuint)render_request.used_effect;
+	assert(used_effect_enum != (GLuint)EFFECT_ASSET_ID::EFFECT_COUNT);
+	const GLuint program = (GLuint)effects[used_effect_enum];
+
+	glUseProgram(program);
+	gl_has_errors();
+
+	assert(render_request.used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
+	const GLuint vbo = vertex_buffers[(GLuint)render_request.used_geometry];
+	const GLuint ibo = index_buffers[(GLuint)render_request.used_geometry];
+
+	mat3 transform = mat3(1.0f);
+
+	// Setting vertex and index buffers
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	gl_has_errors();
+
+	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED) 
+	{
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+		gl_has_errors();
+		assert(in_texcoord_loc >= 0);
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+							  sizeof(TexturedVertex), (void *)0);
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_texcoord_loc);
+		glVertexAttribPointer(
+			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+			(void *)sizeof(
+				vec3));
+
+		glActiveTexture(GL_TEXTURE0);
+		gl_has_errors();
+
+		assert(registry.renderRequests.has(entity));
+		GLuint texture_id =
+			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+
+		glBindTexture(GL_TEXTURE_2D, texture_id);
+		gl_has_errors();
+	}
+
+	GLint size = 0;
+	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+	gl_has_errors();
+
+	GLsizei num_indices = size / sizeof(uint16_t);
+
+	GLuint transform_loc = glGetUniformLocation(program, "transform");
+	glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float*)&transform);
+
+    GLuint projection_loc = glGetUniformLocation(program, "projection");
+    glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*)&screen_projection); 
+
+	glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
+	gl_has_errors();
+}
+
 // draw the intermediate texture to the screen, with some distortion to simulate
 // water
 void RenderSystem::drawToScreen()
@@ -215,6 +293,10 @@ void RenderSystem::draw()
 	// Draw all textured meshes that have a position and size component
 	for (Entity entity : registry.renderRequests.entities)
 	{
+		if (registry.userInterfaces.has(entity)) {
+			drawScreenSpaceObject(entity);
+			continue;
+		}
 		if (!registry.motions.has(entity))
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
