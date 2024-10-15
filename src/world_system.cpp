@@ -559,6 +559,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player) && !rstuck) {
 			motion.velocity[0] = motion.speed;
 			lstuck = false;
+			ustuck = false;
+			dstuck = false;
 		}
 		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
 			motion.velocity[0] = 0.f;
@@ -570,6 +572,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player) && !lstuck) {
 			motion.velocity[0] = -1.0 * motion.speed;
 			rstuck = false;
+			ustuck = false;
+			dstuck = false;
 		}
 		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
 			motion.velocity[0] = 0.f;
@@ -581,6 +585,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player) && !ustuck) {
 			motion.velocity[1] = -1.0 * motion.speed;
 			dstuck = false;
+			rstuck = false;
+			lstuck = false;
 		}
 		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
 			motion.velocity[1] = 0.f;
@@ -592,6 +598,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player) && !dstuck) {
 			motion.velocity[1] = motion.speed;
 			ustuck = false;
+			rstuck = false;
+			lstuck = false;
 		}
 		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
 			motion.velocity[1] = 0.f;
