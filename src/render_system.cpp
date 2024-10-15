@@ -291,10 +291,12 @@ void RenderSystem::draw()
 	mat3 projection_2D = createPlayerProjectionMatrix(player_position);
 	// mat3 projection_2D = createProjectionMatrix();
 	// Draw all textured meshes that have a position and size component
+	std::vector<Entity> uiEntities;
+
 	for (Entity entity : registry.renderRequests.entities)
 	{
 		if (registry.userInterfaces.has(entity)) {
-			drawScreenSpaceObject(entity);
+			uiEntities.push_back(entity);
 			continue;
 		}
 		if (!registry.motions.has(entity))
@@ -302,6 +304,10 @@ void RenderSystem::draw()
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
 		drawTexturedMesh(entity, projection_2D);
+	}
+
+	for (Entity entity : uiEntities) {
+		drawScreenSpaceObject(entity);
 	}
 
 	// Truely render to the screen
