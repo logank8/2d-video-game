@@ -33,6 +33,7 @@ public:
 	ComponentContainer<Ranged> ranged;
 	ComponentContainer<Projectile> projectiles;
 	ComponentContainer<Dash> dashing;
+	ComponentContainer<UserInterface> userInterfaces;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -60,6 +61,7 @@ public:
 		registry_list.push_back(&ranged);
 		registry_list.push_back(&projectiles);
 		registry_list.push_back(&dashing);
+		registry_list.push_back(&userInterfaces);
 	}
 
 	void clear_all_components() {

@@ -110,6 +110,12 @@ struct ScreenState
 	float darken_screen_factor = -1;
 };
 
+struct UserInterface {
+	vec2 position = {0, 0};
+	float angle = 0;
+	vec2 scale = { 10, 10 };
+};
+
 // A struct to refer to debugging graphics in the ECS
 struct DebugComponent
 {
