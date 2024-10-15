@@ -607,10 +607,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 	current_speed = fmax(0.f, current_speed);
 
+	Motion& motion = registry.motions.get(my_player);
+
 	if (key == GLFW_KEY_X) {
 		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player)) {
 			if (!registry.dashing.has(my_player)) {
-				Dash new_dash = {registry.motions.get(my_player).position + vec2(200, 0), registry.motions.get(my_player).position - (registry.motions.get(my_player).position + vec2(0, 5)), 1000};
+
+				vec2 dashtarget = registry.motions.get(my_player).position + vec2(200.f, 0.f);
+				if (dashtarget.x > window_width_px - 100.f) {
+					dashtarget.x = window_width_px - 100.f;
+				}
+				
+				Dash new_dash = {dashtarget, registry.motions.get(my_player).position - (registry.motions.get(my_player).position + vec2(0, 5)), 1000};
 
 				registry.dashing.insert(my_player, new_dash);
 			} 
@@ -618,7 +626,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	Motion& motion = registry.motions.get(my_player);
 	
 
 	// Dash movement
