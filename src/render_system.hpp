@@ -24,8 +24,7 @@ class RenderSystem {
 	// Associated id with .obj path
 	const std::vector < std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths =
 	{
-		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SALMON, mesh_path("salmon.obj")),
-		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::GROUND, mesh_path("tile.obj"))
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SALMON, mesh_path("salmon.obj"))
 		  // specify meshes of other assets here
 	};
 
@@ -50,9 +49,7 @@ class RenderSystem {
 		shader_path("egg"),
 		shader_path("salmon"),
 		shader_path("textured"),
-		shader_path("water"),
-		shader_path("ground") 
-		};
+		shader_path("water") };
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
