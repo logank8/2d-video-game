@@ -86,7 +86,7 @@ struct Motion {
 	float angle = 0;
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { 10, 10 };
-	float speed = 150.0f; // To control player speed
+	float speed = 200.0f; // To control player speed
 };
 
 // Stucture to store collision information
@@ -120,6 +120,13 @@ struct DebugComponent
 struct DeathTimer
 {
 	float counter_ms = 3000;
+};
+
+// Movement mechanic
+struct Dash {
+	vec2 target;
+	vec2 diff;
+	float stamina_timer_ms = 1000;
 };
 
 // A timer that will be associated to enemy blocked by a solid object

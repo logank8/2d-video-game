@@ -10,8 +10,8 @@
 #include "physics_system.hpp"
 
 // Game configuration
-const size_t MAX_NUM_EELS = 15;
-const size_t MAX_NUM_FISH = 5;
+const size_t MAX_NUM_EELS = 5;
+const size_t MAX_NUM_FISH = 2;
 const size_t EEL_SPAWN_DELAY_MS = 2000 * 3;
 const size_t FISH_SPAWN_DELAY_MS = 5000 * 3;
 const size_t MAX_NUM_RANGED_ENEMY = 1;
@@ -253,6 +253,46 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			return true;
 		}
 	}
+
+	// Updating dash components
+	// distance tracking in dash:
+	// min distance between player pos and target will be 10.0 for standard
+	vec2 min_dash_diff = vec2(50.f, 50.f);
+	float min_counter_ms_stamina = 1000.f;
+	for (Entity entity : registry.dashing.entities) {
+		// progress diff value
+		Dash& player_dash = registry.dashing.get(entity);
+		if (player_dash.diff != vec2(0.f, 0.f)) {
+
+			player_dash.diff = player_dash.target - registry.motions.get(my_player).position;
+
+			min_dash_diff = player_dash.diff;
+
+			if ((player_dash.diff.x <= 0) && (player_dash.diff.y <= 0)) {
+				// target reached - change velocity
+				player_dash.diff = vec2(0.f, 0.f);
+				registry.motions.get(my_player).velocity = vec2(0,0);
+			} else if (player_dash.diff.x <= 0) {
+				player_dash.diff = vec2(0.f, player_dash.diff.y);
+			} else if (player_dash.diff.y <= 0) {
+				player_dash.diff = vec2(player_dash.diff.x, 0.f);
+			}
+		}
+
+		player_dash.stamina_timer_ms -= elapsed_ms_since_last_update;
+		if(player_dash.stamina_timer_ms < min_counter_ms_stamina){
+		    min_counter_ms_stamina = player_dash.stamina_timer_ms;
+		}
+
+		// std::cout << player_dash.stamina_timer_ms << std::endl;
+		if (player_dash.stamina_timer_ms < 0) {
+			registry.dashing.remove(my_player);
+			continue;
+		}
+
+	}
+
+
 	// reduce window brightness if the salmon is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
@@ -317,6 +357,19 @@ void WorldSystem::restart_game() {
 	*/
 }
 
+// utility functions for dash mvmnt implementation
+vec2 lerp(vec2 start, vec2 end, float t) {
+	return start * (1-t) + end*t;
+}
+
+float distance(vec2 coord1, vec2 coord2) {
+	return sqrt(powf(coord2.x - coord1.x, 2.f) + powf(coord2.y - coord1.y, 2.f));
+}
+
+vec2 norm(vec2 vec) {
+	return (vec / (vec.x + vec.y));
+}
+
 // Compute collisions between entities
 void WorldSystem::handle_collisions() {
 	// Loop over all collisions detected by the physics system
@@ -373,7 +426,6 @@ void WorldSystem::handle_collisions() {
 					Mix_PlayChannel(-1, salmon_eat_sound, 0);
 					++points;
 
-					// !!! TODO A1: create a new struct called LightUp in components.hpp and add an instance to the salmon entity by modifying the ECS registry
 				}
 			}
 			// Checking player collision with solid object
@@ -406,15 +458,15 @@ void WorldSystem::handle_collisions() {
 				Motion& motion_moving = registry.motions.get(entity);
 				Motion& motion_solid = registry.motions.get(entity_other);
 
-				if (motion_moving.position.x < motion_solid.position.x - (motion_moving.scale.x / 2) && motion_moving.velocity.x > 0) {
+				if (motion_moving.position.x < motion_solid.position.x - ((motion_moving.scale.x + motion_solid.scale.x) / 2) && motion_moving.velocity.x > 0) {
 					motion_moving.velocity.x = 0.f;
-				} else if (motion_moving.position.x > motion_solid.position.x + (motion_moving.scale.x / 2) && motion_moving.velocity.x < 0)
+				} else if (motion_moving.position.x > motion_solid.position.x + ((motion_moving.scale.x + motion_solid.scale.x) / 2) && motion_moving.velocity.x < 0)
 				{
 					motion_moving.velocity.x = 0.f;
-				} else if (motion_moving.position.y < motion_solid.position.y - (motion_moving.scale.y / 2) && motion_moving.velocity.y > 0)
+				} else if (motion_moving.position.y < motion_solid.position.y - ((motion_moving.scale.y + motion_solid.scale.y) / 2) && motion_moving.velocity.y > 0)
 				{
 					motion_moving.velocity.y = 0.f;
-				} else if (motion_moving.position.y > motion_solid.position.y + (motion_moving.scale.y / 2) && motion_moving.velocity.y < 0)
+				} else if (motion_moving.position.y > motion_solid.position.y + ((motion_moving.scale.y + motion_solid.scale.y) / 2) && motion_moving.velocity.y < 0)
 				{
 					motion_moving.velocity.y = 0.f;
 				}
@@ -554,6 +606,28 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("Current speed = %f\n", current_speed);
 	}
 	current_speed = fmax(0.f, current_speed);
+
+	if (key == GLFW_KEY_X) {
+		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player)) {
+			if (!registry.dashing.has(my_player)) {
+				Dash new_dash = {registry.motions.get(my_player).position + vec2(200, 0), registry.motions.get(my_player).position - (registry.motions.get(my_player).position + vec2(0, 5)), 1000};
+
+				registry.dashing.insert(my_player, new_dash);
+			} 
+			
+		}
+	}
+
+	Motion& motion = registry.motions.get(my_player);
+	
+
+	// Dash movement
+	if (registry.dashing.has(my_player)) {
+		if (registry.dashing.get(my_player).diff != vec2(0.f, 0.f)) {
+			motion.velocity = lerp(vec2(0, 0), registry.dashing.get(my_player).target - motion.position, 0.1);
+			motion.velocity = motion.speed * motion.velocity;
+		}
+	}
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {

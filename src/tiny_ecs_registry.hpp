@@ -32,6 +32,7 @@ public:
 	ComponentContainer<Slows> slows;
 	ComponentContainer<Ranged> ranged;
 	ComponentContainer<Projectile> projectiles;
+	ComponentContainer<Dash> dashing;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -58,6 +59,7 @@ public:
 		registry_list.push_back(&slows);
 		registry_list.push_back(&ranged);
 		registry_list.push_back(&projectiles);
+		registry_list.push_back(&dashing);
 	}
 
 	void clear_all_components() {

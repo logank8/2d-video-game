@@ -34,7 +34,7 @@ class RenderSystem {
 			textures_path("eel.png"),
 			textures_path("adventurer.png"),
 			textures_path("red_fish.png"),
-			textures_path("puffer_fish.png"),
+			textures_path("bubble_closed.png"),
 			textures_path("health_bar.png"),
 			textures_path("health_bar_empty.png"),
 			textures_path("table.png"),
