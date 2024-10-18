@@ -59,6 +59,7 @@ bool RenderSystem::init(GLFWwindow* window_arg)
     initializeGlTextures();
 	initializeGlEffects();
 	initializeGlGeometryBuffers();
+	initializeSpriteSheets();
 
 	return true;
 }
@@ -89,6 +90,10 @@ void RenderSystem::initializeGlTextures()
 		stbi_image_free(data);
     }
 	gl_has_errors();
+}
+
+void RenderSystem::initializeSpriteSheets() {
+	sprite_sheets[SPRITE_ASSET_ID::PLAYER] = {TEXTURE_ASSET_ID::PLAYERS, 10, 6, 64, 64};
 }
 
 void RenderSystem::initializeGlEffects()

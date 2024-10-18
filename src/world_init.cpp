@@ -22,6 +22,7 @@ Entity createSalmon(RenderSystem* renderer, vec2 pos)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no texture is needed
+			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::SALMON,
 			GEOMETRY_BUFFER_ID::SALMON });
 
@@ -45,9 +46,11 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	registry.renderRequests.insert(
 		entity,
 		{
-			TEXTURE_ASSET_ID::PLAYER,
+			TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			SPRITE_ASSET_ID::PLAYER,
 			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE
+			GEOMETRY_BUFFER_ID::SPRITE,
+			1 // Sprite index  => 0 INDEXED (L->R, T->B)
 		}
 	);
 
@@ -81,6 +84,7 @@ Entity createHPBar(RenderSystem* renderer, vec2 pos)
 		entity,
 		{
 			TEXTURE_ASSET_ID::HP_BAR,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
 		}
@@ -111,6 +115,7 @@ Entity createHPBarEmpty(RenderSystem* renderer, vec2 pos)
 		entity,
 		{
 			TEXTURE_ASSET_ID::HP_BAR_EMPTY,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
 		}
@@ -145,6 +150,7 @@ Entity createFish(RenderSystem* renderer, vec2 position)
 		entity,
 		{
 			TEXTURE_ASSET_ID::FISH,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
 		});
@@ -179,6 +185,7 @@ Entity createEel(RenderSystem* renderer, vec2 position)
 		entity,
 		{
 			TEXTURE_ASSET_ID::EEL,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
 		});
@@ -214,6 +221,7 @@ Entity createRangedEnemy(RenderSystem* renderer, vec2 position)
 		entity,
 		{
 			TEXTURE_ASSET_ID::RANGED_ENEMY,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
 		});
@@ -250,6 +258,7 @@ Entity createRangedProjectile(RenderSystem* renderer, vec2 position)
 		entity,
 		{
 			TEXTURE_ASSET_ID::RANGED_PROJECTILE,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
 		});
@@ -265,6 +274,7 @@ Entity createLine(vec2 position, vec2 scale)
 	registry.renderRequests.insert(
 		entity, {
 			TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::EGG,
 			GEOMETRY_BUFFER_ID::DEBUG_LINE
 		});
@@ -277,29 +287,6 @@ Entity createLine(vec2 position, vec2 scale)
 	motion.scale = scale;
 
 	registry.debugComponents.emplace(entity);
-	return entity;
-}
-
-Entity createEgg(vec2 pos, vec2 size)
-{
-	auto entity = Entity();
-
-	// Setting initial motion values
-	Motion& motion = registry.motions.emplace(entity);
-	motion.position = pos;
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.scale = size;
-
-	// create an empty component for our eggs
-	registry.deadlys.emplace(entity);
-	registry.renderRequests.insert(
-		entity, {
-			TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
-			EFFECT_ASSET_ID::EGG,
-			GEOMETRY_BUFFER_ID::EGG
-		});
-
 	return entity;
 }
 
@@ -322,6 +309,7 @@ Entity createWalls(RenderSystem* renderer, vec2 pos, bool is_side_wall)
 		registry.renderRequests.insert(
 			entity, {
 				TEXTURE_ASSET_ID::SIDE_WALL,
+				SPRITE_ASSET_ID::SPRITE_COUNT,
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE
 			}
@@ -330,6 +318,7 @@ Entity createWalls(RenderSystem* renderer, vec2 pos, bool is_side_wall)
 		registry.renderRequests.insert(
 			entity, {
 				TEXTURE_ASSET_ID::WALL,
+				SPRITE_ASSET_ID::SPRITE_COUNT,
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE
 			}
@@ -390,6 +379,7 @@ Entity createFurniture(RenderSystem* renderer, vec2 pos)
 	registry.renderRequests.insert(
 		entity, {
 			TEXTURE_ASSET_ID::FURNITURE,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
 		}

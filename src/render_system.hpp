@@ -2,6 +2,7 @@
 
 #include <array>
 #include <utility>
+#include <unordered_map>
 
 #include "common.hpp"
 #include "components.hpp"
@@ -19,6 +20,7 @@ class RenderSystem {
 	 */
 	std::array<GLuint, texture_count> texture_gl_handles;
 	std::array<ivec2, texture_count> texture_dimensions;
+	std::unordered_map<SPRITE_ASSET_ID, SpriteSheetInfo> sprite_sheets;
 
 	// Make sure these paths remain in sync with the associated enumerators.
 	// Associated id with .obj path
@@ -39,7 +41,8 @@ class RenderSystem {
 			textures_path("health_bar_empty.png"),
 			textures_path("table.png"),
 			textures_path("wall.png"),
-			textures_path("side_wall.png")
+			textures_path("side_wall.png"),
+			textures_path("player.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -61,6 +64,12 @@ public:
 
 	template <class T>
 	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
+
+	// For sprite sheets
+
+	void initializeSpriteSheets();
+
+	void getUVCoordinates(SPRITE_ASSET_ID sid, int spriteIndex, float& u0, float& v0, float& u1, float& v1);
 
 	void initializeGlTextures();
 

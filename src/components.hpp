@@ -199,9 +199,16 @@ enum class TEXTURE_ASSET_ID {
 	FURNITURE = HP_BAR_EMPTY + 1,
 	WALL = FURNITURE + 1,
 	SIDE_WALL = WALL + 1,
-	TEXTURE_COUNT = SIDE_WALL + 1
+	PLAYERS = SIDE_WALL + 1,
+	TEXTURE_COUNT = PLAYERS + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
+
+enum class SPRITE_ASSET_ID {
+	PLAYER = 0,
+	SPRITE_COUNT = PLAYER + 1,
+};
+const int sprite_count = (int) SPRITE_ASSET_ID::SPRITE_COUNT;
 
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
@@ -223,9 +230,19 @@ enum class GEOMETRY_BUFFER_ID {
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
+struct SpriteSheetInfo {
+	TEXTURE_ASSET_ID texture_id;
+	int rows;
+	int cols;
+	int sprite_width;
+	int sprite_height;
+};
+
 struct RenderRequest {
 	TEXTURE_ASSET_ID used_texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
+	SPRITE_ASSET_ID used_sprite = SPRITE_ASSET_ID::SPRITE_COUNT;
 	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
+	int sprite_index = -1;
 };
 
