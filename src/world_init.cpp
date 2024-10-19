@@ -54,6 +54,20 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 		}
 	);
 
+	// Initialize animations
+	std::vector<int> run_f_indices = {24,25,26,27,28,29};
+	Animation anim_f_run = {
+			"player_fun_run",
+			15,
+			SPRITE_ASSET_ID::PLAYER,
+			run_f_indices
+		};
+
+	auto& animSet = registry.animationSets.emplace(entity);
+	animSet.current_animation=anim_f_run.name;
+	animSet.animations[anim_f_run.name] = anim_f_run;
+
+
 	// Add damage to player
 	Damage& damage = registry.damages.emplace(entity);
 	// Add health to player

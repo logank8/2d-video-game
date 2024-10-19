@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "physics_system.hpp"
+#include "animation_system.hpp"
 
 // Game configuration
 const size_t MAX_NUM_EELS = 5;

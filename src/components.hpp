@@ -246,3 +246,18 @@ struct RenderRequest {
 	int sprite_index = -1;
 };
 
+struct Animation {
+	std::string name;
+	int frameRate; // frames per second
+	SPRITE_ASSET_ID used_sprite = SPRITE_ASSET_ID::SPRITE_COUNT; // sprite sheet to grab sprites from
+	std::vector<int> sprite_indices; // list of indices used in animation 
+};
+
+struct AnimationSet {
+	std::unordered_map<std::string, Animation> animations;
+	std::string current_animation;
+	int current_frame = 0;
+	float elapsed_time = 0.0f;
+};
+
+
