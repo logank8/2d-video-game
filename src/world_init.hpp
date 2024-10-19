@@ -17,8 +17,6 @@ const float HPBAR_BB_HEIGHT = 0.16f;
 const float FURNITURE_WIDTH = 16.f;
 const float FURNITURE_HEIGHT = 16.f;
 
-// the player
-Entity createSalmon(RenderSystem* renderer, vec2 pos);
 
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);

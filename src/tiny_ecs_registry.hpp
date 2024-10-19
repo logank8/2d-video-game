@@ -34,7 +34,6 @@ public:
 	ComponentContainer<Projectile> projectiles;
 	ComponentContainer<Dash> dashing;
 	ComponentContainer<UserInterface> userInterfaces;
-	ComponentContainer<Animation> animations;
 	ComponentContainer<AnimationSet> animationSets;
 
 	// constructor that adds all containers for looping over them
@@ -64,7 +63,6 @@ public:
 		registry_list.push_back(&projectiles);
 		registry_list.push_back(&dashing);
 		registry_list.push_back(&userInterfaces);
-		registry_list.push_back(&animations);
 		registry_list.push_back(&animationSets);
 	}
 

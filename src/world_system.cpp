@@ -607,6 +607,22 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
+	// TEMPORARY animation state handler (TO BE CHANGED)
+	// *** NOT PERMANENT ***
+	Motion& pmotion = registry.motions.get(my_player);
+	AnimationSet& animSet = registry.animationSets.get(my_player);
+	if (pmotion.velocity != vec2(0,0)) {
+		animSet.current_animation = "player_run_f";
+		
+		if (pmotion.velocity.x < 0) {
+			pmotion.scale.x = -std::abs(pmotion.scale.x);
+		} else {
+			pmotion.scale.x = std::abs(pmotion.scale.x);
+		}
+	} else {
+		animSet.current_animation = "player_idle_f";
+	}
+
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
 		current_speed -= 0.1f;
