@@ -63,7 +63,11 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		gl_has_errors();
 
 		assert(registry.renderRequests.has(entity));
-		GLuint texture_id = texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];;
+		GLuint texture_index = (GLuint)registry.renderRequests.get(entity).used_texture - 1;
+		if (texture_index == -1) {
+			texture_index = 0;
+		}
+		GLuint texture_id = texture_gl_handles[texture_index];;
 		if (render_request.used_sprite == SPRITE_ASSET_ID::SPRITE_COUNT || render_request.sprite_index == -1) {
 		texture_id =
 			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
