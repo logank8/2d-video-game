@@ -12,12 +12,18 @@ const float PLAYER_BB_HEIGHT = 0.6f * 200.f;
 const float FISH_BB_HEIGHT = 0.6f * 165.f;
 const float EEL_BB_WIDTH   = 0.6f * 300.f;	// 1001
 const float EEL_BB_HEIGHT  = 0.6f * 202.f;	// 870
+const float HPBAR_BB_WIDTH = 0.32f;
+const float HPBAR_BB_HEIGHT = 0.16f;
+const float FURNITURE_WIDTH = 16.f;
+const float FURNITURE_HEIGHT = 16.f;
 
-// the player
-Entity createSalmon(RenderSystem* renderer, vec2 pos);
 
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
+
+// the hp bar
+Entity createHPBar(RenderSystem* renderer, vec2 pos);
+Entity createHPBarEmpty(RenderSystem* renderer, vec2 pos);
 
 // the prey
 Entity createFish(RenderSystem* renderer, vec2 position);
@@ -25,8 +31,18 @@ Entity createFish(RenderSystem* renderer, vec2 position);
 // the enemy
 Entity createEel(RenderSystem* renderer, vec2 position);
 
+Entity createRangedEnemy(RenderSystem* renderer, vec2 position);
+
+Entity createRangedProjectile(RenderSystem* renderer, vec2 position);
+
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
 
 // a egg
 Entity createEgg(vec2 pos, vec2 size);
+
+// a wall
+Entity createWalls(RenderSystem* renderer, vec2 pos, bool is_side_wall);
+
+// a piece of furniture
+Entity createFurniture(RenderSystem* renderer, vec2 pos);

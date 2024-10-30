@@ -7,11 +7,30 @@
 // Player component
 struct Player
 {
-
+	// For dashing and after taking damage;
+	bool invulnerable = false;
+	float invulnerable_duration_ms = 1000.f;
 };
+
+enum class ENEMY_TYPES {
+	CONTACT_DMG = 0,
+	RANGED = CONTACT_DMG + 1,
+	PROJECTILE = RANGED + 1
+};
+
 
 // anything that is deadly to the player
 struct Deadly
+{
+	ENEMY_TYPES enemy_type = ENEMY_TYPES::CONTACT_DMG;
+};
+
+struct Ranged
+{
+	float projectile_delay = 1000.f;
+};
+
+struct Projectile
 {
 
 };
@@ -19,20 +38,20 @@ struct Deadly
 // Walls component
 struct Wall
 {
-	
+
 };
 
 // Ground component
 struct Ground
 {
-	
+
 };
 
 
 // player can't move through
 struct Solid
 {
-	
+
 };
 
 // slows player down when walked on - applied to specific ground tiles
@@ -67,7 +86,7 @@ struct Motion {
 	float angle = 0;
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { 10, 10 };
-	float speed = 150.0f; // To control player speed
+	float speed = 200.0f; // To control player speed
 };
 
 // Stucture to store collision information
@@ -91,6 +110,12 @@ struct ScreenState
 	float darken_screen_factor = -1;
 };
 
+struct UserInterface {
+	vec2 position = {0, 0};
+	float angle = 0;
+	vec2 scale = { 10, 10 };
+};
+
 // A struct to refer to debugging graphics in the ECS
 struct DebugComponent
 {
@@ -101,6 +126,19 @@ struct DebugComponent
 struct DeathTimer
 {
 	float counter_ms = 3000;
+};
+
+// Movement mechanic
+struct Dash {
+	vec2 target;
+	vec2 diff;
+	float stamina_timer_ms = 1000;
+};
+
+// A timer that will be associated to enemy blocked by a solid object
+struct BlockedTimer
+{
+	float counter_ms = 100;
 };
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & salmon.vs.glsl)
@@ -124,14 +162,6 @@ struct Mesh
 	vec2 original_size = {1,1};
 	std::vector<ColoredVertex> vertices;
 	std::vector<uint16_t> vertex_indices;
-};
-
-
-struct Dash
-{
-	vec2 target;
-	vec2 diff;
-	float stamina_timer_ms = 1000;
 };
 
 /**
@@ -162,9 +192,23 @@ enum class TEXTURE_ASSET_ID {
 	FISH = 0,
 	EEL = FISH + 1,
 	PLAYER = EEL + 1,
-	TEXTURE_COUNT = PLAYER + 1
+	RANGED_ENEMY = PLAYER + 1,
+	RANGED_PROJECTILE = RANGED_ENEMY + 1,
+	HP_BAR = RANGED_PROJECTILE + 1,
+	HP_BAR_EMPTY = HP_BAR + 1,
+	FURNITURE = HP_BAR_EMPTY + 1,
+	WALL = FURNITURE + 1,
+	SIDE_WALL = WALL + 1,
+	PLAYERS = SIDE_WALL + 1,
+	TEXTURE_COUNT = PLAYERS + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
+
+enum class SPRITE_ASSET_ID {
+	PLAYER = 0,
+	SPRITE_COUNT = PLAYER + 1,
+};
+const int sprite_count = (int) SPRITE_ASSET_ID::SPRITE_COUNT;
 
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
@@ -186,9 +230,34 @@ enum class GEOMETRY_BUFFER_ID {
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
+struct SpriteSheetInfo {
+	TEXTURE_ASSET_ID texture_id;
+	int rows;
+	int cols;
+	int sprite_width;
+	int sprite_height;
+};
+
 struct RenderRequest {
 	TEXTURE_ASSET_ID used_texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
+	SPRITE_ASSET_ID used_sprite = SPRITE_ASSET_ID::SPRITE_COUNT;
 	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
+	int sprite_index = -1;
 };
+
+struct Animation {
+	std::string name;
+	int frameRate; // frames per second
+	SPRITE_ASSET_ID used_sprite = SPRITE_ASSET_ID::SPRITE_COUNT; // sprite sheet to grab sprites from
+	std::vector<int> sprite_indices; // list of indices used in animation 
+};
+
+struct AnimationSet {
+	std::unordered_map<std::string, Animation> animations;
+	std::string current_animation;
+	int current_frame = 0;
+	float elapsed_time = 0.0f;
+};
+
 

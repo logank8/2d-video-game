@@ -2,6 +2,8 @@
 #include "render_system.hpp"
 #include <SDL.h>
 
+#include <iostream>
+
 #include "tiny_ecs_registry.hpp"
 
 void RenderSystem::drawTexturedMesh(Entity entity,
@@ -47,7 +49,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		glEnableVertexAttribArray(in_position_loc);
 		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
-							  sizeof(TexturedVertex), (void *)0);
+							sizeof(TexturedVertex), (void *)0);
 		gl_has_errors();
 
 		glEnableVertexAttribArray(in_texcoord_loc);
@@ -61,37 +63,37 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		gl_has_errors();
 
 		assert(registry.renderRequests.has(entity));
-		GLuint texture_id =
+		GLuint texture_index = (GLuint)registry.renderRequests.get(entity).used_texture - 1;
+		if (texture_index == -1) {
+			texture_index = 0;
+		}
+		GLuint texture_id = texture_gl_handles[texture_index];;
+		if (render_request.used_sprite == SPRITE_ASSET_ID::SPRITE_COUNT || render_request.sprite_index == -1) {
+		texture_id =
 			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
 
-		glBindTexture(GL_TEXTURE_2D, texture_id);
-		gl_has_errors();
-	}
-	else if (render_request.used_effect == EFFECT_ASSET_ID::SALMON || render_request.used_effect == EFFECT_ASSET_ID::EGG)
-	{
-		GLint in_position_loc = glGetAttribLocation(program, "in_position");
-		GLint in_color_loc = glGetAttribLocation(program, "in_color");
-		gl_has_errors();
-
-		glEnableVertexAttribArray(in_position_loc);
-		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
-							  sizeof(ColoredVertex), (void *)0);
-		gl_has_errors();
-
-		glEnableVertexAttribArray(in_color_loc);
-		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
-							  sizeof(ColoredVertex), (void *)sizeof(vec3));
-		gl_has_errors();
-
-		if (render_request.used_effect == EFFECT_ASSET_ID::SALMON)
-		{
-			// Light up?
-			GLint light_up_uloc = glGetUniformLocation(program, "light_up");
-			assert(light_up_uloc >= 0);
-
-			// !!! TODO A1: set the light_up shader variable using glUniform1i,
-			// similar to the glUniform1f call below. The 1f or 1i specified the type, here a single int.
+			glBindTexture(GL_TEXTURE_2D, texture_id);
 			gl_has_errors();
+
+			GLuint uv_offset_loc = glGetUniformLocation(program, "uv_offset");
+			glUniform2f(uv_offset_loc, 0.0f, 0.0f);  
+
+			GLuint uv_scale_loc = glGetUniformLocation(program, "uv_scale");
+			glUniform2f(uv_scale_loc, 1.0f, 1.0f);  
+		} else {
+			texture_id = texture_gl_handles[(GLuint)sprite_sheets[registry.renderRequests.get(entity).used_sprite].texture_id];
+
+			glBindTexture(GL_TEXTURE_2D, texture_id);
+			gl_has_errors();
+
+			float u0, v0, u1, v1;
+			getUVCoordinates(registry.renderRequests.get(entity).used_sprite, registry.renderRequests.get(entity).sprite_index, u0, v0, u1, v1);
+
+			GLuint uv_offset_loc = glGetUniformLocation(program, "uv_offset");
+			glUniform2f(uv_offset_loc, u0, v0);
+
+			GLuint uv_scale_loc = glGetUniformLocation(program, "uv_scale");
+			glUniform2f(uv_scale_loc, (u1 - u0), (v1 - v0));
 		}
 	}
 	else
@@ -101,7 +103,16 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	// Getting uniform locations for glUniform* calls
 	GLint color_uloc = glGetUniformLocation(program, "fcolor");
-	const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
+	vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
+
+	if (registry.colors.has(entity)) {
+		if (registry.players.has(entity) && registry.players.get(entity).invulnerable) {
+			color = vec3(1, 0, 0);
+		} else {
+			color = registry.colors.get(entity);
+		}
+	}
+
 	glUniform3fv(color_uloc, 1, (float *)&color);
 	gl_has_errors();
 
@@ -122,6 +133,84 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float *)&projection);
 	gl_has_errors();
 	// Drawing of num_indices/3 triangles specified in the index buffer
+	glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
+	gl_has_errors();
+}
+
+void RenderSystem::drawScreenSpaceObject(Entity entity) {
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h);
+
+	UserInterface& userInterface = registry.userInterfaces.get(entity);
+
+	mat3 screen_projection = mat3(1.0f); // Identity for 2D rendering
+    screen_projection[0][0] = userInterface.scale.x;
+    screen_projection[1][1] = userInterface.scale.y;
+    screen_projection[2][0] = userInterface.position.x;
+    screen_projection[2][1] = userInterface.position.y;
+
+	assert(registry.renderRequests.has(entity));
+	const RenderRequest &render_request = registry.renderRequests.get(entity);
+
+	const GLuint used_effect_enum = (GLuint)render_request.used_effect;
+	assert(used_effect_enum != (GLuint)EFFECT_ASSET_ID::EFFECT_COUNT);
+	const GLuint program = (GLuint)effects[used_effect_enum];
+
+	glUseProgram(program);
+	gl_has_errors();
+
+	assert(render_request.used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
+	const GLuint vbo = vertex_buffers[(GLuint)render_request.used_geometry];
+	const GLuint ibo = index_buffers[(GLuint)render_request.used_geometry];
+
+	mat3 transform = mat3(1.0f);
+
+	// Setting vertex and index buffers
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	gl_has_errors();
+
+	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED) 
+	{
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+		gl_has_errors();
+		assert(in_texcoord_loc >= 0);
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+							  sizeof(TexturedVertex), (void *)0);
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_texcoord_loc);
+		glVertexAttribPointer(
+			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+			(void *)sizeof(
+				vec3));
+
+		glActiveTexture(GL_TEXTURE0);
+		gl_has_errors();
+
+		assert(registry.renderRequests.has(entity));
+		GLuint texture_id =
+			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+
+		glBindTexture(GL_TEXTURE_2D, texture_id);
+		gl_has_errors();
+	}
+
+	GLint size = 0;
+	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+	gl_has_errors();
+
+	GLsizei num_indices = size / sizeof(uint16_t);
+
+	GLuint transform_loc = glGetUniformLocation(program, "transform");
+	glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float*)&transform);
+
+    GLuint projection_loc = glGetUniformLocation(program, "projection");
+    glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*)&screen_projection); 
+
 	glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
 	gl_has_errors();
 }
@@ -163,12 +252,22 @@ void RenderSystem::drawToScreen()
 	glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
 	ScreenState &screen = registry.screenStates.get(screen_state_entity);
 	glUniform1f(dead_timer_uloc, screen.darken_screen_factor);
+
+	// Pass lighting variables
+	GLuint view_pos_uloc = glGetUniformLocation(water_program, "viewPos");
+
+	glUniform3f(view_pos_uloc, window_width_px / 2, window_height_px / 2, 1.0);
+
 	gl_has_errors();
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)
 	GLint in_position_loc = glGetAttribLocation(water_program, "in_position");
 	glEnableVertexAttribArray(in_position_loc);
 	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void *)0);
+
+	// Set up vertex normal location
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void*) 0);
+	glEnableVertexAttribArray(0);
 	gl_has_errors();
 
 	// Bind our texture in Texture Unit 0
@@ -207,15 +306,29 @@ void RenderSystem::draw()
 							  // and alpha blending, one would have to sort
 							  // sprites back to front
 	gl_has_errors();
-	mat3 projection_2D = createProjectionMatrix();
+
+	Entity player_entity = registry.players.entities.front();
+	vec2 player_position = registry.motions.get(player_entity).position;
+	mat3 projection_2D = createPlayerProjectionMatrix(player_position);
+	// mat3 projection_2D = createProjectionMatrix();
 	// Draw all textured meshes that have a position and size component
+	std::vector<Entity> uiEntities;
+
 	for (Entity entity : registry.renderRequests.entities)
 	{
+		if (registry.userInterfaces.has(entity)) {
+			uiEntities.push_back(entity);
+			continue;
+		}
 		if (!registry.motions.has(entity))
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
 		drawTexturedMesh(entity, projection_2D);
+	}
+
+	for (Entity entity : uiEntities) {
+		drawScreenSpaceObject(entity);
 	}
 
 	// Truely render to the screen
@@ -225,6 +338,24 @@ void RenderSystem::draw()
 	glfwSwapBuffers(window);
 	gl_has_errors();
 }
+
+mat3 RenderSystem::createPlayerProjectionMatrix(vec2 position)
+{
+	// Fake projection matrix, scales with respect to window coordinates
+	float left = 0.f;
+	float top = 0.f;
+
+	gl_has_errors();
+	float right = (float) window_width_px;
+	float bottom = (float) window_height_px;
+
+	float sx = 2.f / (right - left);
+	float sy = 2.f / (top - bottom);
+	float tx = -(right + left) / (right - left) - (position.x - window_width_px / 2.f) * sx;
+	float ty = -(top + bottom) / (top - bottom) - (position.y - window_height_px / 2.f)  * sy;
+	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
+}
+
 
 mat3 RenderSystem::createProjectionMatrix()
 {
@@ -241,4 +372,24 @@ mat3 RenderSystem::createProjectionMatrix()
 	float tx = -(right + left) / (right - left);
 	float ty = -(top + bottom) / (top - bottom);
 	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
+}
+
+void RenderSystem::getUVCoordinates(SPRITE_ASSET_ID sid, int spriteIndex, float& u0, float& v0, float& u1, float& v1) {
+	SpriteSheetInfo info = sprite_sheets[sid];
+	int numCols = info.cols;
+	int numRows = info.rows;
+
+	int col = spriteIndex % numCols;
+	int row = spriteIndex / numCols;
+
+	// std::cout << "COL: "<< col << std::endl;
+	// std::cout << "ROW: " << row << std::endl;
+
+	int textureWidth = numCols * info.sprite_width;
+	int textureHeight = numRows * info.sprite_height;
+
+	u0 = col * (float)info.sprite_width / textureWidth;
+	v0 = row * (float)info.sprite_height / textureHeight;
+    u1 = (col + 1) * (float)info.sprite_width / textureWidth;
+    v1 = (row + 1) * (float)info.sprite_height / textureHeight;
 }
