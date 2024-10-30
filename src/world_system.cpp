@@ -19,6 +19,10 @@ const size_t MAX_NUM_RANGED_ENEMY = 1;
 const size_t RANGED_ENEMY_SPAWN_DELAY_MS = 5000 * 3;
 const size_t RANGED_ENEMY_PROJECTILE_DELAY_MS = 2000 * 3;
 
+const int LIGHT_FLICKER_RATE = 2000 * 10;
+
+int lightflicker_counter_ms;
+
 bool rstuck = false;
 bool lstuck = false;
 bool ustuck = false;
@@ -256,6 +260,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// Updating dash components
+
 	// distance tracking in dash:
 	// min distance between player pos and target will be 10.0 for standard
 	vec2 min_dash_diff = vec2(50.f, 50.f);
@@ -297,7 +302,26 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// reduce window brightness if the salmon is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
-	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the death counter
+
+	//Lights flickering
+	// if salmon is not dying - let lights effect on screen
+	if (!registry.deathTimers.has(my_player)) {
+		lightflicker_counter_ms += elapsed_ms_since_last_update;
+		if (lightflicker_counter_ms >= LIGHT_FLICKER_RATE) {
+			std::cout << "Light flickering" << std::endl;
+			screen.darken_screen_factor = 0.6;
+			lightflicker_counter_ms = 0;
+		} else if (lightflicker_counter_ms < 400) {
+			std::cout << "Lights back on" << std::endl;
+			if ((lightflicker_counter_ms - (lightflicker_counter_ms % 15)) % 30 < 15) {
+				screen.darken_screen_factor = 0;
+			} else {
+				screen.darken_screen_factor = 0.6;
+			}
+		} else {
+			screen.darken_screen_factor = 0;
+		}
+	}
 
 	return true;
 }
@@ -320,11 +344,16 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
+
 	// create a new Player
 	my_player = createPlayer(renderer, { window_width_px/2, window_height_px - 200 });
 	registry.colors.insert(my_player, {1, 0.8f, 0.8f});
 
+	lightflicker_counter_ms = 1000;
+
+	/*
 	// create furniture/table (for testing)
+
 	createFurniture(renderer, { window_width_px / 4, window_height_px * 3 / 4 });
 
 	// create walls on screen boundary (top & bottom)
@@ -337,6 +366,24 @@ void WorldSystem::restart_game() {
 		createWalls(renderer, { 0, j }, true);
 		createWalls(renderer, { window_width_px, j }, true);
 	}
+	*/
+
+	// player pos: [25, 44]
+	// player pos on screen: [640, 640]
+	// tile size: 48
+	// origin: [-560, -1472]
+	// to spawn at [0, 0] -> [-536, -1448]
+	for (int i = 0; i < map1[0].size(); i++) {
+		for (int j = 0; j < map1.size(); j++) {
+			int tile_size = 100;
+			if (map1[j][i] == 0) {
+				createWalls(renderer, {(640 - (25*100)) + (i * tile_size) + (tile_size/2), (640 - (44*100)) + (j * tile_size) + (tile_size/2)}, false);
+			}
+			
+		}
+	}
+
+
 
 	// create health bar
 	vec2 hp_bar_pos = { -0.75, 0.8f };
