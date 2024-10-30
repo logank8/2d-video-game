@@ -38,6 +38,8 @@ public:
 	// Should the game be over ?
 	bool is_over()const;
 	bool is_paused;
+
+	std::vector<std::vector<int>> get_current_map();
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
