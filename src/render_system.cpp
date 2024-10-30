@@ -179,12 +179,22 @@ void RenderSystem::drawToScreen()
 	glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
 	ScreenState &screen = registry.screenStates.get(screen_state_entity);
 	glUniform1f(dead_timer_uloc, screen.darken_screen_factor);
+
+	// Pass lighting variables
+	GLuint view_pos_uloc = glGetUniformLocation(water_program, "viewPos");
+
+	glUniform3f(view_pos_uloc, window_width_px / 2, window_height_px / 2, 1.0);
+
 	gl_has_errors();
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)
 	GLint in_position_loc = glGetAttribLocation(water_program, "in_position");
 	glEnableVertexAttribArray(in_position_loc);
 	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void *)0);
+
+	// Set up vertex normal location
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void*) 0);
+	glEnableVertexAttribArray(0);
 	gl_has_errors();
 
 	// Bind our texture in Texture Unit 0
