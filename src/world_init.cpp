@@ -1,33 +1,6 @@
 #include "world_init.hpp"
 #include "tiny_ecs_registry.hpp"
 
-Entity createSalmon(RenderSystem* renderer, vec2 pos)
-{
-	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SALMON);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Setting initial motion values
-	Motion& motion = registry.motions.emplace(entity);
-	motion.position = pos;
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.scale = mesh.original_size * 300.f;
-	motion.scale.y *= -1; // point front to the right
-
-	// create an empty Salmon component for our character
-	registry.players.emplace(entity);
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no texture is needed
-			EFFECT_ASSET_ID::SALMON,
-			GEOMETRY_BUFFER_ID::SALMON });
-
-	return entity;
-}
-
 Entity createPlayer(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
@@ -45,19 +18,43 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	registry.renderRequests.insert(
 		entity,
 		{
-			TEXTURE_ASSET_ID::PLAYER,
+			TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			SPRITE_ASSET_ID::PLAYER,
 			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE
+			GEOMETRY_BUFFER_ID::SPRITE,
+			1 // Sprite index  => 0 INDEXED (L->R, T->B)
 		}
 	);
+
+	// Initialize animations
+	std::vector<int> run_f_vec = {24,25,26,27,28,29};
+	Animation run_f = {
+			"player_run_f",
+			15,
+			SPRITE_ASSET_ID::PLAYER,
+			run_f_vec
+		};
+
+	std::vector<int> idle_f_vec = {0,1,2,3,4,5};
+	Animation idle_f = {
+			"player_idle_f",
+			15,
+			SPRITE_ASSET_ID::PLAYER,
+			idle_f_vec
+		};
+
+
+
+	auto& animSet = registry.animationSets.emplace(entity);
+	animSet.animations[run_f.name] = run_f;
+	animSet.animations[idle_f.name] = idle_f;
+	animSet.current_animation=idle_f.name;
+
 
 	// Add damage to player
 	Damage& damage = registry.damages.emplace(entity);
 	// Add health to player
 	Health& health = registry.healths.emplace(entity);
-
-	// init player map position
-	OnMap& onmap = registry.onMap.insert(entity, {{0, 0}});
 
 	return entity;
 }
@@ -69,16 +66,22 @@ Entity createHPBar(RenderSystem* renderer, vec2 pos)
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initialize the position, scale, and physics components
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0, 0 };
-	motion.position = pos;
-	motion.scale = vec2({ HPBAR_BB_WIDTH, HPBAR_BB_HEIGHT });
+	// auto& motion = registry.motions.emplace(entity);
+	// motion.angle = 0.f;
+	// motion.velocity = { 0, 0 };
+	// motion.position = pos;
+	// motion.scale = vec2({ HPBAR_BB_WIDTH, HPBAR_BB_HEIGHT });
+
+	auto& userInterface = registry.userInterfaces.emplace(entity);
+	userInterface.angle = 0.f;
+	userInterface.position = pos;
+	userInterface.scale = vec2({ HPBAR_BB_WIDTH, HPBAR_BB_HEIGHT });
 
 	registry.renderRequests.insert(
 		entity,
 		{
 			TEXTURE_ASSET_ID::HP_BAR,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
 		}
@@ -94,16 +97,22 @@ Entity createHPBarEmpty(RenderSystem* renderer, vec2 pos)
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initialize the position, scale, and physics components
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0, 0 };
-	motion.position = pos;
-	motion.scale = vec2({ HPBAR_BB_WIDTH, HPBAR_BB_HEIGHT });
+	// auto& motion = registry.motions.emplace(entity);
+	// motion.angle = 0.f;
+	// motion.velocity = { 0, 0 };
+	// motion.position = pos;
+	// motion.scale = vec2({ HPBAR_BB_WIDTH, HPBAR_BB_HEIGHT });
+
+	auto& userInterface = registry.userInterfaces.emplace(entity);
+	userInterface.angle = 0.f;
+	userInterface.position = pos;
+	userInterface.scale = vec2({ HPBAR_BB_WIDTH, HPBAR_BB_HEIGHT });
 
 	registry.renderRequests.insert(
 		entity,
 		{
 			TEXTURE_ASSET_ID::HP_BAR_EMPTY,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
 		}
@@ -138,6 +147,7 @@ Entity createFish(RenderSystem* renderer, vec2 position)
 		entity,
 		{
 			TEXTURE_ASSET_ID::FISH,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
 		});
@@ -172,6 +182,7 @@ Entity createEel(RenderSystem* renderer, vec2 position)
 		entity,
 		{
 			TEXTURE_ASSET_ID::EEL,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
 		});
@@ -207,6 +218,7 @@ Entity createRangedEnemy(RenderSystem* renderer, vec2 position)
 		entity,
 		{
 			TEXTURE_ASSET_ID::RANGED_ENEMY,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
 		});
@@ -243,6 +255,7 @@ Entity createRangedProjectile(RenderSystem* renderer, vec2 position)
 		entity,
 		{
 			TEXTURE_ASSET_ID::RANGED_PROJECTILE,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
 		});
@@ -258,6 +271,7 @@ Entity createLine(vec2 position, vec2 scale)
 	registry.renderRequests.insert(
 		entity, {
 			TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::EGG,
 			GEOMETRY_BUFFER_ID::DEBUG_LINE
 		});
@@ -270,29 +284,6 @@ Entity createLine(vec2 position, vec2 scale)
 	motion.scale = scale;
 
 	registry.debugComponents.emplace(entity);
-	return entity;
-}
-
-Entity createEgg(vec2 pos, vec2 size)
-{
-	auto entity = Entity();
-
-	// Setting initial motion values
-	Motion& motion = registry.motions.emplace(entity);
-	motion.position = pos;
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.scale = size;
-
-	// create an empty component for our eggs
-	registry.deadlys.emplace(entity);
-	registry.renderRequests.insert(
-		entity, {
-			TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
-			EFFECT_ASSET_ID::EGG,
-			GEOMETRY_BUFFER_ID::EGG
-		});
-
 	return entity;
 }
 
@@ -315,6 +306,7 @@ Entity createWalls(RenderSystem* renderer, vec2 pos, bool is_side_wall)
 		registry.renderRequests.insert(
 			entity, {
 				TEXTURE_ASSET_ID::SIDE_WALL,
+				SPRITE_ASSET_ID::SPRITE_COUNT,
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE
 			}
@@ -323,6 +315,7 @@ Entity createWalls(RenderSystem* renderer, vec2 pos, bool is_side_wall)
 		registry.renderRequests.insert(
 			entity, {
 				TEXTURE_ASSET_ID::WALL,
+				SPRITE_ASSET_ID::SPRITE_COUNT,
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE
 			}
@@ -336,28 +329,31 @@ Entity createWalls(RenderSystem* renderer, vec2 pos, bool is_side_wall)
 	return entity;
 }
 
-Entity createGround(RenderSystem* renderer, vec2 pos)
+Entity createGround(RenderSystem* renderer, vec2 pos, vec2 size)
 {
 	auto entity = Entity();
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::GROUND);
-	registry.meshPtrs.emplace(entity, &mesh);
+	// TODO: Add mesh for ground
+	// Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	// registry.meshPtrs.emplace(entity, &mesh);
 
 	// Setting initial motion values
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = mesh.original_size * 100.f;
+	motion.scale = size; // Will likely change this to a constant size for all tiles
 
 	// create an empty component for the ground tile
 	registry.groundTiles.emplace(entity);
-
+	// TODO: get sprite for the ground and complete below
+	/*
 	registry.renderRequests.insert(
 		entity, {
 			TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
-			EFFECT_ASSET_ID::GROUND,
-			GEOMETRY_BUFFER_ID::GROUND
+			EFFECT_ASSET_ID::EGG,
+			GEOMETRY_BUFFER_ID::EGG
 		});
+	*/
 
 	return entity;
 }
@@ -380,6 +376,7 @@ Entity createFurniture(RenderSystem* renderer, vec2 pos)
 	registry.renderRequests.insert(
 		entity, {
 			TEXTURE_ASSET_ID::FURNITURE,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
 		}

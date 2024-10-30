@@ -59,6 +59,7 @@ bool RenderSystem::init(GLFWwindow* window_arg)
     initializeGlTextures();
 	initializeGlEffects();
 	initializeGlGeometryBuffers();
+	initializeSpriteSheets();
 
 	return true;
 }
@@ -83,12 +84,16 @@ void RenderSystem::initializeGlTextures()
 		}
 		glBindTexture(GL_TEXTURE_2D, texture_gl_handles[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dimensions.x, dimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		gl_has_errors();
 		stbi_image_free(data);
     }
 	gl_has_errors();
+}
+
+void RenderSystem::initializeSpriteSheets() {
+	sprite_sheets[SPRITE_ASSET_ID::PLAYER] = {TEXTURE_ASSET_ID::PLAYERS, 10, 6, 64, 64};
 }
 
 void RenderSystem::initializeGlEffects()

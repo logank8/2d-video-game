@@ -2,6 +2,7 @@
 
 #include <array>
 #include <utility>
+#include <unordered_map>
 
 #include "common.hpp"
 #include "components.hpp"
@@ -19,28 +20,29 @@ class RenderSystem {
 	 */
 	std::array<GLuint, texture_count> texture_gl_handles;
 	std::array<ivec2, texture_count> texture_dimensions;
+	std::unordered_map<SPRITE_ASSET_ID, SpriteSheetInfo> sprite_sheets;
 
 	// Make sure these paths remain in sync with the associated enumerators.
 	// Associated id with .obj path
 	const std::vector < std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths =
 	{
-		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SALMON, mesh_path("salmon.obj")),
-		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::GROUND, mesh_path("tile.obj"))
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SALMON, mesh_path("salmon.obj"))
 		  // specify meshes of other assets here
 	};
 
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, texture_count> texture_paths = {
-			textures_path("green_fish.png"),
-			textures_path("eel.png"),
+			textures_path("enemy_2.png"),
+			textures_path("enemy_1.png"),
 			textures_path("adventurer.png"),
-			textures_path("red_fish.png"),
-			textures_path("puffer_fish.png"),
+			textures_path("enemy_3.png"),
+			textures_path("bubble_closed.png"),
 			textures_path("health_bar.png"),
 			textures_path("health_bar_empty.png"),
 			textures_path("table.png"),
 			textures_path("wall.png"),
-			textures_path("side_wall.png")
+			textures_path("side_wall.png"),
+			textures_path("player.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -50,9 +52,7 @@ class RenderSystem {
 		shader_path("egg"),
 		shader_path("salmon"),
 		shader_path("textured"),
-		shader_path("water"),
-		shader_path("ground") 
-		};
+		shader_path("water") };
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
@@ -64,6 +64,12 @@ public:
 
 	template <class T>
 	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
+
+	// For sprite sheets
+
+	void initializeSpriteSheets();
+
+	void getUVCoordinates(SPRITE_ASSET_ID sid, int spriteIndex, float& u0, float& v0, float& u1, float& v1);
 
 	void initializeGlTextures();
 
@@ -85,10 +91,12 @@ public:
 	void draw();
 
 	mat3 createProjectionMatrix();
+	mat3 createPlayerProjectionMatrix(vec2 position);
 
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection);
+	void drawScreenSpaceObject(Entity entity);
 	void drawToScreen();
 
 	// Window handle
