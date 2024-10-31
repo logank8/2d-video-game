@@ -223,7 +223,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		vec2 fish_pos;
 		float distance_to_player;
 		do {
-			fish_pos = { 50.0f + uniform_dist(rng) * (window_width_px - 100.f), 50.f + uniform_dist(rng) * (window_height_px - 100.f) };
+			/*fish_pos = { 50.0f + uniform_dist(rng) * (window_width_px - 100.f), 50.f + uniform_dist(rng) * (window_height_px - 100.f) };*/
+			int i;
+			int j;
+			do {
+				i = static_cast<int>(uniform_dist(rng) * map1[0].size());
+				j = static_cast<int>(uniform_dist(rng) * map1.size());
+			} while (map1[j][i] != 1);
+			int tile_size = 100;
+			fish_pos = { (640 - (25 * 100)) + (i * tile_size) + (tile_size / 2), (640 - (44 * 100)) + (j * tile_size) + (tile_size / 2) };
 			distance_to_player = sqrt(pow(fish_pos.x - player_pos.x, 2) + pow(fish_pos.y - player_pos.y, 2));
 		} while (distance_to_player < 500.f);
 		Entity fish = createFish(renderer, fish_pos);
@@ -238,7 +246,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		vec2 eel_pos;
 		float distance_to_player;
 		do {
-			eel_pos = { 100.0f + uniform_dist(rng) * (window_width_px - 150.f), 50.f + uniform_dist(rng) * (window_height_px - 100.f) };
+			int i;
+			int j;
+			do {
+				i = static_cast<int>(uniform_dist(rng) * map1[0].size());
+				j = static_cast<int>(uniform_dist(rng) * map1.size());
+			} while (map1[j][i] != 1);
+			int tile_size = 100;
+			eel_pos = { (640 - (25 * 100)) + (i * tile_size) + (tile_size / 2), (640 - (44 * 100)) + (j * tile_size) + (tile_size / 2) };
 			distance_to_player = sqrt(pow(eel_pos.x - player_pos.x, 2) + pow(eel_pos.y - player_pos.y, 2));
 		} while (distance_to_player < 500.f);
 		Entity eel = createEel(renderer, eel_pos);
@@ -253,7 +268,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		vec2 ranged_enemy_pos;
 		float distance_to_player;
 		do {
-			ranged_enemy_pos = { 10.0f + uniform_dist(rng) * (window_width_px - 100.f), 50.f + uniform_dist(rng) * (window_height_px - 100.f) };
+			int i;
+			int j;
+			do {
+				i = static_cast<int>(uniform_dist(rng) * map1[0].size());
+				j = static_cast<int>(uniform_dist(rng) * map1.size());
+			} while (map1[j][i] != 1);
+			int tile_size = 100;
+			ranged_enemy_pos = { (640 - (25 * 100)) + (i * tile_size) + (tile_size / 2), (640 - (44 * 100)) + (j * tile_size) + (tile_size / 2) };
 			distance_to_player = sqrt(pow(ranged_enemy_pos.x - player_pos.x, 2) + pow(ranged_enemy_pos.y - player_pos.y, 2));
 		} while (distance_to_player < 500.f);
 		Entity ranged_enemy = createRangedEnemy(renderer, ranged_enemy_pos);
@@ -272,7 +294,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			projectile_motion.velocity = { 200.f, 200.f };
 			projectile_motion.angle = registry.motions.get(ranged).angle;
 		}
-
 	}
 
 	// Check if player is invulnerable
@@ -713,4 +734,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	(vec2)mouse_position; // dummy to avoid compiler warning
+}
+
+// TODO: update to work with multiple maps
+std::vector<std::vector<int>> WorldSystem::get_current_map() {
+	return map1;
 }
