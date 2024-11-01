@@ -171,17 +171,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	vec2 player_pos = motions_registry.get(my_player).position;
 	vec2 world_origin = vec2(-1860, -3760);
 
+	
+	
 	for (int i = (int) motions_registry.components.size()-1; i>=0; --i) {
 		Motion& motion = motions_registry.components[i];
 		Entity entity = motions_registry.entities[i];
 
 		if (registry.solidObjs.has(entity)) {
 			if ((abs(player_pos.x - motion.position.x) > 800) || (abs(player_pos.y - motion.position.y) > 800)) {
-				
-
 				vec2 obj_pos = motion.position;
-				vec2 obj_pos_map = vec2(((obj_pos.x - world_origin.x) - ((int) (obj_pos.x - world_origin.x) % TILE_SIZE)) / TILE_SIZE, ((obj_pos.y - world_origin.y) - ((int) (obj_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
-
+				// messing up on x left side idk why
+				vec2 obj_pos_map = vec2((int) ((obj_pos.x - world_origin.x) - ((int) abs(obj_pos.x - world_origin.x) % TILE_SIZE)) / TILE_SIZE, (int) ((obj_pos.y - world_origin.y) - ((int) abs(obj_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
+				
 				if (std::find(tile_vec.begin(), tile_vec.end(), vec2(obj_pos_map.x, obj_pos_map.y)) != tile_vec.end()) {
 					tile_vec.erase(std::find(tile_vec.begin(), tile_vec.end(), vec2(obj_pos_map.x, obj_pos_map.y)));
 					registry.remove_all_components_of(entity);
@@ -189,13 +190,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 		}
 	}
+	
+	
 
 	// given player position in world coords, convert to map:
 	// origin: [-1860, -3760]
 	// current screen pos + origin 
 	//  minus modulo 100 and divide by 100
 	
-	vec2 player_pos_map = vec2(((player_pos.x - world_origin.x) - ((int) (player_pos.x - world_origin.x) % TILE_SIZE)) / 100, ((player_pos.y - world_origin.y) - ((int) (player_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
+	vec2 player_pos_map = vec2((int) ((player_pos.x - world_origin.x) - ((int) (player_pos.x - world_origin.x) % TILE_SIZE)) / 100, (int) ((player_pos.y - world_origin.y) - ((int) (player_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
 	
 	for (int i = player_pos_map.x - 8; i <= player_pos_map.x + 8; i++) {
 		for (int j = player_pos_map.y - 8; j <= player_pos_map.y + 8; j++) {
@@ -301,6 +304,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (player.invulnerable) {
 		player.invulnerable_duration_ms -= elapsed_ms_since_last_update;
 		if (player.invulnerable_duration_ms < 0.f) {
+			std::cout << "Invuln ended" << std::endl;
 			player.invulnerable = false;
 			player.invulnerable_duration_ms = 1000.f;
 		}
@@ -359,7 +363,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		    min_counter_ms_stamina = player_dash.stamina_timer_ms;
 		}
 
-		// std::cout << player_dash.stamina_timer_ms << std::endl;
 		if (player_dash.stamina_timer_ms < 0) {
 			registry.dashing.remove(my_player);
 			continue;
@@ -417,6 +420,7 @@ void WorldSystem::restart_game() {
 	registry.colors.insert(my_player, {1, 0.8f, 0.8f});
 
 	lightflicker_counter_ms = 1000;
+	tile_vec.clear();
 
 	/*
 	// create furniture/table (for testing)
@@ -450,7 +454,7 @@ void WorldSystem::restart_game() {
 	for (int i = playerPos_init.x - 8; i <= playerPos_init.x + 8; i++) {
 		for (int j = playerPos_init.y - 8; j <= playerPos_init.y + 8; j++) {
 			if ((i < 0) || (j < 0) || (i >= map1[0].size()) || j >= map1.size()) {
-				createWalls(renderer, {(640 - (25*100)) + (i * TILE_SIZE) + (TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (TILE_SIZE/2)}, false);
+				createWalls(renderer, {(640 - (25*100)) + (i * TILE_SIZE) + (sign(i) * TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (sign(j) * TILE_SIZE/2)}, false);
 				tile_vec.push_back(vec2(i, j));
 			} else if (map1[j][i] == 0) {
 				createWalls(renderer, {(640 - (25*100)) + (i * TILE_SIZE) + (TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (TILE_SIZE/2)}, false);
@@ -461,12 +465,11 @@ void WorldSystem::restart_game() {
 	
 	
 
-
-
 	// create health bar
-	vec2 hp_bar_pos = { -0.75, 0.8f };
-	createHPBarEmpty(renderer, hp_bar_pos);
+	vec2 hp_bar_pos = { -0.75, 0.85f };
 	hp_bar = createHPBar(renderer, hp_bar_pos);
+	//createHPBarEmpty(renderer, hp_bar_pos);
+	
 
 
 }
@@ -508,11 +511,15 @@ void WorldSystem::handle_collisions() {
 					player_hp = max(0.f, player_hp);
 					// modify hp bar
 					std::cout << "Player hp: " << player_hp << "\n";
-					if (player_hp <= 100 && player_hp >= 0) {
+					if (player_hp <= 200 && player_hp >= 0) {
 						// Motion& motion = registry.motions.get(hp_bar);
 						// motion.scale.x = HPBAR_BB_WIDTH * (player_hp / 100);
-						UserInterface& userInterface = registry.userInterfaces.get(hp_bar);
-						userInterface.scale.x = HPBAR_BB_WIDTH * (player_hp / 100);
+						RenderRequest& hp_bar_render = registry.renderRequests.get(hp_bar);
+						if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_0) {
+							hp_bar_render.used_texture = static_cast<TEXTURE_ASSET_ID>(static_cast<int>(hp_bar_render.used_texture) - 1);
+						}
+						
+						
 						// motion.position.x += HPBAR_BB_WIDTH * (player_hp / 400);
 					}
 					player.invulnerable = true;
