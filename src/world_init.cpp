@@ -137,7 +137,7 @@ Entity createFish(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -FISH_BB_WIDTH, FISH_BB_HEIGHT });
+	motion.scale = vec2({ TILE_PX_SIZE * (100 / TILE_PX_SIZE), TILE_PX_SIZE * (100 / TILE_PX_SIZE) });
 
 	// Create an (empty) Bug component to be able to refer to all bug
 	registry.deadlys.emplace(entity);
@@ -170,7 +170,7 @@ Entity createEel(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -EEL_BB_WIDTH, EEL_BB_HEIGHT });
+	motion.scale = vec2({ TILE_PX_SIZE * (100 / TILE_PX_SIZE), TILE_PX_SIZE * (100 / TILE_PX_SIZE) });
 
 	// create an empty Eel component to be able to refer to all eels
 	registry.deadlys.emplace(entity);
@@ -206,7 +206,7 @@ Entity createRangedEnemy(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -FISH_BB_WIDTH, FISH_BB_HEIGHT });
+	motion.scale = vec2({ TILE_PX_SIZE * (100 / TILE_PX_SIZE), TILE_PX_SIZE * (100 / TILE_PX_SIZE) });
 
 	// Create an (empty) Bug component to be able to refer to all bug
 	auto& enemy = registry.deadlys.emplace(entity);
@@ -298,7 +298,7 @@ Entity createWalls(RenderSystem* renderer, vec2 pos, bool is_side_wall)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = vec2({ FURNITURE_WIDTH * (100/FURNITURE_WIDTH), FURNITURE_HEIGHT * (100/FURNITURE_WIDTH) });
+	motion.scale = vec2({ TILE_PX_SIZE * (100/ TILE_PX_SIZE), TILE_PX_SIZE * (100/ TILE_PX_SIZE) });
 
 	// create an empty component for the walls
 	registry.walls.emplace(entity);
@@ -369,7 +369,7 @@ Entity createFurniture(RenderSystem* renderer, vec2 pos)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = vec2({ FURNITURE_WIDTH * 3, FURNITURE_HEIGHT * 3 });
+	motion.scale = vec2({ TILE_PX_SIZE * 3, TILE_PX_SIZE * 3 });
 
 	// create an empty component for the furniture as a solid object
 	registry.solidObjs.emplace(entity);
