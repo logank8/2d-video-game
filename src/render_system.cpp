@@ -297,7 +297,7 @@ void RenderSystem::draw()
 	// Clearing backbuffer
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
-	glClearColor(GLfloat(174 / 255.0), GLfloat(155 / 255.0), GLfloat(125 / 255.0), 1.0);
+	glClearColor(GLfloat(120 / 255.0), GLfloat(120 / 255.0), GLfloat(117 / 255.0), 1.0);
 	glClearDepth(10.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);

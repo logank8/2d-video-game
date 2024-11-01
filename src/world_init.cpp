@@ -75,12 +75,12 @@ Entity createHPBar(RenderSystem* renderer, vec2 pos)
 	auto& userInterface = registry.userInterfaces.emplace(entity);
 	userInterface.angle = 0.f;
 	userInterface.position = pos;
-	userInterface.scale = vec2({ HPBAR_BB_WIDTH, HPBAR_BB_HEIGHT });
+	userInterface.scale = vec2({ HPBAR_BB_WIDTH, -HPBAR_BB_HEIGHT });
 
 	registry.renderRequests.insert(
 		entity,
 		{
-			TEXTURE_ASSET_ID::HP_BAR,
+			TEXTURE_ASSET_ID::HP_BAR_FULL,
 			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
@@ -111,7 +111,7 @@ Entity createHPBarEmpty(RenderSystem* renderer, vec2 pos)
 	registry.renderRequests.insert(
 		entity,
 		{
-			TEXTURE_ASSET_ID::HP_BAR_EMPTY,
+			TEXTURE_ASSET_ID::HP_BAR_0,
 			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
