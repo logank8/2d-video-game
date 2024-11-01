@@ -19,6 +19,8 @@ const size_t MAX_NUM_RANGED_ENEMY = 1;
 const size_t RANGED_ENEMY_SPAWN_DELAY_MS = 5000 * 3;
 const size_t RANGED_ENEMY_PROJECTILE_DELAY_MS = 2000 * 3;
 
+const int TILE_SIZE = 100;
+std::vector<vec2> tile_vec;
 const int LIGHT_FLICKER_RATE = 2000 * 10;
 
 int lightflicker_counter_ms;
@@ -155,8 +157,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	auto& motions_registry = registry.motions;
 
 	// Remove entities that leave the screen on the left side
-	// Iterate backwards to be able to remove without unterfering with the next object to visit
+	// Iterate backwards to be able to remove without interfering with the next object to visit
 	// (the containers exchange the last element with the current)
+	/*
 	for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
 		Motion& motion = motions_registry.components[i];
 		if (motion.position.x + abs(motion.scale.x) < 0.f) {
@@ -164,9 +167,54 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(motions_registry.entities[i]);
 		}
 	}
-
-
+	*/
 	vec2 player_pos = motions_registry.get(my_player).position;
+	vec2 world_origin = vec2(-1860, -3760);
+
+	for (int i = (int) motions_registry.components.size()-1; i>=0; --i) {
+		Motion& motion = motions_registry.components[i];
+		Entity entity = motions_registry.entities[i];
+
+		if (registry.solidObjs.has(entity)) {
+			if ((abs(player_pos.x - motion.position.x) > 800) || (abs(player_pos.y - motion.position.y) > 800)) {
+				
+
+				vec2 obj_pos = motion.position;
+				vec2 obj_pos_map = vec2(((obj_pos.x - world_origin.x) - ((int) (obj_pos.x - world_origin.x) % TILE_SIZE)) / TILE_SIZE, ((obj_pos.y - world_origin.y) - ((int) (obj_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
+
+				if (std::find(tile_vec.begin(), tile_vec.end(), vec2(obj_pos_map.x, obj_pos_map.y)) != tile_vec.end()) {
+					tile_vec.erase(std::find(tile_vec.begin(), tile_vec.end(), vec2(obj_pos_map.x, obj_pos_map.y)));
+					registry.remove_all_components_of(entity);
+				}
+			}
+		}
+	}
+
+	// given player position in world coords, convert to map:
+	// origin: [-1860, -3760]
+	// current screen pos + origin 
+	//  minus modulo 100 and divide by 100
+	
+	vec2 player_pos_map = vec2(((player_pos.x - world_origin.x) - ((int) (player_pos.x - world_origin.x) % TILE_SIZE)) / 100, ((player_pos.y - world_origin.y) - ((int) (player_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
+	
+	for (int i = player_pos_map.x - 8; i <= player_pos_map.x + 8; i++) {
+		for (int j = player_pos_map.y - 8; j <= player_pos_map.y + 8; j++) {
+			if ((i < 0) || (j < 0) || (i >= map1[0].size()) || j >= map1.size()) {
+				if ((std::find(tile_vec.begin(), tile_vec.end(), vec2(i, j)) == tile_vec.end())) {
+					createWalls(renderer, {(640 - (25*100)) + (i * TILE_SIZE) + (TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (TILE_SIZE/2)}, false);
+					tile_vec.push_back(vec2(i, j));
+				}
+			} else if (map1[j][i] == 0) {
+				if (std::find(tile_vec.begin(), tile_vec.end(), vec2(i, j)) == tile_vec.end()) {
+					createWalls(renderer, {(640 - (25*100)) + (i * TILE_SIZE) + (TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (TILE_SIZE/2)}, false);
+					tile_vec.push_back(vec2(i, j));
+				}
+			}
+		}
+	}
+
+
+
 	//TODO: spawn frequencies and spawn radius to be adjusted
 	// Spawn Level 1 type enemy: slow with contact damage
 	next_fish_spawn -= elapsed_ms_since_last_update * current_speed;
@@ -329,15 +377,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (!registry.deathTimers.has(my_player)) {
 		lightflicker_counter_ms += elapsed_ms_since_last_update;
 		if (lightflicker_counter_ms >= LIGHT_FLICKER_RATE) {
-			std::cout << "Light flickering" << std::endl;
-			screen.darken_screen_factor = 0.6;
+			screen.darken_screen_factor = 0.65;
 			lightflicker_counter_ms = 0;
 		} else if (lightflicker_counter_ms < 400) {
-			std::cout << "Lights back on" << std::endl;
 			if ((lightflicker_counter_ms - (lightflicker_counter_ms % 15)) % 30 < 15) {
 				screen.darken_screen_factor = 0;
 			} else {
-				screen.darken_screen_factor = 0.6;
+				screen.darken_screen_factor = 0.65;
 			}
 		} else {
 			screen.darken_screen_factor = 0;
@@ -392,17 +438,28 @@ void WorldSystem::restart_game() {
 	// player pos: [25, 44]
 	// player pos on screen: [640, 640]
 	// tile size: 48
-	// origin: [-560, -1472]
+	// origin: [-560 + 50, -1472 + 50]
 	// to spawn at [0, 0] -> [-536, -1448]
-	for (int i = 0; i < map1[0].size(); i++) {
-		for (int j = 0; j < map1.size(); j++) {
-			int tile_size = 100;
-			if (map1[j][i] == 0) {
-				createWalls(renderer, {(640 - (25*100)) + (i * tile_size) + (tile_size/2), (640 - (44*100)) + (j * tile_size) + (tile_size/2)}, false);
+
+	
+	
+	vec2 playerPos_init = vec2(25, 44);
+	// screen bounds will always be [ceil(640 / 100), ceil(720/100)]
+	// generously rounding it up to [8, 10]
+	vec2 playerpos_world = vec2(640, 640);
+	for (int i = playerPos_init.x - 8; i <= playerPos_init.x + 8; i++) {
+		for (int j = playerPos_init.y - 8; j <= playerPos_init.y + 8; j++) {
+			if ((i < 0) || (j < 0) || (i >= map1[0].size()) || j >= map1.size()) {
+				createWalls(renderer, {(640 - (25*100)) + (i * TILE_SIZE) + (TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (TILE_SIZE/2)}, false);
+				tile_vec.push_back(vec2(i, j));
+			} else if (map1[j][i] == 0) {
+				createWalls(renderer, {(640 - (25*100)) + (i * TILE_SIZE) + (TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (TILE_SIZE/2)}, false);
+				tile_vec.push_back(vec2(i, j));
 			}
-			
 		}
 	}
+	
+	
 
 
 
@@ -411,19 +468,7 @@ void WorldSystem::restart_game() {
 	createHPBarEmpty(renderer, hp_bar_pos);
 	hp_bar = createHPBar(renderer, hp_bar_pos);
 
-	// !! TODO A2: Enable static eggs on the ground, for reference
-	// Create eggs on the floor, use this for reference
-	/*
-	for (uint i = 0; i < 20; i++) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
-		float radius = 30 * (uniform_dist(rng) + 0.3f); // range 0.3 .. 1.3
-		Entity egg = createEgg({ uniform_dist(rng) * w, h - uniform_dist(rng) * 20 },
-					 { radius, radius });
-		float brightness = uniform_dist(rng) * 0.5 + 0.5;
-		registry.colors.insert(egg, { brightness, brightness, brightness});
-	}
-	*/
+
 }
 
 // utility functions for dash mvmnt implementation
@@ -543,47 +588,7 @@ void WorldSystem::handle_collisions() {
 				}
 			}
 		}
-		// Checking collision with solid object
-		// if (registry.solidObjs.has(entity_other)) {
-		// 	Motion& motion_moving = registry.motions.get(entity);
-		// 	Motion& motion_solid = registry.motions.get(entity_other);
 
-		// 	if (registry.players.has(entity)) {
-		// 		if (motion_moving.position.x < motion_solid.position.x - (motion_solid.scale.x / 2) && motion_moving.velocity.x > 0) {
-		// 			motion_moving.velocity.x = 0.f;
-		// 			rstuck = true;
-		// 		} else if (motion_moving.position.x > motion_solid.position.x + (motion_solid.scale.x / 2) && motion_moving.velocity.x < 0)
-		// 		{
-		// 			motion_moving.velocity.x = 0.f;
-		// 			lstuck = true;
-		// 		} else if (motion_moving.position.y < motion_solid.position.y - (motion_solid.scale.y / 2) && motion_moving.velocity.y > 0)
-		// 		{
-		// 			motion_moving.velocity.y = 0.f;
-		// 			dstuck = true;
-		// 		} else if (motion_moving.position.y > motion_solid.position.y + (motion_solid.scale.y / 2) && motion_moving.velocity.y < 0)
-		// 		{
-		// 			motion_moving.velocity.y = 0.f;
-		// 			ustuck = true;
-		// 		}
-		// 	} else if (registry.deadlys.has(entity) && registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::PROJECTILE) {
-		// 		registry.remove_all_components_of(entity);
-		// 	} else if (registry.deadlys.has(entity)) {
-		// 		if (!registry.blockedTimers.has(entity)) registry.blockedTimers.emplace(entity);
-
-		// 		if (motion_moving.position.x < motion_solid.position.x - (motion_solid.scale.x / 2) && motion_moving.velocity.x > 0) {
-		// 			motion_moving.velocity.x = 0.f;
-		// 		} else if (motion_moving.position.x > motion_solid.position.x + (motion_solid.scale.x / 2) && motion_moving.velocity.x < 0)
-		// 		{
-		// 			motion_moving.velocity.x = 0.f;
-		// 		} else if (motion_moving.position.y < motion_solid.position.y - (motion_solid.scale.y / 2) && motion_moving.velocity.y > 0)
-		// 		{
-		// 			motion_moving.velocity.y = 0.f;
-		// 		} else if (motion_moving.position.y > motion_solid.position.y + (motion_solid.scale.y / 2) && motion_moving.velocity.y < 0)
-		// 		{
-		// 			motion_moving.velocity.y = 0.f;
-		// 		}
-		// 	}
-		// }
 	}
 
 	// Remove all collisions from this simulation step
@@ -597,11 +602,6 @@ bool WorldSystem::is_over() const {
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: HANDLE SALMON MOVEMENT HERE
-	// key is of 'type' GLFW_KEY_
-	// action can be GLFW_PRESS GLFW_RELEASE GLFW_REPEAT
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;
@@ -733,12 +733,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: HANDLE SALMON ROTATION HERE
-	// xpos and ypos are relative to the top-left of the window, the salmon's
-	// default facing direction is (1, 0)
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 	(vec2)mouse_position; // dummy to avoid compiler warning
 }
 
