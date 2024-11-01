@@ -76,6 +76,10 @@ public:
 	void initializeGlEffects();
 
 	void initializeGlMeshes();
+
+	// for fonts
+	bool fontInit(GLFWwindow * window, const std::string& font_filename, unsigned int font_default_size);
+
 	Mesh& getMesh(GEOMETRY_BUFFER_ID id) { return meshes[(int)id]; };
 
 	void initializeGlGeometryBuffers();
