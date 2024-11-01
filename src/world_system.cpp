@@ -156,18 +156,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
 
-	// Remove entities that leave the screen on the left side
-	// Iterate backwards to be able to remove without interfering with the next object to visit
-	// (the containers exchange the last element with the current)
-	/*
-	for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
-		Motion& motion = motions_registry.components[i];
-		if (motion.position.x + abs(motion.scale.x) < 0.f) {
-			if(!registry.players.has(motions_registry.entities[i])) // don't remove the player
-				registry.remove_all_components_of(motions_registry.entities[i]);
-		}
-	}
-	*/
 	vec2 player_pos = motions_registry.get(my_player).position;
 	vec2 world_origin = vec2(-1860, -3760);
 
@@ -180,7 +168,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (registry.solidObjs.has(entity)) {
 			if ((abs(player_pos.x - motion.position.x) > 800) || (abs(player_pos.y - motion.position.y) > 800)) {
 				vec2 obj_pos = motion.position;
-				// messing up on x left side idk why
 				vec2 obj_pos_map = vec2((int) ((obj_pos.x - world_origin.x) - ((int) abs(obj_pos.x - world_origin.x) % TILE_SIZE)) / TILE_SIZE, (int) ((obj_pos.y - world_origin.y) - ((int) abs(obj_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
 				
 				if (std::find(tile_vec.begin(), tile_vec.end(), vec2(obj_pos_map.x, obj_pos_map.y)) != tile_vec.end()) {
@@ -193,31 +180,118 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	
 	
 
+	
 	// given player position in world coords, convert to map:
 	// origin: [-1860, -3760]
 	// current screen pos + origin 
-	//  minus modulo 100 and divide by 100
-	
+	//  minus modulo tilesize and divide by tilesize
 	vec2 player_pos_map = vec2((int) ((player_pos.x - world_origin.x) - ((int) (player_pos.x - world_origin.x) % TILE_SIZE)) / 100, (int) ((player_pos.y - world_origin.y) - ((int) (player_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
 	
 	for (int i = player_pos_map.x - 8; i <= player_pos_map.x + 8; i++) {
 		for (int j = player_pos_map.y - 8; j <= player_pos_map.y + 8; j++) {
+			vec2 world_pos = {(640 - (25*100)) + (i * TILE_SIZE) + (TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (TILE_SIZE/2)};
+			
 			if ((i < 0) || (j < 0) || (i >= map1[0].size()) || j >= map1.size()) {
 				if ((std::find(tile_vec.begin(), tile_vec.end(), vec2(i, j)) == tile_vec.end())) {
-					createWalls(renderer, {(640 - (25*100)) + (i * TILE_SIZE) + (TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (TILE_SIZE/2)}, false);
+					createWalls(renderer, world_pos, false);
 					tile_vec.push_back(vec2(i, j));
 				}
-			} else if (map1[j][i] == 0) {
-				if (std::find(tile_vec.begin(), tile_vec.end(), vec2(i, j)) == tile_vec.end()) {
-					createWalls(renderer, {(640 - (25*100)) + (i * TILE_SIZE) + (TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (TILE_SIZE/2)}, false);
-					tile_vec.push_back(vec2(i, j));
-				}
+				continue;
+			} 
+			if (std::find(tile_vec.begin(), tile_vec.end(), vec2(i, j)) != tile_vec.end()) {
+				continue;
 			}
+			// continue on if tiles/objects have already been processed
+
+			if (map1[j][i] == 0) {
+				createWalls(renderer, world_pos, false);
+				tile_vec.push_back(vec2(i, j));
+			}
+			
+
+			// spawn enemies in any new tiles
+			/*
+			ENCOUNTER LEVELS OUTLINE - level hardcoded into map, encounter details randomly picked
+			level 1:
+			- 1 contact based slow
+			- 1 contact based fast
+			- 2 contact based slow
+
+			level 2: 
+			- 1 contact based slow 1 contact based fast
+			- 2 contact based fast
+			- 2 contact based slow 1 ranged
+
+			level 3:
+			- 2 ranged 1 contact based fast
+			- 2 contact based fast 1 contact based slow
+			- 1 ranged 1 contact based fast 2 contact based slow
+
+			*/
+			if (map1[j][i] == 3) {
+				int encounter = rand() % 3;
+				if (encounter == 0) {
+					std::cout << "encounter 1 generated, level 1" << std::endl;
+					createFish(renderer, world_pos);
+				} else if (encounter == 1) {
+					std::cout << "encounter 2 generated, level 1" << std::endl;
+
+					createEel(renderer, world_pos);
+				} else {
+					std::cout << "encounter 3 generated, level 1" << std::endl;
+
+					createFish(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createFish(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+				}
+				tile_vec.push_back(vec2(i, j));
+			}
+			if (map1[j][i] == 4) {
+				int encounter = rand() % 3;
+				if (encounter == 0) {
+					std::cout << "encounter 1 generated, level 2" << std::endl;
+
+					createFish(renderer, vec2(world_pos.x, world_pos.y - TILE_SIZE));
+					createEel(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+				} else if (encounter == 1) {
+					std::cout << "encounter 2 generated, level 2" << std::endl;
+
+					createEel(renderer, vec2(world_pos.x, world_pos.y - TILE_SIZE));
+					createEel(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+				} else {
+					std::cout << "encounter 3 generated, level 2" << std::endl;
+					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y + TILE_SIZE));
+					createFish(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createFish(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
+				}
+				tile_vec.push_back(vec2(i, j));
+			}
+			if (map1[j][i] == 5) {
+				int encounter = rand() % 3;
+				if (encounter == 0) {
+					createEel(renderer, vec2(world_pos.x, world_pos.y));
+					createRangedEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
+				} else if (encounter == 1) {
+					createFish(renderer, vec2(world_pos.x, world_pos.y));
+					createEel(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createEel(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
+				} else {
+					createRangedEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createEel(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createFish(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
+					createFish(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+				}
+				tile_vec.push_back(vec2(i, j));
+			}
+
+			
+
 		}
 	}
 
 
 
+	/*
 	//TODO: spawn frequencies and spawn radius to be adjusted
 	// Spawn Level 1 type enemy: slow with contact damage
 	next_fish_spawn -= elapsed_ms_since_last_update * current_speed;
@@ -226,7 +300,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		vec2 fish_pos;
 		float distance_to_player;
 		do {
-			/*fish_pos = { 50.0f + uniform_dist(rng) * (window_width_px - 100.f), 50.f + uniform_dist(rng) * (window_height_px - 100.f) };*/
+			//fish_pos = { 50.0f + uniform_dist(rng) * (window_width_px - 100.f), 50.f + uniform_dist(rng) * (window_height_px - 100.f) };
 			int i;
 			int j;
 			do {
@@ -284,6 +358,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Entity ranged_enemy = createRangedEnemy(renderer, ranged_enemy_pos);
 		registry.motions.get(ranged_enemy).velocity = { 10.f, 10.f };
 	}
+	*/
 
 	// Spawn projectiles for ranged enemies
 	for (auto& ranged : registry.ranged.entities) {
@@ -298,6 +373,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			projectile_motion.angle = registry.motions.get(ranged).angle;
 		}
 	}
+	
 
 	// Check if player is invulnerable
 	Player& player = registry.players.get(my_player);
@@ -386,11 +462,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if ((lightflicker_counter_ms - (lightflicker_counter_ms % 15)) % 30 < 15) {
 				screen.darken_screen_factor = 0;
 			} else {
-				screen.darken_screen_factor = 0.65;
+				screen.darken_screen_factor = 0.4;
 			}
 		} else {
 			screen.darken_screen_factor = 0;
 		}
+	}
+
+	if (debugging.in_debug_mode == true) {
+		for (Motion& motion : motions_registry.components) {
+			createLine(motion.position, motion.scale);
+		}
+		
 	}
 
 	return true;
@@ -496,7 +579,6 @@ void WorldSystem::handle_collisions() {
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other;
 
-		// for now, we are only interested in collisions that involve the salmon
 		if (registry.players.has(entity)) {
 			//Player& player = registry.players.get(entity);
 
@@ -581,6 +663,25 @@ void WorldSystem::handle_collisions() {
 				Motion& motion_moving = registry.motions.get(entity);
 				Motion& motion_solid = registry.motions.get(entity_other);
 
+				float bottom_1 = motion_moving.position.y - (abs(motion_moving.scale.y) / 2);
+				float top_1 = motion_moving.position.y + (abs(motion_moving.scale.y) / 2);
+				float left_1 = motion_moving.position.x - (abs(motion_moving.scale.x) / 2);
+				float right_1 = motion_moving.position.x + (abs(motion_moving.scale.x) / 2);
+
+				float bottom_2 = motion_solid.position.y - (abs(motion_solid.scale.y) / 2);
+				float top_2 = motion_solid.position.y + (abs(motion_solid.scale.y) / 2);
+				float left_2 = motion_solid.position.x - (abs(motion_solid.scale.x) / 2);
+				float right_2 = motion_solid.position.x + (abs(motion_solid.scale.x) / 2);
+
+				if (((top_1 >= bottom_2) && (top_1 <= top_2)) || ((top_2 >= bottom_1) && (top_2 <= top_1))) {
+					motion_moving.velocity.y = 0;
+					
+				}
+				if (((left_1 <= right_2) && (left_1 >= left_2)) || ((left_2 <= right_1) && (left_2 >= left_1))) {
+					motion_moving.velocity.x = 0;
+				}
+
+				/*
 				if (motion_moving.position.x < motion_solid.position.x - ((motion_moving.scale.x + motion_solid.scale.x) / 2) && motion_moving.velocity.x > 0) {
 					motion_moving.velocity.x = 0.f;
 				} else if (motion_moving.position.x > motion_solid.position.x + ((motion_moving.scale.x + motion_solid.scale.x) / 2) && motion_moving.velocity.x < 0)
@@ -593,6 +694,7 @@ void WorldSystem::handle_collisions() {
 				{
 					motion_moving.velocity.y = 0.f;
 				}
+				*/
 			}
 		}
 
@@ -623,12 +725,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Debugging
-	/*if (key == GLFW_KEY_D) {
+	if (key == GLFW_KEY_D) {
 		if (action == GLFW_RELEASE)
 			debugging.in_debug_mode = false;
 		else
 			debugging.in_debug_mode = true;
-	}*/
+	}
 
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) {
 		Motion& motion = registry.motions.get(my_player);

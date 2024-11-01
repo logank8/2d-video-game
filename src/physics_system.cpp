@@ -2,6 +2,8 @@
 #include "physics_system.hpp"
 #include "world_init.hpp"
 
+#include <iostream>
+
 // Returns the local bounding coordinates scaled by the current size of the entity
 vec2 get_bounding_box(const Motion& motion)
 {
@@ -10,6 +12,7 @@ vec2 get_bounding_box(const Motion& motion)
 }
 
 bool collides(const Motion& motion1, const Motion& motion2) {
+	/*
 	vec2 box1 = get_bounding_box(motion1) / 2.f;
 	vec2 box2 = get_bounding_box(motion2) / 2.f;
 
@@ -25,6 +28,26 @@ bool collides(const Motion& motion1, const Motion& motion2) {
 		return true;
 	}
 
+	return false;
+	*/
+
+	float bottom_1 = motion1.position.y - (abs(motion1.scale.y) / 2);
+	float top_1 = motion1.position.y + (abs(motion1.scale.y) / 2);
+	float left_1 = motion1.position.x - (abs(motion1.scale.x) / 2);
+	float right_1 = motion1.position.x + (abs(motion1.scale.x) / 2);
+
+	float bottom_2 = motion2.position.y - (abs(motion2.scale.y) / 2);
+	float top_2 = motion2.position.y + (abs(motion2.scale.y) / 2);
+	float left_2 = motion2.position.x - (abs(motion2.scale.x) / 2);
+	float right_2 = motion2.position.x + (abs(motion2.scale.x) / 2);
+
+	// check for vertical overlap
+	if (((top_1 >= bottom_2) && (top_1 <= top_2)) || ((top_2 >= bottom_1) && (top_2 <= top_1))) {
+		// horiz overlap
+		if (((left_1 <= right_2) && (left_1 >= left_2)) || ((left_2 <= right_1) && (left_2 >= left_1))) {
+			return true;
+		}
+	}
 	return false;
 }
 			
@@ -60,9 +83,17 @@ void PhysicsSystem::step(float elapsed_ms)
 					}
 
 					Motion& player_motion = registry.motions.get(registry.players.entities[0]);
-					motion.angle = atan2(motion.position.y - player_motion.position.y, motion.position.x - player_motion.position.x);
-					motion.position.x -= cos(motion.angle) * motion.velocity.x * step_seconds;
-					motion.position.y -= sin(motion.angle) * motion.velocity.y * step_seconds;
+					//  ***** TEMPORARY ***** if enemy is not within certain dist of player,don't move
+					// should be replaced with enemy pathfinding AI
+					if (distance(player_motion.position, motion.position) < 500) {
+						motion.angle = atan2(motion.position.y - player_motion.position.y, motion.position.x - player_motion.position.x);
+						motion.position.x -= cos(motion.angle) * motion.velocity.x * step_seconds;
+						motion.position.y -= sin(motion.angle) * motion.velocity.y * step_seconds;
+					} else {
+						motion.velocity = vec2(0,0);
+					}
+
+					
 				}
 				else {
 					motion.position.x -= cos(motion.angle) * motion.velocity.x * step_seconds;
@@ -100,6 +131,9 @@ void PhysicsSystem::step(float elapsed_ms)
 			if (collides(motion_i, motion_j))
 			{
 				Entity entity_j = motion_container.entities[j];
+				if (registry.players.has(entity_i) && registry.solidObjs.has(entity_j)) {
+					std::cout << "player collision" << std::endl;
+				}
 				// Create a collisions event
 				// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
 				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
