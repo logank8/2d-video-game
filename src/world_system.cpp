@@ -632,22 +632,26 @@ void WorldSystem::handle_collisions() {
 			if (registry.solidObjs.has(entity_other) || registry.walls.has(entity_other)) {
 				Motion& motion_moving = registry.motions.get(entity);
 				Motion& motion_solid = registry.motions.get(entity_other);
-				if (motion_moving.position.x < motion_solid.position.x && motion_moving.velocity.x > 0) {
+
+				// Temp solution to prevent player from sticking to solid objects - may not work if solid object is really long or tall
+				float x_diff = motion_moving.position.x - motion_solid.position.x;
+				float y_diff = motion_moving.position.y - motion_solid.position.y;
+
+				if (x_diff < 0 && abs(x_diff) > abs(y_diff) && motion_moving.velocity.x > 0) {
 					motion_moving.velocity.x = 0.f;
 					motion_moving.position.x = registry.players.get(entity).last_pos.x;
 				}
-				else if (motion_moving.position.x > motion_solid.position.x && motion_moving.velocity.x < 0)
+				if (x_diff > 0 && abs(x_diff) > abs(y_diff) && motion_moving.velocity.x < 0)
 				{
 					motion_moving.velocity.x = 0.f;
 					motion_moving.position.x = registry.players.get(entity).last_pos.x;
 				}
-				else if (motion_moving.position.y < motion_solid.position.y && motion_moving.velocity.y > 0)
+				if (y_diff < 0 && abs(y_diff) > abs(x_diff) && motion_moving.velocity.y > 0)
 				{
 					motion_moving.velocity.y = 0.f;
 					motion_moving.position.y = registry.players.get(entity).last_pos.y;
 				}
-
-				else if (motion_moving.position.y > motion_solid.position.y && motion_moving.velocity.y < 0)
+				if (y_diff > 0 && abs(y_diff) > abs(x_diff) && motion_moving.velocity.y < 0)
 				{
 					motion_moving.velocity.y = 0.f;
 					motion_moving.position.y = registry.players.get(entity).last_pos.y;
