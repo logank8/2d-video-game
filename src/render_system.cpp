@@ -96,6 +96,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			glUniform2f(uv_scale_loc, (u1 - u0), (v1 - v0));
 		}
 	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::FONT) {
+		// todo
+	}
 	else
 	{
 		assert(false && "Type of render request not supported");

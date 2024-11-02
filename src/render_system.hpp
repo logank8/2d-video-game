@@ -56,7 +56,9 @@ class RenderSystem {
 		shader_path("egg"),
 		shader_path("salmon"),
 		shader_path("textured"),
-		shader_path("water") };
+		shader_path("water"),
+		shader_path("font")
+	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
@@ -99,8 +101,6 @@ public:
 
 	// Draw all entities
 	void draw();
-
-	void renderText(std::string text, float x, float y, float scale);
 
 	mat3 createProjectionMatrix();
 	mat3 createPlayerProjectionMatrix(vec2 position);
