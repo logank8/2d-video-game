@@ -72,10 +72,10 @@ Entity createHPBar(RenderSystem* renderer, vec2 pos)
 	// motion.position = pos;
 	// motion.scale = vec2({ HPBAR_BB_WIDTH, HPBAR_BB_HEIGHT });
 
-	auto& userInterface = registry.userInterfaces.emplace(entity);
-	userInterface.angle = 0.f;
-	userInterface.position = pos;
-	userInterface.scale = vec2({ HPBAR_BB_WIDTH, -HPBAR_BB_HEIGHT });
+	auto& ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = pos;
+	ui.scale = vec2({ HPBAR_BB_WIDTH, -HPBAR_BB_HEIGHT });
 
 	registry.renderRequests.insert(
 		entity,
