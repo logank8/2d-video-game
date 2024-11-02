@@ -6,20 +6,18 @@
 
 #include "../ext/stb_image/stb_image.h"
 
+
+// This creates circular header inclusion, that is quite bad.
+#include "tiny_ecs_registry.hpp"
+
 // matrices
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <gl3w.h>
-#include <GLFW/glfw3.h>
-
-// This creates circular header inclusion, that is quite bad.
-#include "tiny_ecs_registry.hpp"
-
 // fonts
-#include <../ext/freetype/include/ft2build.h>
-#include <map>				// map of character textures
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 // stlib
 #include <iostream>
@@ -29,7 +27,6 @@
 bool RenderSystem::init(GLFWwindow* window_arg)
 {
 	this->window = window_arg;
-
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1); // vsync
 
@@ -72,59 +69,13 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	initializeGlEffects();
 	initializeGlGeometryBuffers();
 	initializeSpriteSheets();
+	fontInit(PROJECT_SOURCE_DIR + std::string("data/fonts/Kenney_Blocks.ttf"), 28);
 
 	return true;
 }
 
+
 bool RenderSystem::fontInit(const std::string& font_filename, unsigned int font_default_size) {
-	// read in our shader files
-	std::string vertexShaderSource = readShaderFile(PROJECT_SOURCE_DIR + std::string("shaders/font.vs.glsl"));
-	std::string fragmentShaderSource = readShaderFile(PROJECT_SOURCE_DIR + std::string("shaders/font.fs.glsl"));
-	const char* vertexShaderSource_c = vertexShaderSource.c_str();
-	const char* fragmentShaderSource_c = fragmentShaderSource.c_str();
-
-	// enable blending or you will just get solid boxes instead of text
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	// font buffer setup
-	GLuint m_font_VAO;
-	GLuint m_font_VBO;
-	glGenVertexArrays(1, &m_font_VAO);
-	glGenBuffers(1, &m_font_VBO);
-
-	// font vertex shader
-	unsigned int font_vertexShader;
-	font_vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(font_vertexShader, 1, &vertexShaderSource_c, NULL);
-	glCompileShader(font_vertexShader);
-
-	// font fragement shader
-	unsigned int font_fragmentShader;
-	font_fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(font_fragmentShader, 1, &fragmentShaderSource_c, NULL);
-	glCompileShader(font_fragmentShader);
-
-	// font shader program
-	GLuint m_font_shaderProgram = glCreateProgram();
-	glAttachShader(m_font_shaderProgram, font_vertexShader);
-	glAttachShader(m_font_shaderProgram, font_fragmentShader);
-	glLinkProgram(m_font_shaderProgram);
-
-	// apply orthographic projection matrix for font, i.e., screen space
-	glUseProgram(m_font_shaderProgram);
-	int w, h;
-	glfwGetFramebufferSize(window, &w, &h);
-	glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(w), 0.0f, static_cast<float>(h));
-	GLint project_location = glGetUniformLocation(m_font_shaderProgram, "projection");
-	assert(project_location > -1);
-	std::cout << "project_location: " << project_location << std::endl;
-	glUniformMatrix4fv(project_location, 1, GL_FALSE, glm::value_ptr(projection));
-
-	// clean up shaders
-	glDeleteShader(font_vertexShader);
-	glDeleteShader(font_fragmentShader);
-
 	// init FreeType fonts
 	FT_Library ft;
 	if (FT_Init_FreeType(&ft))
@@ -133,7 +84,6 @@ bool RenderSystem::fontInit(const std::string& font_filename, unsigned int font_
 		return false;
 	}
 
-	FT_Face face;
 	if (FT_New_Face(ft, font_filename.c_str(), 0, &face))
 	{
 		std::cerr << "ERROR::FREETYPE: Failed to load font: " << font_filename << std::endl;
@@ -197,19 +147,9 @@ bool RenderSystem::fontInit(const std::string& font_filename, unsigned int font_
 	FT_Done_Face(face);
 	FT_Done_FreeType(ft);
 
-	// bind buffers
-	glBindVertexArray(m_font_VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, m_font_VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-
-	// release buffers
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-
 	return true;
 }
+
 
 void RenderSystem::initializeGlTextures()
 {

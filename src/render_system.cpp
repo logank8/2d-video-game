@@ -215,6 +215,35 @@ void RenderSystem::drawScreenSpaceObject(Entity entity) {
 	gl_has_errors();
 }
 
+/*void RenderSystem::renderText(std::string text, float x, float y, float scale) {
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	for (char c : text) {
+		GLuint texture = m_ftCharacters[c].TextureID;
+		FT_GlyphSlot g = face->glyph;
+		float xpos = x + g->bitmap_left * scale;
+		float ypos = y - (g->bitmap.rows - g->bitmap_top) * scale;
+
+		float w = g->bitmap.width * scale;
+		float h = g->bitmap.rows * scale;
+
+		// Bind character texture
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		// Render quad for the character
+		glBegin(GL_QUADS);
+		glTexCoord2f(0.0, 0.0); glVertex2f(xpos, ypos);
+		glTexCoord2f(1.0, 0.0); glVertex2f(xpos + w, ypos);
+		glTexCoord2f(1.0, 1.0); glVertex2f(xpos + w, ypos + h);
+		glTexCoord2f(0.0, 1.0); glVertex2f(xpos, ypos + h);
+		glEnd();
+
+		// Move to the next glyph's position
+		x += (g->advance.x >> 6) * scale;
+	}
+}*/
+
+
 // draw the intermediate texture to the screen, with some distortion to simulate
 // water
 void RenderSystem::drawToScreen()
