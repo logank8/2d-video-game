@@ -364,8 +364,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			projectile_delay = (RANGED_ENEMY_PROJECTILE_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_PROJECTILE_DELAY_MS / 2);
 			Entity projectile = createRangedProjectile(renderer, registry.motions.get(ranged).position);
 			Motion& projectile_motion = registry.motions.get(projectile);
+			Motion& player_motion = registry.motions.get(my_player);
+			projectile_motion.angle = atan2(projectile_motion.position.y - player_motion.position.y, projectile_motion.position.x - player_motion.position.x);
 			projectile_motion.velocity = { 200.f, 200.f };
-			projectile_motion.angle = registry.motions.get(ranged).angle;
 		}
 	}
 	
@@ -658,7 +659,11 @@ void WorldSystem::handle_collisions() {
 				}
 				
 			}
-		} 
+		} else if (registry.deadlys.has(entity)) {
+			if (registry.solidObjs.has(entity_other) && registry.projectiles.has(entity)) {
+				registry.remove_all_components_of(entity);
+			}
+		}
 
 	}
 
