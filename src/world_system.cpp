@@ -450,7 +450,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (!registry.deathTimers.has(my_player)) {
 		lightflicker_counter_ms += elapsed_ms_since_last_update;
 		if (lightflicker_counter_ms >= LIGHT_FLICKER_RATE) {
-			screen.darken_screen_factor = 0.65;
+			screen.darken_screen_factor = 0.4;
 			lightflicker_counter_ms = 0;
 		} else if (lightflicker_counter_ms < 400) {
 			if ((lightflicker_counter_ms - (lightflicker_counter_ms % 15)) % 30 < 15) {
