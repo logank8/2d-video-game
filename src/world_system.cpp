@@ -180,7 +180,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	
 	
 
-	
+	/*** UPDATING MAP ***/
 	// given player position in world coords, convert to map:
 	// origin: [-1860, -3760]
 	// current screen pos + origin 
@@ -284,7 +284,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				tile_vec.push_back(vec2(i, j));
 			}
 
-			
 
 		}
 	}
