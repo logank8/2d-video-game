@@ -10,6 +10,7 @@ struct Player
 	// For dashing and after taking damage;
 	bool invulnerable = false;
 	float invulnerable_duration_ms = 3000.f;
+	vec2 last_pos = { 0, 0 };
 };
 
 enum class ENEMY_TYPES {
