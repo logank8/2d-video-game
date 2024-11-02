@@ -35,6 +35,15 @@ struct Projectile
 
 };
 
+struct Path {
+	std::vector<vec2> points;
+	size_t current_index = 0;
+};
+
+struct PathTimer {
+	float timer = 0.f;
+};
+
 // Walls component
 struct Wall
 {

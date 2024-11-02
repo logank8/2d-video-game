@@ -312,7 +312,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			distance_to_player = sqrt(pow(fish_pos.x - player_pos.x, 2) + pow(fish_pos.y - player_pos.y, 2));
 		} while (distance_to_player < 500.f);
 		Entity fish = createFish(renderer, fish_pos);
-		registry.motions.get(fish).velocity = { 50.f, 50.f };
+		registry.motions.get(fish).velocity = { 2.5f, 2.5f };
 	}
 
 	// Spawn Level 2 type enemy: fast with contact damage
@@ -334,7 +334,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			distance_to_player = sqrt(pow(eel_pos.x - player_pos.x, 2) + pow(eel_pos.y - player_pos.y, 2));
 		} while (distance_to_player < 500.f);
 		Entity eel = createEel(renderer, eel_pos);
-		registry.motions.get(eel).velocity = { 100.f, 100.f };
+		registry.motions.get(eel).velocity = { 5.f, 5.f };
 	}
 
 	// Spawn Level 3 type enemy: slow ranged enemy
@@ -356,7 +356,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			distance_to_player = sqrt(pow(ranged_enemy_pos.x - player_pos.x, 2) + pow(ranged_enemy_pos.y - player_pos.y, 2));
 		} while (distance_to_player < 500.f);
 		Entity ranged_enemy = createRangedEnemy(renderer, ranged_enemy_pos);
-		registry.motions.get(ranged_enemy).velocity = { 10.f, 10.f };
+		registry.motions.get(ranged_enemy).velocity = { 1.f, 1.f };
 	}
 	*/
 
@@ -562,7 +562,7 @@ vec2 lerp(vec2 start, vec2 end, float t) {
 	return start * (1-t) + end*t;
 }
 
-float distance(vec2 coord1, vec2 coord2) {
+float distance(vec2 coord1, vec2 coord2) {	
 	return sqrt(powf(coord2.x - coord1.x, 2.f) + powf(coord2.y - coord1.y, 2.f));
 }
 
@@ -634,69 +634,33 @@ void WorldSystem::handle_collisions() {
 				}
 			}
 			// Checking player collision with solid object
-			if (registry.solidObjs.has(entity_other)) {
+			if (registry.solidObjs.has(entity_other) || registry.walls.has(entity_other)) {
 				Motion& motion_moving = registry.motions.get(entity);
 				Motion& motion_solid = registry.motions.get(entity_other);
-				if (motion_moving.position.x < motion_solid.position.x - (motion_solid.scale.x / 2) && motion_moving.velocity.x > 0) {
+				if (motion_moving.position.x - abs(motion_moving.scale.x) < motion_solid.position.x - (motion_solid.scale.x / 2) && motion_moving.velocity.x > 0) {
 					motion_moving.velocity.x = 0.f;
 					rstuck = true;
-				} else if (motion_moving.position.x > motion_solid.position.x + (motion_solid.scale.x / 2) && motion_moving.velocity.x < 0)
+				}
+				else if (motion_moving.position.x + abs(motion_moving.scale.x) > motion_solid.position.x + (motion_solid.scale.x / 2) && motion_moving.velocity.x < 0)
 				{
 					motion_moving.velocity.x = 0.f;
 					lstuck = true;
-				} else if (motion_moving.position.y < motion_solid.position.y - (motion_solid.scale.y / 2) && motion_moving.velocity.y > 0)
+				}
+				else if (motion_moving.position.y - abs(motion_moving.scale.y) < motion_solid.position.y - (motion_solid.scale.y / 2) && motion_moving.velocity.y > 0)
 				{
 					motion_moving.velocity.y = 0.f;
 					dstuck = true;
-				} else if (motion_moving.position.y > motion_solid.position.y + (motion_solid.scale.y / 2) && motion_moving.velocity.y < 0)
+				}
+
+				else if (motion_moving.position.y + abs(motion_moving.scale.y) > motion_solid.position.y + (motion_solid.scale.y / 2) && motion_moving.velocity.y < 0)
+
 				{
 					motion_moving.velocity.y = 0.f;
 					ustuck = true;
 				}
-			}
-		} else if (registry.deadlys.has(entity)) {
-			if (registry.solidObjs.has(entity_other) && registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::PROJECTILE) {
-				registry.remove_all_components_of(entity);
-			} else if (registry.solidObjs.has(entity_other)) {
-				if (!registry.blockedTimers.has(entity)) registry.blockedTimers.emplace(entity);
-
-				Motion& motion_moving = registry.motions.get(entity);
-				Motion& motion_solid = registry.motions.get(entity_other);
-
-				float bottom_1 = motion_moving.position.y - (abs(motion_moving.scale.y) / 2);
-				float top_1 = motion_moving.position.y + (abs(motion_moving.scale.y) / 2);
-				float left_1 = motion_moving.position.x - (abs(motion_moving.scale.x) / 2);
-				float right_1 = motion_moving.position.x + (abs(motion_moving.scale.x) / 2);
-
-				float bottom_2 = motion_solid.position.y - (abs(motion_solid.scale.y) / 2);
-				float top_2 = motion_solid.position.y + (abs(motion_solid.scale.y) / 2);
-				float left_2 = motion_solid.position.x - (abs(motion_solid.scale.x) / 2);
-				float right_2 = motion_solid.position.x + (abs(motion_solid.scale.x) / 2);
-
-				if (((top_1 >= bottom_2) && (top_1 <= top_2)) || ((top_2 >= bottom_1) && (top_2 <= top_1))) {
-					motion_moving.velocity.y = 0;
-					
-				}
-				if (((left_1 <= right_2) && (left_1 >= left_2)) || ((left_2 <= right_1) && (left_2 >= left_1))) {
-					motion_moving.velocity.x = 0;
-				}
-
-				/*
-				if (motion_moving.position.x < motion_solid.position.x - ((motion_moving.scale.x + motion_solid.scale.x) / 2) && motion_moving.velocity.x > 0) {
-					motion_moving.velocity.x = 0.f;
-				} else if (motion_moving.position.x > motion_solid.position.x + ((motion_moving.scale.x + motion_solid.scale.x) / 2) && motion_moving.velocity.x < 0)
-				{
-					motion_moving.velocity.x = 0.f;
-				} else if (motion_moving.position.y < motion_solid.position.y - ((motion_moving.scale.y + motion_solid.scale.y) / 2) && motion_moving.velocity.y > 0)
-				{
-					motion_moving.velocity.y = 0.f;
-				} else if (motion_moving.position.y > motion_solid.position.y + ((motion_moving.scale.y + motion_solid.scale.y) / 2) && motion_moving.velocity.y < 0)
-				{
-					motion_moving.velocity.y = 0.f;
-				}
 				*/
 			}
-		}
+		} 
 
 	}
 
