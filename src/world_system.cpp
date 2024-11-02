@@ -25,11 +25,6 @@ const int LIGHT_FLICKER_RATE = 2000 * 10;
 
 int lightflicker_counter_ms;
 
-bool rstuck = false;
-bool lstuck = false;
-bool ustuck = false;
-bool dstuck = false;
-
 // create the underwater world
 WorldSystem::WorldSystem()
 	: points(0)
@@ -637,26 +632,25 @@ void WorldSystem::handle_collisions() {
 			if (registry.solidObjs.has(entity_other) || registry.walls.has(entity_other)) {
 				Motion& motion_moving = registry.motions.get(entity);
 				Motion& motion_solid = registry.motions.get(entity_other);
-				if (motion_moving.position.x - abs(motion_moving.scale.x) < motion_solid.position.x - (motion_solid.scale.x / 2) && motion_moving.velocity.x > 0) {
+				if (motion_moving.position.x < motion_solid.position.x && motion_moving.velocity.x > 0) {
 					motion_moving.velocity.x = 0.f;
-					rstuck = true;
+					motion_moving.position.x = registry.players.get(entity).last_pos.x;
 				}
-				else if (motion_moving.position.x + abs(motion_moving.scale.x) > motion_solid.position.x + (motion_solid.scale.x / 2) && motion_moving.velocity.x < 0)
+				else if (motion_moving.position.x > motion_solid.position.x && motion_moving.velocity.x < 0)
 				{
 					motion_moving.velocity.x = 0.f;
-					lstuck = true;
+					motion_moving.position.x = registry.players.get(entity).last_pos.x;
 				}
-				else if (motion_moving.position.y - abs(motion_moving.scale.y) < motion_solid.position.y - (motion_solid.scale.y / 2) && motion_moving.velocity.y > 0)
+				else if (motion_moving.position.y < motion_solid.position.y && motion_moving.velocity.y > 0)
 				{
 					motion_moving.velocity.y = 0.f;
-					dstuck = true;
+					motion_moving.position.y = registry.players.get(entity).last_pos.y;
 				}
 
-				else if (motion_moving.position.y + abs(motion_moving.scale.y) > motion_solid.position.y + (motion_solid.scale.y / 2) && motion_moving.velocity.y < 0)
-
+				else if (motion_moving.position.y > motion_solid.position.y && motion_moving.velocity.y < 0)
 				{
 					motion_moving.velocity.y = 0.f;
-					ustuck = true;
+					motion_moving.position.y = registry.players.get(entity).last_pos.y;
 				}
 				
 			}
@@ -698,11 +692,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) {
 		Motion& motion = registry.motions.get(my_player);
-		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player) && !rstuck) {
+		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
 			motion.velocity[0] = motion.speed;
-			lstuck = false;
-			ustuck = false;
-			dstuck = false;
 		}
 		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[0] > 0) {
 			motion.velocity[0] = 0.f;
@@ -711,11 +702,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (key == GLFW_KEY_LEFT || key == GLFW_KEY_A) {
 		Motion& motion = registry.motions.get(my_player);
-		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player) && !lstuck) {
+		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
 			motion.velocity[0] = -1.0 * motion.speed;
-			rstuck = false;
-			ustuck = false;
-			dstuck = false;
 		}
 		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[0] < 0) {
 			motion.velocity[0] = 0.f;
@@ -724,11 +712,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (key == GLFW_KEY_UP || key == GLFW_KEY_W) {
 		Motion& motion = registry.motions.get(my_player);
-		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player) && !ustuck) {
+		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
 			motion.velocity[1] = -1.0 * motion.speed;
-			dstuck = false;
-			rstuck = false;
-			lstuck = false;
 		}
 		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[1] < 0) {
 			motion.velocity[1] = 0.f;
@@ -737,11 +722,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (key == GLFW_KEY_DOWN || key == GLFW_KEY_S) {
 		Motion& motion = registry.motions.get(my_player);
-		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player) && !dstuck) {
+		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
 			motion.velocity[1] = motion.speed;
-			ustuck = false;
-			rstuck = false;
-			lstuck = false;
 		}
 		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[1] > 0) {
 			motion.velocity[1] = 0.f;
