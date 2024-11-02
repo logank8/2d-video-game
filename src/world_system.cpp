@@ -658,7 +658,7 @@ void WorldSystem::handle_collisions() {
 					motion_moving.velocity.y = 0.f;
 					ustuck = true;
 				}
-				*/
+				
 			}
 		} 
 
@@ -704,7 +704,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			ustuck = false;
 			dstuck = false;
 		}
-		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
+		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[0] > 0) {
 			motion.velocity[0] = 0.f;
 		}
 	}
@@ -717,7 +717,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			ustuck = false;
 			dstuck = false;
 		}
-		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
+		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[0] < 0) {
 			motion.velocity[0] = 0.f;
 		}
 	}
@@ -730,7 +730,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			rstuck = false;
 			lstuck = false;
 		}
-		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
+		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[1] < 0) {
 			motion.velocity[1] = 0.f;
 		}
 	}
@@ -743,7 +743,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			rstuck = false;
 			lstuck = false;
 		}
-		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player)) {
+		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[1] > 0) {
 			motion.velocity[1] = 0.f;
 		}
 	}
