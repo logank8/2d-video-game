@@ -47,6 +47,7 @@ struct PlayerAttack {
 struct Deadly
 {
 	ENEMY_TYPES enemy_type = ENEMY_TYPES::CONTACT_DMG;
+	float movement_timer = 0.f;
 };
 
 struct Ranged

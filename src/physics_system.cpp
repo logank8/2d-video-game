@@ -267,15 +267,38 @@ void update_enemy_movement(Entity enemy, float step_seconds) {
                 direction.x /= length;
                 direction.y /= length;
 
+                float& step_second_counter = registry.deadlys.get(enemy).movement_timer;
+                float movement_limit = round((TILE_SIZE / motion.velocity.x) * 10.0f) / 10.0f;
+
+                // Move enemy stricly bound to TILE_SIZE at all times. Use a step second counter and rounding to make sure this happens while keeping uniformity of movement with fps
                 // If movement is diagonal, apply diagonal scaling to align with movement increments for cardinal directions
                 if (direction.x != 0 && direction.y != 0) {
                     const float diagonal_scale = 1 / sqrt(2);
-                    motion.position.x += direction.x * motion.velocity.x * diagonal_scale;
-                    motion.position.y += direction.y * motion.velocity.y * diagonal_scale;
+                    if ((step_second_counter + step_seconds) > movement_limit) {
+                        motion.position.x += direction.x * motion.velocity.x * (movement_limit - step_second_counter) * diagonal_scale;
+                        motion.position.y += direction.y * motion.velocity.y * (movement_limit - step_second_counter) * diagonal_scale;
+                        motion.position = round(motion.position);
+                        step_second_counter = 0.f;
+                    }
+                    else {
+                        motion.position.x += direction.x * motion.velocity.x * step_seconds * diagonal_scale;
+                        motion.position.y += direction.y * motion.velocity.y * step_seconds * diagonal_scale;
+                        step_second_counter += step_seconds;
+                    }
                 }
                 else {
-                    motion.position.x += direction.x * motion.velocity.x / 2;
-                    motion.position.y += direction.y * motion.velocity.y / 2;
+                    if ((step_second_counter + step_seconds) > movement_limit) {
+                        motion.position.x += direction.x * motion.velocity.x * (movement_limit - step_second_counter);
+                        motion.position.y += direction.y * motion.velocity.y * (movement_limit - step_second_counter);
+                        motion.position = round(motion.position);
+                        step_second_counter = 0.f;
+                    }
+                    else {
+                        motion.position.x += direction.x * motion.velocity.x * step_seconds;
+                        motion.position.y += direction.y * motion.velocity.y * step_seconds;
+                        step_second_counter += step_seconds;
+                    }
+                    
                 }
 
                 // Centre of tile reached, move onto next tile in the path
