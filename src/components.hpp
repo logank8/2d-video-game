@@ -4,19 +4,42 @@
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
 
+enum class PLAYER_STATE {
+	IDLE = 0,
+	RUN = IDLE + 1,
+	ATTACK = RUN + 1,
+	DASH = ATTACK + 1,
+	DEAD = DASH + 1
+};
+
 // Player component
 struct Player
 {
+	// General
+	vec2 move_direction = {0, 0};
+	vec2 attack_direction = {0, 0};
+	PLAYER_STATE state = PLAYER_STATE::IDLE;
+
 	// For dashing and after taking damage;
 	bool invulnerable = false;
 	float invulnerable_duration_ms = 3000.f;
 	vec2 last_pos = { 0, 0 };
+
+	// For attacking
+	bool is_attacking = false;
+	float damage_multiplier = 1.0f;
+	float attack_duration_ms = 1000.f;
 };
 
 enum class ENEMY_TYPES {
 	CONTACT_DMG = 0,
 	RANGED = CONTACT_DMG + 1,
 	PROJECTILE = RANGED + 1
+};
+
+struct PlayerAttack {
+	float duration_ms = 100.f;
+	bool has_hit = false;
 };
 
 
@@ -266,7 +289,7 @@ struct RenderRequest {
 
 struct Animation {
 	std::string name;
-	int frameRate; // frames per second
+	int frameRate; // fps
 	SPRITE_ASSET_ID used_sprite = SPRITE_ASSET_ID::SPRITE_COUNT; // sprite sheet to grab sprites from
 	std::vector<int> sprite_indices; // list of indices used in animation 
 };

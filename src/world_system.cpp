@@ -98,8 +98,10 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwSetWindowUserPointer(window, this);
 	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
 	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
+	auto mouse_button_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_button( _0, _1, _2); };
 	glfwSetKeyCallback(window, key_redirect);
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
+	glfwSetMouseButtonCallback(window, mouse_button_redirect);
 
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
@@ -375,7 +377,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (player.invulnerable) {
 		player.invulnerable_duration_ms -= elapsed_ms_since_last_update;
 		if (player.invulnerable_duration_ms < 0.f) {
-			std::cout << "Invuln ended" << std::endl;
+			// std::cout << "Invuln ended" << std::endl;
 			player.invulnerable = false;
 			player.invulnerable_duration_ms = 1000.f;
 		}
@@ -463,6 +465,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			screen.darken_screen_factor = 0;
 		}
 	}
+
+		
+	auto& attackRegistry = registry.playerAttacks;
+	for (Entity entity : attackRegistry.entities) {
+		auto& attack = attackRegistry.get(entity);
+
+		attack.duration_ms -= elapsed_ms_since_last_update;
+		if (attack.duration_ms < 0.0f || attack.has_hit) {
+			registry.remove_all_components_of(entity);
+		}
+	}
+
 
 	if (debugging.in_debug_mode == true) {
 		for (Motion& motion : motions_registry.components) {
@@ -571,7 +585,7 @@ void WorldSystem::handle_collisions() {
 					// avoid negative hp values for hp bar
 					player_hp = max(0.f, player_hp);
 					// modify hp bar
-					std::cout << "Player hp: " << player_hp << "\n";
+					// std::cout << "Player hp: " << player_hp << "\n";
 					if (player_hp <= 200 && player_hp >= 0) {
 						// Motion& motion = registry.motions.get(hp_bar);
 						// motion.scale.x = HPBAR_BB_WIDTH * (player_hp / 100);
@@ -598,7 +612,6 @@ void WorldSystem::handle_collisions() {
 					Motion& motion = registry.motions.get(my_player);
 					motion.velocity[0] = 0.0f;
 					motion.velocity[1] = 0.0f;
-
 				}
 			}
 			// Checking Player - Eatable collisions
@@ -699,8 +712,23 @@ void WorldSystem::handle_collisions() {
 			if (registry.solidObjs.has(entity_other) && registry.projectiles.has(entity)) {
 				registry.remove_all_components_of(entity);
 			}
-		}
+		} else if (registry.playerAttacks.has(entity)) {
+			if (registry.deadlys.has(entity_other) && registry.healths.has(entity_other)) {
+				Health& deadly_health = registry.healths.get(entity_other);
+				Damage& damage = registry.damages.get(entity);
 
+				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - damage.damage);
+
+				std::cout << "entity " << entity_other << " hitpoints: " << deadly_health.hit_points << std::endl;
+
+				if (deadly_health.hit_points <= 0.0f) {
+					registry.remove_all_components_of(entity_other);
+					std::cout << "entity " << entity_other << " died" << std::endl;
+				}
+
+				registry.playerAttacks.get(entity).has_hit = true;
+			}
+		}
 	}
 
 	// Remove all collisions from this simulation step
@@ -728,66 +756,105 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Debugging
-	if (key == GLFW_KEY_P && action == GLFW_RELEASE) {
-		debugging.in_debug_mode = !debugging.in_debug_mode;
-		
+	if (key == GLFW_KEY_P) {
+		if (action == GLFW_RELEASE)
+			debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
 
-	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) {
-		Motion& motion = registry.motions.get(my_player);
-		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
-			motion.velocity[0] = motion.speed;
-		}
-		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[0] > 0) {
-			motion.velocity[0] = 0.f;
-		}
-	}
 
-	if (key == GLFW_KEY_LEFT || key == GLFW_KEY_A) {
-		Motion& motion = registry.motions.get(my_player);
-		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
-			motion.velocity[0] = -1.0 * motion.speed;
-		}
-		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[0] < 0) {
-			motion.velocity[0] = 0.f;
-		}
-	}
-
-	if (key == GLFW_KEY_UP || key == GLFW_KEY_W) {
-		Motion& motion = registry.motions.get(my_player);
-		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
-			motion.velocity[1] = -1.0 * motion.speed;
-		}
-		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[1] < 0) {
-			motion.velocity[1] = 0.f;
-		}
-	}
-
-	if (key == GLFW_KEY_DOWN || key == GLFW_KEY_S) {
-		Motion& motion = registry.motions.get(my_player);
-		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
-			motion.velocity[1] = motion.speed;
-		}
-		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[1] > 0) {
-			motion.velocity[1] = 0.f;
-		}
-	}
-
-	// TEMPORARY animation state handler (TO BE CHANGED)
-	// *** NOT PERMANENT ***
+	// Player controller
 	Motion& pmotion = registry.motions.get(my_player);
 	AnimationSet& animSet = registry.animationSets.get(my_player);
+	Player& player = registry.players.get(my_player);
+
+	if (!registry.deathTimers.has(my_player)) {
+		if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) {
+			Motion& motion = registry.motions.get(my_player);
+			if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
+				motion.velocity[0] = motion.speed;
+			}
+			else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[0] > 0) {
+				motion.velocity[0] = 0.f;
+			}
+		}
+
+		if (key == GLFW_KEY_LEFT || key == GLFW_KEY_A) {
+			Motion& motion = registry.motions.get(my_player);
+			if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
+				motion.velocity[0] = -1.0 * motion.speed;
+			}
+			else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[0] < 0) {
+				motion.velocity[0] = 0.f;
+			}
+		}
+
+		if (key == GLFW_KEY_UP || key == GLFW_KEY_W) {
+			Motion& motion = registry.motions.get(my_player);
+			if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
+				motion.velocity[1] = -1.0 * motion.speed;
+			}
+			else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[1] < 0) {
+				motion.velocity[1] = 0.f;
+			}
+		}
+
+		if (key == GLFW_KEY_DOWN || key == GLFW_KEY_S) {
+			Motion& motion = registry.motions.get(my_player);
+			if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
+				motion.velocity[1] = motion.speed;
+			}
+			else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[1] > 0) {
+				motion.velocity[1] = 0.f;
+			}
+		}
+
+		// player.move_direction = glm::normalize(player.move_direction);
+		// pmotion.velocity = player.move_direction * pmotion.speed;
+	}
+	// TEMPORARY animation state handler (TO BE CHANGED)
+	// *** NOT PERMANENT ***
+
 	if (pmotion.velocity != vec2(0,0)) {
-		animSet.current_animation = "player_run_f";
-		
-		if (pmotion.velocity.x < 0) {
+		player.state = PLAYER_STATE::RUN;
+	} else {
+		player.state = PLAYER_STATE::IDLE;
+	}
+
+	switch(player.state) {
+		case PLAYER_STATE::DASH:
+			break;
+		case PLAYER_STATE::ATTACK:	
+			break;
+		case PLAYER_STATE::RUN:
+			animSet.current_animation = "player_run_f";
+			break;
+		case PLAYER_STATE::IDLE:
+			animSet.current_animation = "player_idle_f";
+			break;
+		default:
+			std::cout << "player state not found" << std::endl;
+			break;
+	}
+
+	if (player.move_direction.x < 0) {
 			pmotion.scale.x = -std::abs(pmotion.scale.x);
 		} else {
 			pmotion.scale.x = std::abs(pmotion.scale.x);
 		}
-	} else {
-		animSet.current_animation = "player_idle_f";
-	}
+
+	// if (pmotion.velocity != vec2(0,0)) {
+	// 	player.state = PLAYER_STATE::RUN;
+	// 	animSet.current_animation = "player_run_f";
+		
+	// 	if (pmotion.velocity.x < 0) {
+	// 		pmotion.scale.x = -std::abs(pmotion.scale.x);
+	// 	} else {
+	// 		pmotion.scale.x = std::abs(pmotion.scale.x);
+	// 	}
+	// } else {
+	// 	std::cout << "IDLING" << std::endl;
+	// 	// animSet.current_animation = "player_idle_f";
+	// }
 
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
@@ -815,7 +882,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 				registry.dashing.insert(my_player, new_dash);
 			} 
-			
 		}
 	}
 
@@ -830,8 +896,37 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 }
 
+vec2 snapToClosestAxis(vec2 direction) {
+	vec2 normalized = glm::normalize(direction);
+
+	float absX = std::abs(normalized.x);
+	float absY = std::abs(normalized.y);
+
+    if (absX >= absY) {
+        return vec2(normalized.x > 0 ? 1 : -1, 0);
+    } else {
+        return vec2(0, normalized.y > 0 ? 1 : -1);
+    }
+}
+
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	(vec2)mouse_position; // dummy to avoid compiler warning
+	// Update player attack direction
+	vec2 screen_center = vec2(window_width_px / 2.0f, window_height_px / 2.0f);
+	vec2 direction = mouse_position - screen_center;
+	direction = normalize(direction);
+
+	Player& player = registry.players.get(my_player);
+	player.attack_direction = snapToClosestAxis(direction);
+}
+
+void WorldSystem::on_mouse_button(int button, int action, int mods) {
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		Player& player = registry.players.get(my_player);
+		vec2 player_pos = registry.motions.get(my_player).position;
+		vec2 attack_direction = player.attack_direction;
+
+		createBasicAttackHitbox(renderer, player_pos + (attack_direction * vec2(100, 100)));
+	}
 }
 
 // TODO: update to work with multiple maps
