@@ -47,17 +47,27 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		gl_has_errors();
 		assert(in_texcoord_loc >= 0);
 
+		GLint currentVao = 0;
+		glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &currentVao);
+
+		if (currentVao == 0) {
+			std::cout << "No VAO is currently bound." << std::endl;
+		}
+		else {
+			std::cout << "VAO " << currentVao << " is currently bound." << std::endl;
+		}
+
 		//std::cout << "Mfont: " << m_font_vao << " Normal: " << vao << std::endl;
 
 		glEnableVertexAttribArray(in_position_loc);
 		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
-			sizeof(TexturedVertex), (void*)0);
+							sizeof(TexturedVertex), (void *)0);
 		gl_has_errors();
 
 		glEnableVertexAttribArray(in_texcoord_loc);
 		glVertexAttribPointer(
 			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
-			(void*)sizeof(
+			(void *)sizeof(
 				vec3)); // note the stride to skip the preceeding vertex position
 
 		// Enabling and binding texture to slot 0
@@ -71,19 +81,18 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		}
 		GLuint texture_id = texture_gl_handles[texture_index];;
 		if (render_request.used_sprite == SPRITE_ASSET_ID::SPRITE_COUNT || render_request.sprite_index == -1) {
-			texture_id =
-				texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+		texture_id =
+			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
 
 			glBindTexture(GL_TEXTURE_2D, texture_id);
 			gl_has_errors();
 
 			GLuint uv_offset_loc = glGetUniformLocation(program, "uv_offset");
-			glUniform2f(uv_offset_loc, 0.0f, 0.0f);
+			glUniform2f(uv_offset_loc, 0.0f, 0.0f);  
 
 			GLuint uv_scale_loc = glGetUniformLocation(program, "uv_scale");
-			glUniform2f(uv_scale_loc, 1.0f, 1.0f);
-		}
-		else {
+			glUniform2f(uv_scale_loc, 1.0f, 1.0f);  
+		} else {
 			texture_id = texture_gl_handles[(GLuint)sprite_sheets[registry.renderRequests.get(entity).used_sprite].texture_id];
 
 			glBindTexture(GL_TEXTURE_2D, texture_id);
@@ -98,8 +107,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			GLuint uv_scale_loc = glGetUniformLocation(program, "uv_scale");
 			glUniform2f(uv_scale_loc, (u1 - u0), (v1 - v0));
 		}
-	}
-	else if (render_request.used_effect == EFFECT_ASSET_ID::EGG) {
+ else if (render_request.used_effect == EFFECT_ASSET_ID::EGG) {
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_color_loc = glGetAttribLocation(program, "in_color");
 		gl_has_errors();
