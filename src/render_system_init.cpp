@@ -59,7 +59,6 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 
 	// We are not really using VAO's but without at least one bound we will crash in
 	// some systems.
-	GLuint vao;
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 	gl_has_errors();
@@ -69,13 +68,32 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	initializeGlEffects();
 	initializeGlGeometryBuffers();
 	initializeSpriteSheets();
-	fontInit(PROJECT_SOURCE_DIR + std::string("data/fonts/Kenney_Blocks.ttf"), 28);
+	fontInit(PROJECT_SOURCE_DIR + std::string("data/fonts/Kenney_Pixel_Square.ttf"), 48);
 
 	return true;
 }
 
 
 bool RenderSystem::fontInit(const std::string& font_filename, unsigned int font_default_size) {
+	// enable blending or you will just get solid boxes instead of text
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// font buffer setup
+	glGenVertexArrays(1, &m_font_vao);
+	glGenBuffers(1, &m_font_vbo);
+
+	// apply orthographic projection matrix for font, i.e., screen space
+	GLuint m_font_shader_program = effects[(GLuint)EFFECT_ASSET_ID::FONT];
+	glUseProgram(m_font_shader_program);
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h);
+	glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(w), 0.0f, static_cast<float>(h));
+	GLint project_location = glGetUniformLocation(m_font_shader_program, "projection");
+	assert(project_location > -1);
+	std::cout << "project_location: " << project_location << std::endl;
+	glUniformMatrix4fv(project_location, 1, GL_FALSE, glm::value_ptr(projection));
+
 	// init FreeType fonts
 	FT_Library ft;
 	if (FT_Init_FreeType(&ft))
@@ -111,7 +129,7 @@ bool RenderSystem::fontInit(const std::string& font_filename, unsigned int font_
 		glGenTextures(1, &texture);
 		glBindTexture(GL_TEXTURE_2D, texture);
 
-		// std::cout << "texture: " << c << " = " << texture << std::endl;
+		std::cout << "texture: " << c << " = " << texture << std::endl;
 
 		glTexImage2D(
 			GL_TEXTURE_2D,
@@ -147,6 +165,16 @@ bool RenderSystem::fontInit(const std::string& font_filename, unsigned int font_
 	FT_Done_Face(face);
 	FT_Done_FreeType(ft);
 
+	// bind buffers
+	glBindVertexArray(m_font_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, m_font_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+
+	// release buffers
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(vao);
 	return true;
 }
 

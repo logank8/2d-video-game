@@ -64,6 +64,10 @@ class RenderSystem {
 	std::array<GLuint, geometry_count> index_buffers;
 	std::array<Mesh, geometry_count> meshes;
 	std::map<char, Character> m_ftCharacters;
+	GLuint m_font_vao;
+	GLuint m_font_vbo;
+	GLuint vao;
+	GLuint vbo;
 	FT_Face face;
 
 public:
@@ -110,6 +114,7 @@ private:
 	void drawTexturedMesh(Entity entity, const mat3& projection);
 	void drawScreenSpaceObject(Entity entity);
 	void drawToScreen();
+	void renderText(std::string text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
 
 	// Window handle
 	GLFWwindow* window;
