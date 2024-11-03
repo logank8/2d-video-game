@@ -107,10 +107,21 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			GLuint uv_scale_loc = glGetUniformLocation(program, "uv_scale");
 			glUniform2f(uv_scale_loc, (u1 - u0), (v1 - v0));
 		}
-	}
+ else if (render_request.used_effect == EFFECT_ASSET_ID::EGG) {
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		GLint in_color_loc = glGetAttribLocation(program, "in_color");
+		gl_has_errors();
 
-	else
-	{
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+							  sizeof(ColoredVertex), (void *)0);
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_color_loc);
+		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
+							  sizeof(ColoredVertex), (void *)sizeof(vec3));
+		gl_has_errors();
+	} else {
 		assert(false && "Type of render request not supported");
 	}
 
@@ -370,7 +381,7 @@ void RenderSystem::draw()
 	// Clearing backbuffer
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
-	glClearColor(GLfloat(174 / 255.0), GLfloat(155 / 255.0), GLfloat(125 / 255.0), 1.0);
+	glClearColor(GLfloat(120 / 255.0), GLfloat(120 / 255.0), GLfloat(117 / 255.0), 1.0);
 	glClearDepth(10.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);

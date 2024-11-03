@@ -9,7 +9,8 @@ struct Player
 {
 	// For dashing and after taking damage;
 	bool invulnerable = false;
-	float invulnerable_duration_ms = 1000.f;
+	float invulnerable_duration_ms = 3000.f;
+	vec2 last_pos = { 0, 0 };
 };
 
 enum class ENEMY_TYPES {
@@ -33,6 +34,15 @@ struct Ranged
 struct Projectile
 {
 
+};
+
+struct Path {
+	std::vector<vec2> points;
+	size_t current_index = 0;
+};
+
+struct PathTimer {
+	float timer = 0.f;
 };
 
 // Walls component
@@ -71,13 +81,13 @@ struct Eatable
 // anything that can cause damage
 struct Damage
 {
-	float damage = 10.f;
+	float damage = 25.f;
 };
 
 // anything that has health
 struct Health
 {
-	float hit_points = 100.f;
+	float hit_points = 200.f;
 };
 
 // All data relevant to the shape and motion of entities
@@ -86,7 +96,7 @@ struct Motion {
 	float angle = 0;
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { 10, 10 };
-	float speed = 200.0f; // To control player speed
+	float speed = 300.0f; // To control player speed
 };
 
 // Stucture to store collision information
@@ -195,8 +205,16 @@ enum class TEXTURE_ASSET_ID {
 	RANGED_ENEMY = PLAYER + 1,
 	RANGED_PROJECTILE = RANGED_ENEMY + 1,
 	HP_BAR = RANGED_PROJECTILE + 1,
-	HP_BAR_EMPTY = HP_BAR + 1,
-	FURNITURE = HP_BAR_EMPTY + 1,
+	HP_BAR_0 = HP_BAR + 1,
+	HP_BAR_1 = HP_BAR_0 + 1,
+	HP_BAR_2 = HP_BAR_1 + 1,
+	HP_BAR_3 = HP_BAR_2 + 1,
+	HP_BAR_4 = HP_BAR_3 + 1,
+	HP_BAR_5 = HP_BAR_4 + 1,
+	HP_BAR_6 = HP_BAR_5 + 1,
+	HP_BAR_7 = HP_BAR_6 + 1,
+	HP_BAR_FULL = HP_BAR_7 + 1,
+	FURNITURE = HP_BAR_FULL + 1,
 	WALL = FURNITURE + 1,
 	SIDE_WALL = WALL + 1,
 	PLAYERS = SIDE_WALL + 1,

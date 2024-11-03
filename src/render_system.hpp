@@ -40,9 +40,17 @@ class RenderSystem {
 			textures_path("enemy_1.png"),
 			textures_path("adventurer.png"),
 			textures_path("enemy_3.png"),
-			textures_path("bubble_closed.png"),
+			textures_path("bubble_closed.png"), // ranged projectile
 			textures_path("health_bar.png"),
-			textures_path("health_bar_empty.png"),
+			textures_path("hp_bar/hp_bar_0.png"), // empty
+			textures_path("hp_bar/hp_bar_1.png"), // 1
+			textures_path("hp_bar/hp_bar_2.png"), // 2
+			textures_path("hp_bar/hp_bar_3.png"), // 3
+			textures_path("hp_bar/hp_bar_4.png"), // 4
+			textures_path("hp_bar/hp_bar_5.png"), // 5
+			textures_path("hp_bar/hp_bar_6.png"), // 6
+			textures_path("hp_bar/hp_bar_7.png"), // 7
+			textures_path("hp_bar/hp_bar_full.png"), // full
 			textures_path("table.png"),
 			textures_path("wall.png"),
 			textures_path("side_wall.png"),
