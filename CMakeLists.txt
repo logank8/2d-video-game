@@ -154,6 +154,24 @@ if (NOT GLFW_FOUND OR NOT SDL2_FOUND)
    endif()
 endif()
 
+find_package(Freetype REQUIRED)
+
+if(TARGET Freetype AND NOT TARGET Freetype::Freetype)
+     add_library(Freetype::Freetype ALIAS freetype) # target freetype is defined by freetype-targets.cmake
+     # might need to add freetype to global scope if cmake errors here
+     # alternativly if the above does not work for you you can use
+     # add_library(Freetype::Freetype INTERFACE IMPORTED)
+     # target_link_libraries(Freetype::Freetype INTERFACE freetype)
+endif()
+
+if(NOT TARGET Freetype::Freetype)
+     # insert error here
+     # or create the target correctly (see cmakes newer FindFreetype.cmake)
+     message(FATAL_ERROR "Can't find FreeType (fonts)." )
+endif()
+
+ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/include")
+
 
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${GLFW_INCLUDE_DIRS})
