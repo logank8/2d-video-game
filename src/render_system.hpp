@@ -122,7 +122,7 @@ private:
 	void drawTexturedMesh(Entity entity, const mat3& projection);
 	void drawScreenSpaceObject(Entity entity);
 	void drawToScreen();
-	void renderText(std::string text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
+	void renderText();
 
 	// Window handle
 	GLFWwindow* window;

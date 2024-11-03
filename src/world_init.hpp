@@ -40,6 +40,9 @@ Entity createLine(vec2 position, vec2 size);
 // a egg
 Entity createEgg(vec2 pos, vec2 size);
 
+// Text
+Entity createText(vec2 pos, vec2 scale, std::string text, glm::vec3 color);
+
 // a wall
 Entity createWalls(RenderSystem* renderer, vec2 pos, bool is_side_wall);
 

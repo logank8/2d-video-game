@@ -22,8 +22,11 @@ const size_t RANGED_ENEMY_PROJECTILE_DELAY_MS = 2000 * 3;
 const int TILE_SIZE = 100;
 std::vector<vec2> tile_vec;
 const int LIGHT_FLICKER_RATE = 2000 * 10;
+const int FPS_COUNTER_MS = 1000;
 
 int lightflicker_counter_ms;
+int fps_counter_ms;
+int fps = 0;
 
 // create the underwater world
 WorldSystem::WorldSystem()
@@ -132,6 +135,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
+	fps_counter_ms = FPS_COUNTER_MS;
 
 	// Set all states to default
 	restart_game();
@@ -154,7 +158,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	vec2 player_pos = motions_registry.get(my_player).position;
 	vec2 world_origin = vec2(-1860, -3760);
 
-	
+	fps_counter_ms -= elapsed_ms_since_last_update;
+	if (fps_counter_ms <= 0.f) {
+		fps = (int)(1000 / elapsed_ms_since_last_update);
+		fps_counter_ms = FPS_COUNTER_MS;
+	}
+	createText({ 1000.f, 650.f }, { 0,0 }, "FPS: " + std::to_string(fps), glm::vec3(1.0f, 0.f, 0.f));
 	
 	for (int i = (int) motions_registry.components.size()-1; i>=0; --i) {
 		Motion& motion = motions_registry.components[i];
