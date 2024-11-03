@@ -102,7 +102,7 @@ Entity createFish(RenderSystem* renderer, vec2 position)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0, 50 };
+	motion.velocity = { 2.5f, 2.5f };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
@@ -135,7 +135,7 @@ Entity createEel(RenderSystem* renderer, vec2 position)
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0, 100.f };
+	motion.velocity = { 5.f, 5.f };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
@@ -171,7 +171,7 @@ Entity createRangedEnemy(RenderSystem* renderer, vec2 position)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0, 0 };
+	motion.velocity = { 1.f, 1.f };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
