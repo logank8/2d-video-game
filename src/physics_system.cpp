@@ -16,12 +16,6 @@ vec2 get_bounding_box(const Motion& motion)
 	return { motion.position.x - (abs(motion.scale.x) / 2), motion.position.y - (abs(motion.scale.y) / 2) };
 }
 
-vec2 get_scale(const Motion& motion)
-{
-	// abs is to avoid negative scale due to the facing direction.
-	return  { abs(motion.scale.x), abs(motion.scale.y) };
-}
-
 bool collides(const Motion& motion1, const Motion& motion2) {
 	/*
 	vec2 box1 = get_bounding_box(motion1) / 2.f;
@@ -64,19 +58,15 @@ bool collides(const Motion& motion1, const Motion& motion2) {
 
 // For mesh-box collision
 bool mesh_collides(const Entity& mesh_entity, const Motion& mesh_motion, const Motion& box_motion)
-{
-	// Getting AABB bounding box of other object
-	vec2 other_top_left = get_bounding_box(box_motion);
-	vec2 other_scale = get_scale(box_motion);
-
-	// Getting scale of entity using mesh bounding
-	vec2 mesh_scale = get_scale(mesh_motion);
+{    
+    // Getting AABB bounding box of object box bounding
+	vec2 box_top_left = get_bounding_box(box_motion);
 
 	// Getting mesh
 	auto mesh = registry.meshPtrs.get(mesh_entity);
 	std::vector<ColoredVertex> vertices = mesh->vertices;
 
-	for(uint i = 0; i<vertices.size(); i++) {
+	for(uint i = 0; i < vertices.size(); i++) {
 		vec3 relative_pos = vertices[i].position;
 		vec2 pos = vec2( relative_pos.x, relative_pos.y );
 		
@@ -86,14 +76,14 @@ bool mesh_collides(const Entity& mesh_entity, const Motion& mesh_motion, const M
 		mat2 R = { { c, s },{ -s, c } };
 		pos = pos * R;
 
-		pos = pos * mesh_scale; // scale
+		pos = pos * mesh_motion.scale; // scale
 
 		pos = pos + mesh_motion.position; // translate to mesh entity position position
 
-		if (pos.y < other_top_left.y + other_scale.y
-		&& pos.y > other_top_left.y
-		&& pos.x < other_top_left.x + other_scale.x
-		&& pos.x > other_top_left.x)
+		if (pos.y < box_top_left.y + abs(box_motion.scale.y)
+		&& pos.y > box_top_left.y
+		&& pos.x < box_top_left.x + abs(box_motion.scale.x)
+		&& pos.x > box_top_left.x)
 			return true;
 	}
 
@@ -370,17 +360,13 @@ void PhysicsSystem::step(float elapsed_ms)
                 bool is_colliding = true;
 
                 // if player is entity_i do mesh-based collision with entity_i
-				if (registry.stickies.has(entity_i)) {
+				if (registry.stickies.has(entity_i) && registry.players.has(entity_j)) {
 					is_colliding = mesh_collides(entity_i, motion_i, motion_j);
-                    // std::cout << "player slowed down" << std::endl;
-				} else if (registry.stickies.has(entity_j)) {
+                    if (is_colliding) std::cout << "player slowed down" << std::endl;
+				} else if (registry.stickies.has(entity_j) && registry.players.has(entity_i)) {
                     is_colliding = mesh_collides(entity_j, motion_j, motion_i);
-                    // std::cout << "player slowed down" << std::endl;
+                    if (is_colliding) std::cout << "player slowed down" << std::endl;
                 }
-
-				// if (registry.players.has(entity_i) && registry.solidObjs.has(entity_j)) {
-				// 	std::cout << "player collision" << std::endl;
-				// }
 
                 if (is_colliding) {
                     // Create a collisions event

@@ -573,6 +573,7 @@ vec2 norm(vec2 vec) {
 void WorldSystem::handle_collisions() {
 	// Loop over all collisions detected by the physics system
 	auto& collisionsRegistry = registry.collisions;
+	bool unstick_player = true;
 	for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
 		// The entity and its collider
 		Entity entity = collisionsRegistry.entities[i];
@@ -662,12 +663,22 @@ void WorldSystem::handle_collisions() {
 				}
 				
 			}
+			if (registry.stickies.has(entity_other)) {
+				Motion&  player_motion = registry.motions.get(my_player);
+				player_motion.speed = 150.f;
+				unstick_player = false;
+			}
 		} else if (registry.deadlys.has(entity)) {
 			if (registry.solidObjs.has(entity_other) && registry.projectiles.has(entity)) {
 				registry.remove_all_components_of(entity);
 			}
 		}
 
+	}
+
+	if (unstick_player) {
+		Motion&  player_motion = registry.motions.get(my_player);
+		player_motion.speed = 300.f;
 	}
 
 	// Remove all collisions from this simulation step
