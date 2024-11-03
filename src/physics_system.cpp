@@ -17,24 +17,6 @@ vec2 get_bounding_box(const Motion& motion)
 }
 
 bool collides(const Motion& motion1, const Motion& motion2) {
-	/*
-	vec2 box1 = get_bounding_box(motion1) / 2.f;
-	vec2 box2 = get_bounding_box(motion2) / 2.f;
-
-	// Approximate a circle for each entity in the quadrant
-	float radius1 = length(box1) / 2.f; 
-	float radius2 = length(box2) / 2.f;
-
-	vec2 dp = motion1.position - motion2.position;
-	float distance_squared = dot(dp, dp);
-
-	// Check if the distances between centers is less than the sum of radii
-	if (distance_squared < (radius1 + radius2) * (radius1 + radius2)) {
-		return true;
-	}
-
-	return false;
-	*/
 
 	float bottom_1 = motion1.position.y - (abs(motion1.scale.y) / 2);
 	float top_1 = motion1.position.y + (abs(motion1.scale.y) / 2);
@@ -340,7 +322,6 @@ void PhysicsSystem::step(float elapsed_ms)
 	auto& motion_registry = registry.motions;
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
-		// !!! TODO A1: update motion.position based on step_seconds and motion.velocity
 		Motion& motion = motion_registry.components[i];
 		Entity entity = motion_registry.entities[i];
 		float step_seconds = elapsed_ms / 1000.f;
@@ -372,9 +353,4 @@ void PhysicsSystem::step(float elapsed_ms)
 			registry.blockedTimers.remove(entity);
 		}
 	}
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A2: HANDLE EGG UPDATES HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 2
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 }
