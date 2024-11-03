@@ -35,8 +35,6 @@ public:
 	ComponentContainer<Dash> dashing;
 	ComponentContainer<UserInterface> userInterfaces;
 	ComponentContainer<AnimationSet> animationSets;
-	ComponentContainer<Path> paths;
-	ComponentContainer<PathTimer> pathTimers;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -66,8 +64,6 @@ public:
 		registry_list.push_back(&dashing);
 		registry_list.push_back(&userInterfaces);
 		registry_list.push_back(&animationSets);
-		registry_list.push_back(&paths);
-		registry_list.push_back(&pathTimers);
 	}
 
 	void clear_all_components() {

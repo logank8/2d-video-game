@@ -75,12 +75,12 @@ Entity createHPBar(RenderSystem* renderer, vec2 pos)
 	auto& userInterface = registry.userInterfaces.emplace(entity);
 	userInterface.angle = 0.f;
 	userInterface.position = pos;
-	userInterface.scale = vec2({ HPBAR_BB_WIDTH, -HPBAR_BB_HEIGHT });
+	userInterface.scale = vec2({ HPBAR_BB_WIDTH, HPBAR_BB_HEIGHT });
 
 	registry.renderRequests.insert(
 		entity,
 		{
-			TEXTURE_ASSET_ID::HP_BAR_FULL,
+			TEXTURE_ASSET_ID::HP_BAR,
 			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
@@ -111,7 +111,7 @@ Entity createHPBarEmpty(RenderSystem* renderer, vec2 pos)
 	registry.renderRequests.insert(
 		entity,
 		{
-			TEXTURE_ASSET_ID::HP_BAR_0,
+			TEXTURE_ASSET_ID::HP_BAR_EMPTY,
 			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
@@ -133,11 +133,11 @@ Entity createFish(RenderSystem* renderer, vec2 position)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 2.5f, 2.5f };
+	motion.velocity = { 0, 50 };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ TILE_PX_SIZE * (100 / TILE_PX_SIZE), TILE_PX_SIZE * (100 / TILE_PX_SIZE) });
+	motion.scale = vec2({ -FISH_BB_WIDTH, FISH_BB_HEIGHT });
 
 	// Create an (empty) Bug component to be able to refer to all bug
 	registry.deadlys.emplace(entity);
@@ -166,11 +166,11 @@ Entity createEel(RenderSystem* renderer, vec2 position)
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 5.f, 5.f };
+	motion.velocity = { 0, 100.f };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ TILE_PX_SIZE * (100 / TILE_PX_SIZE), TILE_PX_SIZE * (100 / TILE_PX_SIZE) });
+	motion.scale = vec2({ -EEL_BB_WIDTH, EEL_BB_HEIGHT });
 
 	// create an empty Eel component to be able to refer to all eels
 	registry.deadlys.emplace(entity);
@@ -202,11 +202,11 @@ Entity createRangedEnemy(RenderSystem* renderer, vec2 position)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 1.f, 1.f };
+	motion.velocity = { 0, 0 };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ TILE_PX_SIZE * (100 / TILE_PX_SIZE), TILE_PX_SIZE * (100 / TILE_PX_SIZE) });
+	motion.scale = vec2({ -FISH_BB_WIDTH, FISH_BB_HEIGHT });
 
 	// Create an (empty) Bug component to be able to refer to all bug
 	auto& enemy = registry.deadlys.emplace(entity);
@@ -298,7 +298,7 @@ Entity createWalls(RenderSystem* renderer, vec2 pos, bool is_side_wall)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = vec2({ TILE_PX_SIZE * (100/ TILE_PX_SIZE), TILE_PX_SIZE * (100/ TILE_PX_SIZE) });
+	motion.scale = vec2({ FURNITURE_WIDTH * (100/FURNITURE_WIDTH), FURNITURE_HEIGHT * (100/FURNITURE_WIDTH) });
 
 	// create an empty component for the walls
 	registry.walls.emplace(entity);
@@ -369,7 +369,7 @@ Entity createFurniture(RenderSystem* renderer, vec2 pos)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = vec2({ TILE_PX_SIZE * 3, TILE_PX_SIZE * 3 });
+	motion.scale = vec2({ FURNITURE_WIDTH * 3, FURNITURE_HEIGHT * 3 });
 
 	// create an empty component for the furniture as a solid object
 	registry.solidObjs.emplace(entity);

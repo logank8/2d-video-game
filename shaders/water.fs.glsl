@@ -35,8 +35,8 @@ void main()
 	vec3 viewPos1 = vec3(0, 0, 2);
 
 	// ambient calculation
-	float lightStrength = 0.45;
-	vec3 ambient = lightStrength * vec3(1.0, 1.0, 0.9);
+	float lightStrength = 0.5;
+	vec3 ambient = lightStrength * vec3(1.0, 1.0, 1.0);
 	// ambient done
 
 	// norm coming off of point
@@ -47,7 +47,7 @@ void main()
 	// calculating diffuse component
 	float diff = max((dot(norm, lightDir)), 0.0);
 
-	vec3 diffuse = diff * vec3(1.0, 1.0, 0.9);
+	vec3 diffuse = diff * vec3(1.0, 1.0, 1.0);
 
 	color = vec4((ambient + diffuse) * color.xyz, 1.0);
 	color = fade_color(color);
