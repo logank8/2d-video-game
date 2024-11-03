@@ -46,13 +46,4 @@ struct Transform {
 	void translate(vec2 offset);
 };
 
-// font character structure
-struct Character {
-	unsigned int TextureID;  // ID handle of the glyph texture
-	glm::ivec2   Size;       // Size of glyph
-	glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
-	unsigned int Advance;    // Offset to advance to next glyph
-	char character;
-};
-
 bool gl_has_errors();
