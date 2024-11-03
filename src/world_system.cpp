@@ -594,7 +594,6 @@ void WorldSystem::handle_collisions() {
 					registry.deathTimers.emplace(entity);
 					Mix_PlayChannel(-1, salmon_dead_sound, 0);
 
-					// !!! TODO A1: change the salmon's orientation and color on death
 					// Control what happens when the player dies here
 					Motion& motion = registry.motions.get(my_player);
 					motion.velocity[0] = 0.0f;
@@ -618,6 +617,60 @@ void WorldSystem::handle_collisions() {
 				Motion& motion_solid = registry.motions.get(entity_other);
 
 				// Temp solution to prevent player from sticking to solid objects - may not work if solid object is really long or tall
+				
+				float left_1 = motion_moving.position.x - (abs(motion_moving.scale.x) / 2);
+				float right_1 = motion_moving.position.x + (abs(motion_moving.scale.x) / 2);
+
+				float left_2 = motion_solid.position.x - (abs(motion_solid.scale.x) / 2);
+				float right_2 = motion_solid.position.x + (abs(motion_solid.scale.x) / 2);
+
+				float bottom_1 = motion_moving.position.y - (abs(motion_moving.scale.y) / 2);
+				float top_1 = motion_moving.position.y + (abs(motion_moving.scale.y) / 2);
+
+				float bottom_2 = motion_solid.position.y - (abs(motion_solid.scale.y) / 2);
+				float top_2 = motion_solid.position.y + (abs(motion_solid.scale.y) / 2);
+
+				float x_diff = max(abs(right_2 - left_1), abs(right_1 - left_2));
+				float y_diff = max(abs(bottom_2 - top_1), abs(bottom_1 - top_2));
+
+				if (abs(x_diff) > abs(y_diff)) {
+					
+					if (((left_1 <= right_2) && (left_1 >= left_2))) {
+						// player bounding box left bound overlaps with object box
+						//motion_moving.velocity.x = 0.f;
+						motion_moving.position.x += (right_2 - left_1) + 1;
+						std::cout << "left bound overlap" << std::endl;
+
+					}
+					if ((left_2 <= right_1) && (left_2 >= left_1)) {
+						// player bounding box right bound overlaps with object box
+						//motion_moving.velocity.x = 0.f;
+						motion_moving.position.x -= (right_1 - left_2) + 1;
+						std::cout << "right bound overlap" << std::endl;
+					}
+				} else {
+					
+
+					if ((top_1 >= bottom_2) && (top_1 <= top_2)) {
+						// player bounding box top bound overlaps with object box
+						motion_moving.position.y += (bottom_2 - top_1) + 1;
+						//motion_moving.velocity.y = 0.f;
+						std::cout << "top bound overlap" << std::endl;
+					}
+					if ((top_2 >= bottom_1) && (top_2 <= top_1)) {
+						// player bounding box bottom bound overlaps with object box
+						motion_moving.position.y -= (bottom_1 - top_2) + 1;
+						//motion_moving.velocity.y = 0.f;
+						std::cout << "bottom bound overlap" << std::endl;
+
+					}
+
+				}
+				
+				
+				
+
+				/*
 				float x_diff = motion_moving.position.x - motion_solid.position.x;
 				float y_diff = motion_moving.position.y - motion_solid.position.y;
 
@@ -640,7 +693,7 @@ void WorldSystem::handle_collisions() {
 					motion_moving.velocity.y = 0.f;
 					motion_moving.position.y = registry.players.get(entity).last_pos.y;
 				}
-				
+				*/
 			}
 		} else if (registry.deadlys.has(entity)) {
 			if (registry.solidObjs.has(entity_other) && registry.projectiles.has(entity)) {
@@ -675,11 +728,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Debugging
-	if (key == GLFW_KEY_D) {
-		if (action == GLFW_RELEASE)
-			debugging.in_debug_mode = false;
-		else
-			debugging.in_debug_mode = true;
+	if (key == GLFW_KEY_P && action == GLFW_RELEASE) {
+		debugging.in_debug_mode = !debugging.in_debug_mode;
+		
 	}
 
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) {
