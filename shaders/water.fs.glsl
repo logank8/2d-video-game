@@ -36,7 +36,7 @@ void main()
 
 	// ambient calculation
 	float lightStrength = 0.45;
-	vec3 ambient = lightStrength * vec3(1.0, 1.0, 0.9);
+	vec3 ambient = lightStrength * vec3(1.0, 1.0, 1.0);
 	// ambient done
 
 	// norm coming off of point
@@ -47,8 +47,54 @@ void main()
 	// calculating diffuse component
 	float diff = max((dot(norm, lightDir)), 0.0);
 
-	vec3 diffuse = diff * vec3(1.0, 1.0, 0.9);
+	vec3 diffuse = diff * vec3(1.0, 1.0, 1.0);
 
 	color = vec4((ambient + diffuse) * color.xyz, 1.0);
 	color = fade_color(color);
+
+	// excluding UI from lighting effects:
+
+	// HP Bar
+	if ((fragPos.y >= 0.75) && (fragPos.y <= 0.95)) {
+		if ((fragPos.x >= -0.98) && (fragPos.x <= -0.52)) {
+			if ((fragPos.x <= -0.97) && (fragPos.y >= 0.9 || fragPos.y <= 0.837)) {
+				color = color;
+			} else if ((fragPos.x <= -0.965) && (fragPos.y >= 0.91 || fragPos.y <= 0.827)) {
+				color = color;
+			} else if ((fragPos.x <= -0.95) && (fragPos.y >= 0.925 || fragPos.y <= 0.817)) {
+				color = color;
+			} else if ((fragPos.x <= -0.942) && (fragPos.y <= 0.79)){
+				color = color;
+			} else if ((fragPos.x <= -0.937) && (fragPos.y <= 0.78)) {
+				color = color;
+			} else if ((fragPos.x <= -0.93) && (fragPos.y <= 0.77)) {
+				color = color;
+			} else if ((fragPos.x <= -0.91) && (fragPos.y >= 0.935 || (fragPos.y <= 0.78))) {
+				color = color;
+			} else if ((fragPos.x >= -0.895) && (fragPos.y >= 0.935)) {
+				color = color;
+			} else if ((fragPos.x >= -0.95) && (fragPos.y <= 0.775)) {
+				color = color;
+			} else if ((fragPos.x >= -0.91) && (fragPos.y <= 0.8)) {
+				color = color;
+			} else if ((fragPos.x >= -0.887) && (fragPos.y >= 0.912)) {
+				color = color;
+			} else if ((fragPos.x >= -0.875) && (fragPos.y >= 0.9)) {
+				color = color;
+			} else if ((fragPos.x >= -0.53) && (fragPos.y >= 0.887)) {
+				color = color;
+			} 
+			else {
+				color = in_color;
+			}
+		}
+	}
+
+
+	// points to cut out of box
+	// x=-0.98 -> y = [0.95, 0.91], [0.79, 0.75]
+	// x=-0.97 -> y = [0.95, 0.92], [0.78, 0.75]
+	// x=-0.96 -> y = [0.95, 0.93], [0.77, 0.75]
+	// x=-0.95 -> y = [0.95, 0.94], [0.76, 0.75]
+	// x=-0.94 -> y = 0.94, 0.75
 }
