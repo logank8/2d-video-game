@@ -499,22 +499,6 @@ void WorldSystem::restart_game() {
 	lightflicker_counter_ms = 1000;
 	tile_vec.clear();
 
-	/*
-	// create furniture/table (for testing)
-
-	createFurniture(renderer, { window_width_px / 4, window_height_px * 3 / 4 });
-
-	// create walls on screen boundary (top & bottom)
-	for (int i = 0; i < window_width_px + FURNITURE_WIDTH * 3; i += FURNITURE_WIDTH * 3) {
-		createWalls(renderer, { i, 0 }, false);
-		createWalls(renderer, { i, window_height_px }, false);
-	}
-	// create walls on screen boundary (sides)
-	for (int j = 0; j < window_height_px + FURNITURE_WIDTH * 3; j += FURNITURE_WIDTH * 3) {
-		createWalls(renderer, { 0, j }, true);
-		createWalls(renderer, { window_width_px, j }, true);
-	}
-	*/
 
 	// player pos: [25, 44]
 	// player pos on screen: [640, 640]
