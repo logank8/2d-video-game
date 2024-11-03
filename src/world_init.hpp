@@ -45,3 +45,6 @@ Entity createWalls(RenderSystem* renderer, vec2 pos, bool is_side_wall);
 
 // a piece of furniture
 Entity createFurniture(RenderSystem* renderer, vec2 pos);
+
+// a slime patch
+Entity createSlimePatch(RenderSystem* renderer, vec2 pos);

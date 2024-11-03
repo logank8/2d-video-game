@@ -9,8 +9,14 @@ const float TILE_SIZE = 100.0f;
 
 #include <iostream>
 
-// Returns the local bounding coordinates scaled by the current size of the entity
+// Returns the local bounding coordinates (AABB)
 vec2 get_bounding_box(const Motion& motion)
+{
+	// abs is to avoid negative scale due to the facing direction.
+	return { motion.position.x - (abs(motion.scale.x) / 2), motion.position.y - (abs(motion.scale.y) / 2) };
+}
+
+vec2 get_scale(const Motion& motion)
 {
 	// abs is to avoid negative scale due to the facing direction.
 	return  { abs(motion.scale.x), abs(motion.scale.y) };
@@ -53,6 +59,44 @@ bool collides(const Motion& motion1, const Motion& motion2) {
 			return true;
 		}
 	}
+	return false;
+}
+
+// For mesh-box collision
+bool mesh_collides(const Entity& mesh_entity, const Motion& mesh_motion, const Motion& box_motion)
+{
+	// Getting AABB bounding box of other object
+	vec2 other_top_left = get_bounding_box(box_motion);
+	vec2 other_scale = get_scale(box_motion);
+
+	// Getting scale of entity using mesh bounding
+	vec2 mesh_scale = get_scale(mesh_motion);
+
+	// Getting mesh
+	auto mesh = registry.meshPtrs.get(mesh_entity);
+	std::vector<ColoredVertex> vertices = mesh->vertices;
+
+	for(uint i = 0; i<vertices.size(); i++) {
+		vec3 relative_pos = vertices[i].position;
+		vec2 pos = vec2( relative_pos.x, relative_pos.y );
+		
+		// rotate
+		float c = cosf(mesh_motion.angle);
+		float s = sinf(mesh_motion.angle);
+		mat2 R = { { c, s },{ -s, c } };
+		pos = pos * R;
+
+		pos = pos * mesh_scale; // scale
+
+		pos = pos + mesh_motion.position; // translate to mesh entity position position
+
+		if (pos.y < other_top_left.y + other_scale.y
+		&& pos.y > other_top_left.y
+		&& pos.x < other_top_left.x + other_scale.x
+		&& pos.x > other_top_left.x)
+			return true;
+	}
+
 	return false;
 }
 
@@ -322,13 +366,28 @@ void PhysicsSystem::step(float elapsed_ms)
 			if (collides(motion_i, motion_j))
 			{
 				Entity entity_j = motion_container.entities[j];
-				if (registry.players.has(entity_i) && registry.solidObjs.has(entity_j)) {
-					std::cout << "player collision" << std::endl;
-				}
-				// Create a collisions event
-				// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
-				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
-				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+
+                bool is_colliding = true;
+
+                // if player is entity_i do mesh-based collision with entity_i
+				if (registry.stickies.has(entity_i)) {
+					is_colliding = mesh_collides(entity_i, motion_i, motion_j);
+                    // std::cout << "player slowed down" << std::endl;
+				} else if (registry.stickies.has(entity_j)) {
+                    is_colliding = mesh_collides(entity_j, motion_j, motion_i);
+                    // std::cout << "player slowed down" << std::endl;
+                }
+
+				// if (registry.players.has(entity_i) && registry.solidObjs.has(entity_j)) {
+				// 	std::cout << "player collision" << std::endl;
+				// }
+
+                if (is_colliding) {
+                    // Create a collisions event
+                    // We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
+                    registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+                    registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+                }
 			} else {
                 if (registry.players.has(entity_i)) registry.players.get(entity_i).last_pos = motion_i.position;
             }

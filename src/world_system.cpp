@@ -494,6 +494,9 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 
+	// create a slime patch for testing
+	Entity test_slime_patch = createSlimePatch(renderer, { window_width_px/2 + 50, window_height_px/2 });
+
 	// create a new Player
 	my_player = createPlayer(renderer, { window_width_px/2, window_height_px - 200 });
 	registry.colors.insert(my_player, {1, 0.8f, 0.8f});

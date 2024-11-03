@@ -57,6 +57,12 @@ struct Ground
 
 };
 
+// Ground component
+struct Sticky
+{
+
+};
+
 
 // player can't move through
 struct Solid

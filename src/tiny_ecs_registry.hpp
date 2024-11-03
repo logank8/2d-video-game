@@ -28,6 +28,7 @@ public:
 	ComponentContainer<Damage> damages;
 	ComponentContainer<Wall> walls;
 	ComponentContainer<Ground> groundTiles;
+	ComponentContainer<Sticky> stickies;
 	ComponentContainer<Solid> solidObjs;
 	ComponentContainer<Slows> slows;
 	ComponentContainer<Ranged> ranged;
@@ -59,6 +60,7 @@ public:
 		registry_list.push_back(&damages);
 		registry_list.push_back(&walls);
 		registry_list.push_back(&groundTiles);
+		registry_list.push_back(&stickies);
 		registry_list.push_back(&solidObjs);
 		registry_list.push_back(&slows);
 		registry_list.push_back(&ranged);

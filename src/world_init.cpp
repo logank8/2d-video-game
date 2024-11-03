@@ -384,3 +384,31 @@ Entity createFurniture(RenderSystem* renderer, vec2 pos)
 
 	return entity;
 }
+
+Entity createSlimePatch(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.scale = mesh.original_size * 150.f;
+	motion.scale.y *= -0.8f;
+
+	// create an empty component for the furniture as a solid object
+	registry.stickies.emplace(entity);
+	registry.renderRequests.insert(
+		entity, {
+			TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
+			EFFECT_ASSET_ID::SALMON,
+			GEOMETRY_BUFFER_ID::SALMON
+		}
+	);
+
+	return entity;
+}

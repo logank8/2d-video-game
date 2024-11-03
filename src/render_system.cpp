@@ -95,7 +95,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			GLuint uv_scale_loc = glGetUniformLocation(program, "uv_scale");
 			glUniform2f(uv_scale_loc, (u1 - u0), (v1 - v0));
 		}
-	} else if (render_request.used_effect == EFFECT_ASSET_ID::EGG) {
+	} else if (render_request.used_effect == EFFECT_ASSET_ID::SALMON || render_request.used_effect == EFFECT_ASSET_ID::EGG) {
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_color_loc = glGetAttribLocation(program, "in_color");
 		gl_has_errors();
