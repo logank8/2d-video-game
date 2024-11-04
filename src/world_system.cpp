@@ -935,7 +935,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			is_tutorial_on = true;
 			screen.darken_screen_factor = 0.9;
 			float tutorial_header_x = window_width_px / 2 - 120;
-			float tutorial_header_y = 600;
+			float tutorial_header_y = 620;
 			glm::vec3 white = glm::vec3(1.f, 1.f, 1.f);
 			createText({ tutorial_header_x, tutorial_header_y }, 1.0, "TUTORIAL", white);
 			std::vector<std::string> lines = read_file(PROJECT_SOURCE_DIR + std::string("data/tutorial/tutorial.txt"));
