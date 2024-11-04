@@ -242,7 +242,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			if ((i < 0) || (j < 0) || (i >= map1[0].size()) || j >= map1.size()) {
 				if ((std::find(tile_vec.begin(), tile_vec.end(), vec2(i, j)) == tile_vec.end())) {
-					createWalls(renderer, world_pos, true, true, true, true);
+					createWalls(renderer, world_pos, false);
 					tile_vec.push_back(vec2(i, j));
 				}
 				continue;
@@ -253,23 +253,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			// continue on if tiles/objects have already been processed
 
 			if (map1[j][i] == 0) {
-				bool wall_above = j <= 0;
-				if (!wall_above) {
-					wall_above = map1[j-1][i] == 0;
-				}
-				bool wall_right = i >= map1[0].size() - 1;
-				if (!wall_right) {
-					wall_right = map1[j][i+1] == 0;
-				}
-				bool wall_below = j >= map1.size() - 1;
-				if (!wall_below) {
-					wall_below = map1[j+1][i] == 0;
-				}
-				bool wall_left = i <= 0;
-				if (!wall_left) {
-					wall_left = map1[j][i-1] == 0;
-				}
-				createWalls(renderer, world_pos, wall_above, wall_right, wall_below, wall_left);
+				createWalls(renderer, world_pos, false);
 				tile_vec.push_back(vec2(i, j));
 			}
 			
@@ -730,10 +714,10 @@ void WorldSystem::restart_game() {
 	for (int i = playerPos_init.x - 8; i <= playerPos_init.x + 8; i++) {
 		for (int j = playerPos_init.y - 8; j <= playerPos_init.y + 8; j++) {
 			if ((i < 0) || (j < 0) || (i >= map1[0].size()) || j >= map1.size()) {
-				createWalls(renderer, {(640 - (25*100)) + (i * TILE_SIZE) + (sign(i) * TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (sign(j) * TILE_SIZE/2)}, false, false, false, false);
+				createWalls(renderer, {(640 - (25*100)) + (i * TILE_SIZE) + (sign(i) * TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (sign(j) * TILE_SIZE/2)}, false);
 				tile_vec.push_back(vec2(i, j));
 			} else if (map1[j][i] == 0) {
-				createWalls(renderer, {(640 - (25*100)) + (i * TILE_SIZE) + (TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (TILE_SIZE/2)}, false, false, false, false);
+				createWalls(renderer, {(640 - (25*100)) + (i * TILE_SIZE) + (TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (TILE_SIZE/2)}, false);
 				tile_vec.push_back(vec2(i, j));
 			}
 		}

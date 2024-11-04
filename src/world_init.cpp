@@ -387,7 +387,7 @@ Entity createText(vec2 position, vec2 scale)
 }
 
 // take 4 extra inputs: cardinal directions and whether there is a wall adjacent
-Entity createWalls(RenderSystem* renderer, vec2 pos, bool wall_above, bool wall_right, bool wall_below, bool wall_left)
+Entity createWalls(RenderSystem* renderer, vec2 pos, bool side_wall)
 {
 	auto entity = Entity();
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -397,9 +397,7 @@ Entity createWalls(RenderSystem* renderer, vec2 pos, bool wall_above, bool wall_
 	float sprite_rotate = 0;
 	// create an empty component for the walls
 	registry.walls.emplace(entity);
-	if (wall_left && wall_right && (!wall_above) && (!wall_below)) {
-		sprite_rotate = 90;
-
+	if (side_wall) {
 		registry.renderRequests.insert(
 			entity, {
 				TEXTURE_ASSET_ID::SIDE_WALL,
