@@ -253,15 +253,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (encounter == 0) {
 					std::cout << "encounter 1 generated, level 1" << std::endl;
 					createFish(renderer, world_pos);
+					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
 				} else if (encounter == 1) {
 					std::cout << "encounter 2 generated, level 1" << std::endl;
 
 					createEel(renderer, world_pos);
+					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
 				} else {
 					std::cout << "encounter 3 generated, level 1" << std::endl;
 
 					createFish(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
 					createFish(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
 				}
 				tile_vec.push_back(vec2(i, j));
 			}

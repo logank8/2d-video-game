@@ -57,7 +57,7 @@ void main()
 	// HP Bar
 	if ((fragPos.y >= 0.75) && (fragPos.y <= 0.95)) {
 		if ((fragPos.x >= -0.98) && (fragPos.x <= -0.52)) {
-			if ((fragPos.x <= -0.97) && (fragPos.y >= 0.9 || fragPos.y <= 0.837)) {
+			if ((fragPos.x <= -0.97) && (fragPos.y >= 0.9 || fragPos.y <= 0.84)) {
 				color = color;
 			} else if ((fragPos.x <= -0.965) && (fragPos.y >= 0.91 || fragPos.y <= 0.827)) {
 				color = color;

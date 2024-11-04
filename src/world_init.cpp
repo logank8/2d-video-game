@@ -106,7 +106,7 @@ Entity createFish(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ FISH_BB_WIDTH * sign(motion.velocity.x) , FISH_BB_HEIGHT });
+	motion.scale = vec2({ ENEMY_1_BB_WIDTH * sign(motion.velocity.x) , ENEMY_1_BB_HEIGHT });
 
 	// Create an (empty) Bug component to be able to refer to all bug
 	registry.deadlys.emplace(entity);
@@ -143,7 +143,8 @@ Entity createEel(RenderSystem* renderer, vec2 position)
 	motion.scale = vec2({ EEL_BB_WIDTH * (sign(motion.velocity.x)) , EEL_BB_HEIGHT });
 
 	// create an empty Eel component to be able to refer to all eels
-	registry.deadlys.emplace(entity);
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.enemy_type = ENEMY_TYPES::CONTACT_DMG_2;
 	registry.healths.emplace(entity);
 	auto& damage = registry.damages.emplace(entity);
 	//TODO: adjust	 damage amounts
@@ -214,7 +215,7 @@ Entity createRangedProjectile(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -FISH_BB_WIDTH, FISH_BB_HEIGHT });
+	motion.scale = vec2({ -PROJ_SIZE, PROJ_SIZE });
 
 	// Create an (empty) Bug component to be able to refer to all bug
 	auto& enemy = registry.deadlys.emplace(entity);

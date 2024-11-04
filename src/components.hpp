@@ -15,7 +15,8 @@ struct Player
 
 enum class ENEMY_TYPES {
 	CONTACT_DMG = 0,
-	RANGED = CONTACT_DMG + 1,
+	CONTACT_DMG_2 = CONTACT_DMG + 1,
+	RANGED = CONTACT_DMG_2 + 1,
 	PROJECTILE = RANGED + 1
 };
 
