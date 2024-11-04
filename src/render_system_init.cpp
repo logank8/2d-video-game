@@ -94,6 +94,9 @@ void RenderSystem::initializeGlTextures()
 
 void RenderSystem::initializeSpriteSheets() {
 	sprite_sheets[SPRITE_ASSET_ID::PLAYER] = {TEXTURE_ASSET_ID::PLAYERS, 10, 6, 64, 64};
+	sprite_sheets[SPRITE_ASSET_ID::SKELETON] = {TEXTURE_ASSET_ID::SKELETON, 10, 6, 64, 64};
+	sprite_sheets[SPRITE_ASSET_ID::SLIME] = {TEXTURE_ASSET_ID::SLIME, 5, 5, 64, 64};
+	sprite_sheets[SPRITE_ASSET_ID::RANGED_ENEMY] = {TEXTURE_ASSET_ID::RANGED_ENEMY, 5, 8, 64, 64};
 }
 
 void RenderSystem::initializeGlEffects()
