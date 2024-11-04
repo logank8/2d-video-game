@@ -4,6 +4,7 @@
 #include "world_system.hpp"
 
 WorldSystem world;
+PhysicsSystem phsyics;
 std::vector<std::vector<int>> map = world.get_current_map();
 const float TILE_SIZE = 100.0f;
 
@@ -179,6 +180,76 @@ bool is_walkable(const vec2& pos, vec2 dir) {
     return map[grid_y][grid_x] != 0;
 }
 
+// Checking for line of sight using Bresenham's algorithm 
+// adapted to use a TILE_SIZE approximation instead of a pixel based line approximation
+bool PhysicsSystem::has_los(const vec2& start, const vec2& end) {
+    const float GRID_OFFSET_X = (640 - (25 * TILE_SIZE));
+    const float GRID_OFFSET_Y = (640 - (44 * TILE_SIZE));
+
+    // Convert to grid coordinates
+    int x1 = static_cast<int>((start.x - GRID_OFFSET_X) / TILE_SIZE);
+    int y1 = static_cast<int>((start.y - GRID_OFFSET_Y) / TILE_SIZE);
+    int x2 = static_cast<int>((end.x - GRID_OFFSET_X) / TILE_SIZE);
+    int y2 = static_cast<int>((end.y - GRID_OFFSET_Y) / TILE_SIZE);
+
+    int dx = abs(x2 - x1);
+    int dy = abs(y2 - y1);
+    int x = x1;
+    int y = y1;
+
+    // Determine step direction
+    int x_step = (x1 < x2) ? 1 : -1;
+    int y_step = (y1 < y2) ? 1 : -1;
+
+    int err;
+
+    // Choose which axis to move along
+    if (dx > dy) {
+        err = dx / 2;
+        while (x != x2) {
+            if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size()) {
+                return false;
+            }
+
+            if (map[y][x] == 0) {
+                return false;
+            }
+
+            err -= dy;
+            if (err < 0) {
+                y += y_step;
+                err += dx;
+            }
+            x += x_step;
+        }
+    }
+    else {
+        err = dy / 2;
+        while (y != y2) {
+            if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size()) {
+                return false;
+            }
+
+            if (map[y][x] == 0) {
+                return false;
+            }
+
+            err -= dx;
+            if (err < 0) {
+                x += x_step;
+                err += dy;
+            }
+            y += y_step;
+        }
+    }
+
+    if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size()) {
+        return false;
+    }
+    return map[y][x] != 0;
+}
+
+
 // Find A* path for enemy
 std::vector<vec2> find_path(const Motion& enemy, const Motion& player) {
     vec2 start = enemy.position;
@@ -321,8 +392,14 @@ void update_enemy_movement(Entity enemy, float step_seconds) {
     float raw_x = (enemy_motion.position.x - GRID_OFFSET_X) / TILE_SIZE;
     float raw_y = (enemy_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE;
 
-    // Recalculate path if update time has elapsed AND enemy entity is at the centre of the tile in screen xy coordinates
-    if ((!registry.paths.has(enemy) || timer.timer >= PATH_UPDATE_TIME) && (grid_x == raw_x && grid_y == raw_y)) {
+    // Recalculate path if all below are true:
+    // - update time has elapsed
+    // - enemy entity is at the centre of the tile in screen xy coordinates
+    // - the enemy has line of sight of the palyer
+    if ((!registry.paths.has(enemy) || timer.timer >= PATH_UPDATE_TIME) && 
+        (grid_x == raw_x && grid_y == raw_y) && 
+        phsyics.has_los(enemy_motion.position, player_motion.position)) {
+
         std::vector<vec2> new_path = find_path(motion, player_motion);
 
         if (!new_path.empty()) {

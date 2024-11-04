@@ -19,7 +19,7 @@ const size_t EEL_SPAWN_DELAY_MS = 2000 * 3;
 const size_t FISH_SPAWN_DELAY_MS = 5000 * 3;
 const size_t MAX_NUM_RANGED_ENEMY = 1;
 const size_t RANGED_ENEMY_SPAWN_DELAY_MS = 5000 * 3;
-const size_t RANGED_ENEMY_PROJECTILE_DELAY_MS = 2000 * 3;
+const size_t RANGED_ENEMY_PROJECTILE_DELAY_MS = 3000;
 
 const int TILE_SIZE = 100;
 std::vector<vec2> tile_vec;
@@ -32,6 +32,8 @@ int fps = 0;
 bool display_fps = false;
 
 bool is_tutorial_on = false;
+
+PhysicsSystem physics;
 
 // create the underwater world
 WorldSystem::WorldSystem()
@@ -399,20 +401,23 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Spawn projectiles for ranged enemies
 	for (auto& ranged : registry.ranged.entities) {
-		float& projectile_delay = registry.ranged.get(ranged).projectile_delay;
-		projectile_delay -= elapsed_ms_since_last_update * current_speed;
-		if (projectile_delay < 0.f) {
-			// reset timer
-			projectile_delay = (RANGED_ENEMY_PROJECTILE_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_PROJECTILE_DELAY_MS / 2);
-			Entity projectile = createRangedProjectile(renderer, registry.motions.get(ranged).position);
-			Motion& projectile_motion = registry.motions.get(projectile);
-			Motion& player_motion = registry.motions.get(my_player);
-			projectile_motion.angle = atan2(projectile_motion.position.y - player_motion.position.y, projectile_motion.position.x - player_motion.position.x);
-			projectile_motion.velocity = { 200.f, 200.f };
+		//Don't shoot if there's no los
+		if (physics.has_los(registry.motions.get(ranged).position, player_pos)) {
+			float& projectile_delay = registry.ranged.get(ranged).projectile_delay;
+			projectile_delay -= elapsed_ms_since_last_update * current_speed;
+			if (projectile_delay < 0.f) {
+				// reset timer
+				projectile_delay = (RANGED_ENEMY_PROJECTILE_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_PROJECTILE_DELAY_MS / 2);
+				Entity projectile = createRangedProjectile(renderer, registry.motions.get(ranged).position);
+				Motion& projectile_motion = registry.motions.get(projectile);
+				Motion& player_motion = registry.motions.get(my_player);
+				projectile_motion.angle = atan2(projectile_motion.position.y - player_motion.position.y, projectile_motion.position.x - player_motion.position.x);
+				projectile_motion.velocity = { 200.f, 200.f };
+			}
 		}
 	}
+		
 	
-
 	// Check if player is invulnerable
 	Player& player = registry.players.get(my_player);
 	if (player.invulnerable) {

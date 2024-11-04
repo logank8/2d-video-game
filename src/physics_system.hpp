@@ -10,6 +10,7 @@ class PhysicsSystem
 {
 public:
 	void step(float elapsed_ms);
+	bool has_los(const vec2& start, const vec2& end);
 
 	PhysicsSystem()
 	{
