@@ -231,6 +231,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		for (int j = player_pos_map.y - 8; j <= player_pos_map.y + 8; j++) {
 			vec2 world_pos = {(640 - (25*100)) + (i * TILE_SIZE) + (TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (TILE_SIZE/2)};
 			
+			// deciding on wall sprites
+			// if it is only adjacent to one wall sprite - use 3-sided thingy and rotate accordingly
+			// if it is adjacent to two walls - if on same axis use parallel sided wall and rotate accordingly
+			//  							  - if not on same axis use corner wall and rotate accordingly
+			// if it is adjacent to three walls - use single side wall and rotate accordingly
+			// if it is adjacent to all four walls - default sprite
+
+
+
 			if ((i < 0) || (j < 0) || (i >= map1[0].size()) || j >= map1.size()) {
 				if ((std::find(tile_vec.begin(), tile_vec.end(), vec2(i, j)) == tile_vec.end())) {
 					createWalls(renderer, world_pos, false);
@@ -273,15 +282,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (encounter == 0) {
 					std::cout << "encounter 1 generated, level 1" << std::endl;
 					createFish(renderer, world_pos);
+					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
 				} else if (encounter == 1) {
 					std::cout << "encounter 2 generated, level 1" << std::endl;
 
 					createEel(renderer, world_pos);
+					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
 				} else {
 					std::cout << "encounter 3 generated, level 1" << std::endl;
 
 					createFish(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
 					createFish(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
@@ -803,6 +815,31 @@ void WorldSystem::handle_collisions() {
 				Motion& motion_solid = registry.motions.get(entity_other);
 
 				// Temp solution to prevent player from sticking to solid objects - may not work if solid object is really long or tall
+				/*
+				float x_diff = motion_moving.position.x - motion_solid.position.x;
+				float y_diff = motion_moving.position.y - motion_solid.position.y;
+
+				if (x_diff < 0 && abs(x_diff) > abs(y_diff) && motion_moving.velocity.x > 0) {
+					motion_moving.velocity.x = 0.f;
+					motion_moving.position.x = registry.players.get(entity).last_pos.x;
+				}
+				if (x_diff > 0 && abs(x_diff) > abs(y_diff) && motion_moving.velocity.x < 0)
+				{
+					motion_moving.velocity.x = 0.f;
+					motion_moving.position.x = registry.players.get(entity).last_pos.x;
+				}
+				if (y_diff < 0 && abs(y_diff) > abs(x_diff) && motion_moving.velocity.y > 0)
+				{
+					motion_moving.velocity.y = 0.f;
+					motion_moving.position.y = registry.players.get(entity).last_pos.y;
+				}
+				if (y_diff > 0 && abs(y_diff) > abs(x_diff) && motion_moving.velocity.y < 0)
+				{
+					motion_moving.velocity.y = 0.f;
+					motion_moving.position.y = registry.players.get(entity).last_pos.y;
+				}
+				*/
+
 				
 				float left_1 = motion_moving.position.x - (abs(motion_moving.scale.x) / 2);
 				float right_1 = motion_moving.position.x + (abs(motion_moving.scale.x) / 2);
@@ -857,32 +894,6 @@ void WorldSystem::handle_collisions() {
 				}
 				
 				
-				
-
-				/*
-				float x_diff = motion_moving.position.x - motion_solid.position.x;
-				float y_diff = motion_moving.position.y - motion_solid.position.y;
-
-				if (x_diff < 0 && abs(x_diff) > abs(y_diff) && motion_moving.velocity.x > 0) {
-					motion_moving.velocity.x = 0.f;
-					motion_moving.position.x = registry.players.get(entity).last_pos.x;
-				}
-				if (x_diff > 0 && abs(x_diff) > abs(y_diff) && motion_moving.velocity.x < 0)
-				{
-					motion_moving.velocity.x = 0.f;
-					motion_moving.position.x = registry.players.get(entity).last_pos.x;
-				}
-				if (y_diff < 0 && abs(y_diff) > abs(x_diff) && motion_moving.velocity.y > 0)
-				{
-					motion_moving.velocity.y = 0.f;
-					motion_moving.position.y = registry.players.get(entity).last_pos.y;
-				}
-				if (y_diff > 0 && abs(y_diff) > abs(x_diff) && motion_moving.velocity.y < 0)
-				{
-					motion_moving.velocity.y = 0.f;
-					motion_moving.position.y = registry.players.get(entity).last_pos.y;
-				}
-				*/
 			}
 			if (registry.stickies.has(entity_other)) {
 				Motion&  player_motion = registry.motions.get(my_player);
