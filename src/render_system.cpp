@@ -17,8 +17,23 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	Transform transform;
 	transform.translate(motion.position);
 	transform.scale(motion.scale);
+	transform.rotate(motion.angle);
+
+	// adjusting for discrepancies in texture vs. bb size
 	if (registry.players.has(entity)) {
 		transform.scale(vec2(2.6f, 2.f));
+	} 
+	if (registry.deadlys.has(entity)) {
+		Deadly& enemy = registry.deadlys.get(entity);
+		if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG) {
+			transform.scale(vec2(2.5f,1.6f));
+		} else if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG_2) {
+			transform.scale(vec2(2.4f, 2.2f));
+		} else if (enemy.enemy_type == ENEMY_TYPES::RANGED) {
+			transform.scale(vec2(1.5, 2.7));
+		} else if (enemy.enemy_type == ENEMY_TYPES::PROJECTILE) {
+			transform.scale(vec2(5, 5));
+		}
 	}
 
 	assert(registry.renderRequests.has(entity));

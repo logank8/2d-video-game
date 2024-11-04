@@ -189,7 +189,7 @@ Entity createFish(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ TILE_PX_SIZE * (100 / TILE_PX_SIZE), TILE_PX_SIZE * (100 / TILE_PX_SIZE) });
+	motion.scale = vec2({ ENEMY_1_BB_WIDTH * sign(motion.velocity.x) , ENEMY_1_BB_HEIGHT });
 
 	// Create an (empty) Bug component to be able to refer to all bug
 	registry.deadlys.emplace(entity);
@@ -198,10 +198,11 @@ Entity createFish(RenderSystem* renderer, vec2 position)
 	registry.renderRequests.insert(
 		entity,
 		{
-			TEXTURE_ASSET_ID::FISH,
-			SPRITE_ASSET_ID::SPRITE_COUNT,
+			TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			SPRITE_ASSET_ID::SKELETON,
 			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE
+			GEOMETRY_BUFFER_ID::SPRITE,
+			1
 		});
 
 	return entity;
@@ -222,10 +223,11 @@ Entity createEel(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ TILE_PX_SIZE * (100 / TILE_PX_SIZE), TILE_PX_SIZE * (100 / TILE_PX_SIZE) });
+	motion.scale = vec2({ EEL_BB_WIDTH * (sign(motion.velocity.x)) , EEL_BB_HEIGHT });
 
 	// create an empty Eel component to be able to refer to all eels
-	registry.deadlys.emplace(entity);
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.enemy_type = ENEMY_TYPES::CONTACT_DMG_2;
 	registry.healths.emplace(entity);
 	auto& damage = registry.damages.emplace(entity);
 	//TODO: adjust	 damage amounts
@@ -233,10 +235,11 @@ Entity createEel(RenderSystem* renderer, vec2 position)
 	registry.renderRequests.insert(
 		entity,
 		{
-			TEXTURE_ASSET_ID::EEL,
-			SPRITE_ASSET_ID::SPRITE_COUNT,
+			TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			SPRITE_ASSET_ID::SLIME,
 			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE
+			GEOMETRY_BUFFER_ID::SPRITE,
+			1
 		});
 
 	return entity;
@@ -258,7 +261,7 @@ Entity createRangedEnemy(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ TILE_PX_SIZE * (100 / TILE_PX_SIZE), TILE_PX_SIZE * (100 / TILE_PX_SIZE) });
+	motion.scale = vec2({ RANGED_BB_WIDTH, RANGED_BB_HEIGHT });
 
 	// Create an (empty) Bug component to be able to refer to all bug
 	auto& enemy = registry.deadlys.emplace(entity);
@@ -269,10 +272,11 @@ Entity createRangedEnemy(RenderSystem* renderer, vec2 position)
 	registry.renderRequests.insert(
 		entity,
 		{
-			TEXTURE_ASSET_ID::RANGED_ENEMY,
-			SPRITE_ASSET_ID::SPRITE_COUNT,
+			TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			SPRITE_ASSET_ID::RANGED_ENEMY,
 			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE
+			GEOMETRY_BUFFER_ID::SPRITE,
+			0
 		});
 
 	return entity;
@@ -294,7 +298,7 @@ Entity createRangedProjectile(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -FISH_BB_WIDTH, FISH_BB_HEIGHT });
+	motion.scale = vec2({ -PROJ_SIZE, PROJ_SIZE });
 
 	// Create an (empty) Bug component to be able to refer to all bug
 	auto& enemy = registry.deadlys.emplace(entity);
@@ -382,22 +386,18 @@ Entity createText(vec2 position, vec2 scale)
 	return entity;
 }
 
-Entity createWalls(RenderSystem* renderer, vec2 pos, bool is_side_wall)
+// take 4 extra inputs: cardinal directions and whether there is a wall adjacent
+Entity createWalls(RenderSystem* renderer, vec2 pos, bool side_wall)
 {
 	auto entity = Entity();
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
-	// Setting initial motion values
-	Motion& motion = registry.motions.emplace(entity);
-	motion.position = pos;
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.scale = vec2({ TILE_PX_SIZE * (100/ TILE_PX_SIZE), TILE_PX_SIZE * (100/ TILE_PX_SIZE) });
-
+	
+	float sprite_rotate = 0;
 	// create an empty component for the walls
 	registry.walls.emplace(entity);
-	if (is_side_wall) {
+	if (side_wall) {
 		registry.renderRequests.insert(
 			entity, {
 				TEXTURE_ASSET_ID::SIDE_WALL,
@@ -416,6 +416,13 @@ Entity createWalls(RenderSystem* renderer, vec2 pos, bool is_side_wall)
 			}
 		);
 	}
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = (M_PI/180) * sprite_rotate;
+	motion.velocity = { 0.f, 0.f };
+	motion.scale = vec2({ TILE_PX_SIZE * (100/ TILE_PX_SIZE), TILE_PX_SIZE * (100/ TILE_PX_SIZE) });
 	
 	
 	// Add wall to solid objects - player can't move through walls
