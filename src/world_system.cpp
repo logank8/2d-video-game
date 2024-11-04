@@ -537,8 +537,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Motion& pmotion = registry.motions.get(my_player);
 	AnimationSet& animSet = registry.animationSets.get(my_player);
 
+	if (registry.deathTimers.has(my_player)) {
+		player.state = PLAYER_STATE::DEAD;
+	}
+
 	// handle state switch (ew)
 	switch(player.state) {
+		case PLAYER_STATE::DEAD:
+			player.is_moving = false;
+			player.move_direction = vec2(0,0);
+			break;
 		case PLAYER_STATE::DASH:
 			break;
 		case PLAYER_STATE::ATTACK:	
@@ -595,6 +603,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// handle animations
 
 	switch(player.state) {
+		case PLAYER_STATE::DEAD:
+			animSet.current_animation = "player_die";
+			animSet.current_frame = 0;
+			break;
 		case PLAYER_STATE::DASH:
 			break;
 		case PLAYER_STATE::ATTACK:	
@@ -1056,7 +1068,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 	}
-
 
 	if (key == GLFW_KEY_SPACE) {
 		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player) && player.is_dash_up) {

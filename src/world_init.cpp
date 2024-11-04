@@ -91,6 +91,13 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 			SPRITE_ASSET_ID::PLAYER,
 			attack_b_vec
 		};
+	std::vector<int> die_vec = {54, 55, 56};
+	Animation die = {
+			"player_die",
+			15,
+			SPRITE_ASSET_ID::PLAYER,
+			die_vec
+		};
 
 
 	auto& animSet = registry.animationSets.emplace(entity);
@@ -103,6 +110,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	animSet.animations[attack_f.name] = attack_f;
 	animSet.animations[attack_b.name] = attack_b;
 	animSet.animations[attack_s.name] = attack_s;
+	animSet.animations[die.name] = die;
 	animSet.current_animation=idle_f.name;
 
 
