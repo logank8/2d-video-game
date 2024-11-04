@@ -24,8 +24,11 @@ struct Player
 
 	// For dashing and after taking damage;
 	bool invulnerable = false;
-	float invulnerable_duration_ms = 3000.f;
+	float invulnerable_duration_ms = 2000.f;
 	vec2 last_pos = { 0, 0 };
+	float dash_cooldown_ms = 1000.f;
+	float curr_dash_cooldown_ms = dash_cooldown_ms;
+	bool is_dash_up = true;
 
 	// For attacking
 	bool is_attacking = false;

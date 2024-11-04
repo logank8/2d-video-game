@@ -458,39 +458,39 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// distance tracking in dash:
 	// min distance between player pos and target will be 10.0 for standard
-	vec2 min_dash_diff = vec2(50.f, 50.f);
-	float min_counter_ms_stamina = 1000.f;
-	for (Entity entity : registry.dashing.entities) {
-		// progress diff value
-		Dash& player_dash = registry.dashing.get(entity);
-		if (player_dash.diff != vec2(0.f, 0.f)) {
+	// vec2 min_dash_diff = vec2(50.f, 50.f);
+	// float min_counter_ms_stamina = 1000.f;
+	// for (Entity entity : registry.dashing.entities) {
+	// 	// progress diff value
+	// 	Dash& player_dash = registry.dashing.get(entity);
+	// 	if (player_dash.diff != vec2(0.f, 0.f)) {
 
-			player_dash.diff = player_dash.target - registry.motions.get(my_player).position;
+	// 		player_dash.diff = player_dash.target - registry.motions.get(my_player).position;
 
-			min_dash_diff = player_dash.diff;
+	// 		min_dash_diff = player_dash.diff;
 
-			if ((player_dash.diff.x <= 0) && (player_dash.diff.y <= 0)) {
-				// target reached - change velocity
-				player_dash.diff = vec2(0.f, 0.f);
-				registry.motions.get(my_player).velocity = vec2(0,0);
-			} else if (player_dash.diff.x <= 0) {
-				player_dash.diff = vec2(0.f, player_dash.diff.y);
-			} else if (player_dash.diff.y <= 0) {
-				player_dash.diff = vec2(player_dash.diff.x, 0.f);
-			}
-		}
+	// 		if ((player_dash.diff.x <= 0) && (player_dash.diff.y <= 0)) {
+	// 			// target reached - change velocity
+	// 			player_dash.diff = vec2(0.f, 0.f);
+	// 			registry.motions.get(my_player).velocity = vec2(0,0);
+	// 		} else if (player_dash.diff.x <= 0) {
+	// 			player_dash.diff = vec2(0.f, player_dash.diff.y);
+	// 		} else if (player_dash.diff.y <= 0) {
+	// 			player_dash.diff = vec2(player_dash.diff.x, 0.f);
+	// 		}
+	// 	}
 
-		player_dash.stamina_timer_ms -= elapsed_ms_since_last_update;
-		if(player_dash.stamina_timer_ms < min_counter_ms_stamina){
-		    min_counter_ms_stamina = player_dash.stamina_timer_ms;
-		}
+	// 	player_dash.stamina_timer_ms -= elapsed_ms_since_last_update;
+	// 	if(player_dash.stamina_timer_ms < min_counter_ms_stamina){
+	// 	    min_counter_ms_stamina = player_dash.stamina_timer_ms;
+	// 	}
 
-		if (player_dash.stamina_timer_ms < 0) {
-			registry.dashing.remove(my_player);
-			continue;
-		}
+	// 	if (player_dash.stamina_timer_ms < 0) {
+	// 		registry.dashing.remove(my_player);
+	// 		continue;
+	// 	}
 
-	}
+	// }
 
 
 	// reduce window brightness if the salmon is dying
@@ -537,7 +537,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Motion& pmotion = registry.motions.get(my_player);
 	AnimationSet& animSet = registry.animationSets.get(my_player);
 
-	// handle state switch
+	// handle state switch (ew)
 	switch(player.state) {
 		case PLAYER_STATE::DASH:
 			break;
@@ -656,6 +656,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		} else {
 			pmotion.scale.x = std::abs(pmotion.scale.x);
 		}
+
+	if (!player.is_dash_up) {
+		player.curr_dash_cooldown_ms -= elapsed_ms_since_last_update;
+
+		if (player.curr_dash_cooldown_ms < 0.f) {
+			player.curr_dash_cooldown_ms = player.dash_cooldown_ms;
+			player.is_dash_up = true;
+		}
+	}
 
 	return true;
 }
@@ -1026,6 +1035,39 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
+
+	if (key == GLFW_KEY_SPACE) {
+		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player) && player.is_dash_up) {
+			pmotion.speed = 10000.f;
+			player.is_dash_up = false;
+		}
+	}
+
+
+	// if (key == GLFW_KEY_SPACE) {
+	// 	if (action == GLFW_PRESS && !registry.deathTimers.has(my_player)) {
+	// 		if (!registry.dashing.has(my_player)) {
+
+	// 			vec2 dashtarget = registry.motions.get(my_player).position + (player.last_direction * vec2(100.f,100.f));
+	// 			if (dashtarget.x > window_width_px - 100.f) {
+	// 				dashtarget.x = window_width_px - 100.f;
+	// 			}
+				
+	// 			Dash new_dash = {dashtarget, registry.motions.get(my_player).position - (registry.motions.get(my_player).position + vec2(0, 5)), 1000};
+
+	// 			registry.dashing.insert(my_player, new_dash);
+	// 		} 
+	// 	}
+	// }
+
+	// // Dash movement
+	// if (registry.dashing.has(my_player)) {
+	// 	if (registry.dashing.get(my_player).diff != vec2(0.f, 0.f)) {
+	// 		motion.velocity = lerp(vec2(0, 0), registry.dashing.get(my_player).target - motion.position, 0.1);
+	// 		motion.velocity = motion.speed * motion.velocity;
+	// 	}
+	// }
+
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
 		current_speed -= 0.1f;
@@ -1036,24 +1078,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("Current speed = %f\n", current_speed);
 	}
 	current_speed = fmax(0.f, current_speed);
-
-	Motion& motion = registry.motions.get(my_player);
-
-	if (key == GLFW_KEY_X) {
-		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player)) {
-			if (!registry.dashing.has(my_player)) {
-
-				vec2 dashtarget = registry.motions.get(my_player).position + vec2(200.f, 0.f);
-				if (dashtarget.x > window_width_px - 100.f) {
-					dashtarget.x = window_width_px - 100.f;
-				}
-				
-				Dash new_dash = {dashtarget, registry.motions.get(my_player).position - (registry.motions.get(my_player).position + vec2(0, 5)), 1000};
-
-				registry.dashing.insert(my_player, new_dash);
-			} 
-		}
-	}
 
 	// Tutorial
 	if (action == GLFW_RELEASE && key == GLFW_KEY_T) {
@@ -1079,14 +1103,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			is_paused = false;
 			is_tutorial_on = false;
 			screen.darken_screen_factor = 0.0;
-		}
-	}
-
-	// Dash movement
-	if (registry.dashing.has(my_player)) {
-		if (registry.dashing.get(my_player).diff != vec2(0.f, 0.f)) {
-			motion.velocity = lerp(vec2(0, 0), registry.dashing.get(my_player).target - motion.position, 0.1);
-			motion.velocity = motion.speed * motion.velocity;
 		}
 	}
 }
