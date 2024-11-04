@@ -27,20 +27,48 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	);
 
 	// Initialize animations
-	std::vector<int> run_f_vec = {24,25,26,27,28,29};
+	std::vector<int> run_s_vec = {24,25,26,27,28,29};
+	Animation run_s = {
+			"player_run_s",
+			15,
+			SPRITE_ASSET_ID::PLAYER,
+			run_s_vec
+		};
+	std::vector<int> run_f_vec = {18,19,20,21,22,23};
 	Animation run_f = {
 			"player_run_f",
 			15,
 			SPRITE_ASSET_ID::PLAYER,
 			run_f_vec
 		};
-
+	std::vector<int> run_b_vec = {30,31,32,33,34,35};
+	Animation run_b = {
+			"player_run_b",
+			15,
+			SPRITE_ASSET_ID::PLAYER,
+			run_b_vec
+		};
+	
 	std::vector<int> idle_f_vec = {0,1,2,3,4,5};
 	Animation idle_f = {
 			"player_idle_f",
 			15,
 			SPRITE_ASSET_ID::PLAYER,
 			idle_f_vec
+		};
+	std::vector<int> idle_s_vec = {6,7,8,9,10,11};
+	Animation idle_s = {
+			"player_idle_s",
+			15,
+			SPRITE_ASSET_ID::PLAYER,
+			idle_s_vec
+		};
+		std::vector<int> idle_b_vec = {12,13,14,15,16,17};
+		Animation idle_b = {
+			"player_idle_b",
+			15,
+			SPRITE_ASSET_ID::PLAYER,
+			idle_b_vec
 		};
 	std::vector<int> attack_f_vec = {36, 37, 38, 39};
 	Animation attack_f = {
@@ -66,8 +94,12 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 
 	auto& animSet = registry.animationSets.emplace(entity);
+	animSet.animations[run_s.name] = run_s;
 	animSet.animations[run_f.name] = run_f;
+	animSet.animations[run_b.name] = run_b;
 	animSet.animations[idle_f.name] = idle_f;
+	animSet.animations[idle_s.name] = idle_s;
+	animSet.animations[idle_b.name] = idle_b;
 	animSet.animations[attack_f.name] = attack_f;
 	animSet.animations[attack_b.name] = attack_b;
 	animSet.animations[attack_s.name] = attack_s;
@@ -283,7 +315,7 @@ Entity createRangedProjectile(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
-Entity createBasicAttackHitbox(RenderSystem* renderer, vec2 position) {
+Entity createBasicAttackHitbox(RenderSystem* renderer, vec2 position, Entity player_entity) {
 	auto entity = Entity();
 
 	auto& motion = registry.motions.emplace(entity);
@@ -291,10 +323,12 @@ Entity createBasicAttackHitbox(RenderSystem* renderer, vec2 position) {
 	motion.velocity = { 0, 0 };
 	motion.position = position;
 
+	auto& player = registry.players.get(player_entity);
+
 	motion.scale = vec2({ BASIC_ATTACK_WIDTH, BASIC_ATTACK_HEIGHT});
 
 	auto& damage = registry.damages.emplace(entity);
-	damage.damage = 25.f;
+	damage.damage = 25.f * player.damage_multiplier;
 
 	registry.playerAttacks.emplace(entity);
 

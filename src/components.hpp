@@ -16,8 +16,10 @@ enum class PLAYER_STATE {
 struct Player
 {
 	// General
+	bool is_moving = false;
 	vec2 move_direction = {0, 0};
 	vec2 attack_direction = {0, 0};
+	vec2 last_direction = {0, 1};
 	PLAYER_STATE state = PLAYER_STATE::IDLE;
 
 	// For dashing and after taking damage;
@@ -27,8 +29,10 @@ struct Player
 
 	// For attacking
 	bool is_attacking = false;
-	float damage_multiplier = 1.0f;
-	float attack_duration_ms = 1000.f;
+	float damage_multiplier = 2.0f;
+	float attack_duration_ms = 230.f;
+	float curr_attack_duration_ms = attack_duration_ms;
+
 };
 
 enum class ENEMY_TYPES {
