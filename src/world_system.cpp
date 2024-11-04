@@ -643,8 +643,11 @@ void WorldSystem::handle_collisions() {
 				float bottom_2 = motion_solid.position.y - (abs(motion_solid.scale.y) / 2);
 				float top_2 = motion_solid.position.y + (abs(motion_solid.scale.y) / 2);
 
-				float x_diff = max(abs(right_2 - left_1), abs(right_1 - left_2));
-				float y_diff = max(abs(bottom_2 - top_1), abs(bottom_1 - top_2));
+				// float x_diff = max(abs(right_2 - left_1), abs(right_1 - left_2));
+				// float y_diff = max(abs(bottom_2 - top_1), abs(bottom_1 - top_2));
+
+				float x_diff = 2 * (motion_moving.position.x - motion_solid.position.x) / (motion_moving.scale.x + motion_solid.scale.x);
+				float y_diff = 2 * (motion_moving.position.y - motion_solid.position.y) / (motion_moving.scale.y + motion_solid.scale.y);
 
 				if (abs(x_diff) > abs(y_diff)) {
 					
