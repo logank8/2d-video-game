@@ -28,6 +28,7 @@ inline std::string shader_path(const std::string& name) {return std::string(PROJ
 inline std::string textures_path(const std::string& name) {return data_path() + "/textures/" + std::string(name);};
 inline std::string audio_path(const std::string& name) {return data_path() + "/audio/" + std::string(name);};
 inline std::string mesh_path(const std::string& name) {return data_path() + "/meshes/" + std::string(name);};
+inline std::string tutorial_path(const std::string& name) { return data_path() + "/tutorial/" + std::string(name);}
 
 const int window_width_px = 1280;
 const int window_height_px = 720;
@@ -44,6 +45,15 @@ struct Transform {
 	void scale(vec2 scale);
 	void rotate(float radians);
 	void translate(vec2 offset);
+};
+
+// font character structure
+struct Character {
+	unsigned int TextureID;  // ID handle of the glyph texture
+	glm::ivec2   Size;       // Size of glyph
+	glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
+	unsigned int Advance;    // Offset to advance to next glyph
+	char character;
 };
 
 bool gl_has_errors();

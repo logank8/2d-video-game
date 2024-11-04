@@ -6,6 +6,8 @@
 #include <cassert>
 #include <sstream>
 #include <iostream>
+#include <fstream> 
+#include <string>
 
 #include "physics_system.hpp"
 #include "animation_system.hpp"
@@ -17,13 +19,21 @@ const size_t EEL_SPAWN_DELAY_MS = 2000 * 3;
 const size_t FISH_SPAWN_DELAY_MS = 5000 * 3;
 const size_t MAX_NUM_RANGED_ENEMY = 1;
 const size_t RANGED_ENEMY_SPAWN_DELAY_MS = 5000 * 3;
-const size_t RANGED_ENEMY_PROJECTILE_DELAY_MS = 2000 * 3;
+const size_t RANGED_ENEMY_PROJECTILE_DELAY_MS = 3000;
 
 const int TILE_SIZE = 100;
 std::vector<vec2> tile_vec;
 const int LIGHT_FLICKER_RATE = 2000 * 10;
+const int FPS_COUNTER_MS = 1000;
 
 int lightflicker_counter_ms;
+int fps_counter_ms;
+int fps = 0;
+bool display_fps = false;
+
+bool is_tutorial_on = false;
+
+PhysicsSystem physics;
 
 // create the underwater world
 WorldSystem::WorldSystem()
@@ -98,8 +108,10 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwSetWindowUserPointer(window, this);
 	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
 	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
+	auto mouse_button_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_button( _0, _1, _2); };
 	glfwSetKeyCallback(window, key_redirect);
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
+	glfwSetMouseButtonCallback(window, mouse_button_redirect);
 
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
@@ -132,10 +144,36 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
+	fps_counter_ms = FPS_COUNTER_MS;
 
 	// Set all states to default
 	restart_game();
 }
+
+vec2 snapToClosestAxis(vec2 direction) {
+	vec2 normalized = glm::normalize(direction);
+
+	float absX = std::abs(normalized.x);
+	float absY = std::abs(normalized.y);
+
+    if (absX >= absY) {
+        return vec2(normalized.x > 0 ? 1 : -1, 0);
+    } else {
+        return vec2(0, normalized.y > 0 ? 1 : -1);
+    }
+}
+
+
+std::string toString(PLAYER_STATE status) {
+    switch (status) {
+        case PLAYER_STATE::IDLE:     return "Idle";
+        case PLAYER_STATE::RUN:  return "Running";
+        case PLAYER_STATE::ATTACK:  return "Attacking";
+        case PLAYER_STATE::DASH: return "Dashiong";
+        default:                     return "Unknown";
+    }
+}
+
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
@@ -154,7 +192,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	vec2 player_pos = motions_registry.get(my_player).position;
 	vec2 world_origin = vec2(-1860, -3760);
 
-	
+	if (display_fps) {
+		fps_counter_ms -= elapsed_ms_since_last_update;
+		if (fps_counter_ms <= 0.f) {
+			fps = (int)(1000 / elapsed_ms_since_last_update);
+			fps_counter_ms = FPS_COUNTER_MS;
+		}
+		createText({ 1000.f, 650.f }, 1.f, "FPS: " + std::to_string(fps), glm::vec3(1.0f, 0.f, 0.f));
+	}
 	
 	for (int i = (int) motions_registry.components.size()-1; i>=0; --i) {
 		Motion& motion = motions_registry.components[i];
@@ -384,26 +429,29 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Spawn projectiles for ranged enemies
 	for (auto& ranged : registry.ranged.entities) {
-		float& projectile_delay = registry.ranged.get(ranged).projectile_delay;
-		projectile_delay -= elapsed_ms_since_last_update * current_speed;
-		if (projectile_delay < 0.f) {
-			// reset timer
-			projectile_delay = (RANGED_ENEMY_PROJECTILE_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_PROJECTILE_DELAY_MS / 2);
-			Entity projectile = createRangedProjectile(renderer, registry.motions.get(ranged).position);
-			Motion& projectile_motion = registry.motions.get(projectile);
-			Motion& player_motion = registry.motions.get(my_player);
-			projectile_motion.angle = atan2(projectile_motion.position.y - player_motion.position.y, projectile_motion.position.x - player_motion.position.x);
-			projectile_motion.velocity = { 200.f, 200.f };
+		//Don't shoot if there's no los
+		if (physics.has_los(registry.motions.get(ranged).position, player_pos)) {
+			float& projectile_delay = registry.ranged.get(ranged).projectile_delay;
+			projectile_delay -= elapsed_ms_since_last_update * current_speed;
+			if (projectile_delay < 0.f) {
+				// reset timer
+				projectile_delay = (RANGED_ENEMY_PROJECTILE_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_PROJECTILE_DELAY_MS / 2);
+				Entity projectile = createRangedProjectile(renderer, registry.motions.get(ranged).position);
+				Motion& projectile_motion = registry.motions.get(projectile);
+				Motion& player_motion = registry.motions.get(my_player);
+				projectile_motion.angle = atan2(projectile_motion.position.y - player_motion.position.y, projectile_motion.position.x - player_motion.position.x);
+				projectile_motion.velocity = { 200.f, 200.f };
+			}
 		}
 	}
+		
 	
-
 	// Check if player is invulnerable
 	Player& player = registry.players.get(my_player);
 	if (player.invulnerable) {
 		player.invulnerable_duration_ms -= elapsed_ms_since_last_update;
 		if (player.invulnerable_duration_ms < 0.f) {
-			std::cout << "Invuln ended" << std::endl;
+			// std::cout << "Invuln ended" << std::endl;
 			player.invulnerable = false;
 			player.invulnerable_duration_ms = 1000.f;
 		}
@@ -492,12 +540,147 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+		
+	auto& attackRegistry = registry.playerAttacks;
+	for (Entity entity : attackRegistry.entities) {
+		auto& attack = attackRegistry.get(entity);
+
+		attack.duration_ms -= elapsed_ms_since_last_update;
+		if (attack.duration_ms < 0.0f || attack.has_hit) {
+			registry.remove_all_components_of(entity);
+		}
+	}
+
+
 	if (debugging.in_debug_mode == true) {
 		for (Motion& motion : motions_registry.components) {
 			createLine(motion.position, motion.scale);
 		}
 		
 	}
+
+	Motion& pmotion = registry.motions.get(my_player);
+	AnimationSet& animSet = registry.animationSets.get(my_player);
+
+	// handle state switch
+	switch(player.state) {
+		case PLAYER_STATE::DASH:
+			break;
+		case PLAYER_STATE::ATTACK:	
+			player.curr_attack_duration_ms -= elapsed_ms_since_last_update;
+			
+			if (player.curr_attack_duration_ms < 0.0f) {
+				player.is_attacking = false;
+				player.curr_attack_duration_ms = player.attack_duration_ms;
+			}
+
+			if (!player.is_attacking) {
+				if (!player.is_moving) {
+					player.state = PLAYER_STATE::IDLE;
+				} else {
+					player.state = PLAYER_STATE::RUN;
+				}
+			}
+			break;
+		case PLAYER_STATE::RUN:
+			player.is_moving = true;
+			if (player.move_direction != vec2(0,0)) {
+			if (player.is_moving && !player.is_attacking) {
+				player.last_direction = snapToClosestAxis(player.move_direction);
+				pmotion.velocity = glm::normalize(player.move_direction) * pmotion.speed;
+			} else {
+				pmotion.velocity = vec2(0,0);
+				player.is_moving = false;
+			}
+		} else {
+			pmotion.velocity = vec2(0,0);
+			player.is_moving = false;
+		}
+
+			if (player.is_attacking) {
+				player.is_moving = false;
+				player.state = PLAYER_STATE::ATTACK;
+			} else if (player.move_direction == vec2(0,0)) {
+				player.state = PLAYER_STATE::IDLE;
+			}
+			break;
+		case PLAYER_STATE::IDLE:
+			if (player.is_attacking) {
+				player.state = PLAYER_STATE::ATTACK;
+			} else if (player.move_direction != vec2(0,0)) {
+				player.state = PLAYER_STATE::RUN;
+			}
+			break;
+		default:
+			std::cout << "player state not found" << std::endl;
+			break;
+	}
+
+
+	// handle animations
+
+	switch(player.state) {
+		case PLAYER_STATE::DASH:
+			break;
+		case PLAYER_STATE::ATTACK:	
+			if (player.last_direction == vec2(0,1)) {
+				if (animSet.current_animation != "player_attack_f") {
+					animSet.current_frame = 0;
+				}
+
+				animSet.current_animation = "player_attack_f";
+			} else if (player.last_direction == vec2(1,0)) {
+				if (animSet.current_animation != "player_attack_s") {
+					animSet.current_frame = 0;
+				}
+
+				animSet.current_animation = "player_attack_s";
+			} else if (player.last_direction == vec2(-1,0)) {
+				if (animSet.current_animation != "player_attack_s") {
+					animSet.current_frame = 0;
+				}
+
+				animSet.current_animation = "player_attack_s";
+			} else {
+				if (animSet.current_animation != "player_attack_b") {
+					animSet.current_frame = 0;
+				}
+
+				animSet.current_animation = "player_attack_b";
+			}
+			break;
+		case PLAYER_STATE::RUN:
+			if (player.last_direction == vec2(1,0)) {
+				animSet.current_animation = "player_run_s";
+			} else if (player.last_direction == vec2(-1,0)) {
+				animSet.current_animation = "player_run_s";
+			} else if (player.last_direction == vec2(0,-1)) {
+				animSet.current_animation = "player_run_b";
+			} else {
+				animSet.current_animation = "player_run_f";
+			}
+			break;
+		case PLAYER_STATE::IDLE:
+			if (player.last_direction == vec2(1,0)) {
+				animSet.current_animation = "player_idle_s";
+			} else if (player.last_direction == vec2(-1,0)) {
+				animSet.current_animation = "player_idle_s";
+			} else if (player.last_direction == vec2(0,-1)) {
+				animSet.current_animation = "player_idle_b";
+			} else {
+				animSet.current_animation = "player_idle_f";
+			}
+			break;
+		default:
+			std::cout << "player state not found" << std::endl;
+			break;
+	}
+
+	if (player.last_direction.x < 0) {
+			pmotion.scale.x = -std::abs(pmotion.scale.x);
+		} else {
+			pmotion.scale.x = std::abs(pmotion.scale.x);
+		}
 
 	return true;
 }
@@ -520,6 +703,9 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
+
+	// create a slime patch for testing
+	Entity test_slime_patch = createSlimePatch(renderer, { window_width_px/2 + 50, window_height_px/2 });
 
 	// create a new Player
 	my_player = createPlayer(renderer, { window_width_px/2, window_height_px - 200 });
@@ -581,6 +767,7 @@ vec2 norm(vec2 vec) {
 void WorldSystem::handle_collisions() {
 	// Loop over all collisions detected by the physics system
 	auto& collisionsRegistry = registry.collisions;
+	bool unstick_player = true;
 	for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
 		// The entity and its collider
 		Entity entity = collisionsRegistry.entities[i];
@@ -599,7 +786,7 @@ void WorldSystem::handle_collisions() {
 					// avoid negative hp values for hp bar
 					player_hp = max(0.f, player_hp);
 					// modify hp bar
-					std::cout << "Player hp: " << player_hp << "\n";
+					// std::cout << "Player hp: " << player_hp << "\n";
 					if (player_hp <= 200 && player_hp >= 0) {
 						// Motion& motion = registry.motions.get(hp_bar);
 						// motion.scale.x = HPBAR_BB_WIDTH * (player_hp / 100);
@@ -626,7 +813,6 @@ void WorldSystem::handle_collisions() {
 					Motion& motion = registry.motions.get(my_player);
 					motion.velocity[0] = 0.0f;
 					motion.velocity[1] = 0.0f;
-
 				}
 			}
 			// Checking Player - Eatable collisions
@@ -683,8 +869,11 @@ void WorldSystem::handle_collisions() {
 				float bottom_2 = motion_solid.position.y - (abs(motion_solid.scale.y) / 2);
 				float top_2 = motion_solid.position.y + (abs(motion_solid.scale.y) / 2);
 
-				float x_diff = max(abs(right_2 - left_1), abs(right_1 - left_2));
-				float y_diff = max(abs(bottom_2 - top_1), abs(bottom_1 - top_2));
+				// float x_diff = max(abs(right_2 - left_1), abs(right_1 - left_2));
+				// float y_diff = max(abs(bottom_2 - top_1), abs(bottom_1 - top_2));
+
+				float x_diff = 2 * (motion_moving.position.x - motion_solid.position.x) / (motion_moving.scale.x + motion_solid.scale.x);
+				float y_diff = 2 * (motion_moving.position.y - motion_solid.position.y) / (motion_moving.scale.y + motion_solid.scale.y);
 
 				if (abs(x_diff) > abs(y_diff)) {
 					
@@ -722,12 +911,37 @@ void WorldSystem::handle_collisions() {
 				
 				
 			}
+			if (registry.stickies.has(entity_other)) {
+				Motion&  player_motion = registry.motions.get(my_player);
+				player_motion.speed = 150.f;
+				unstick_player = false;
+			}
 		} else if (registry.deadlys.has(entity)) {
 			if (registry.solidObjs.has(entity_other) && registry.projectiles.has(entity)) {
 				registry.remove_all_components_of(entity);
 			}
-		}
+		} else if (registry.playerAttacks.has(entity)) {
+			if (registry.deadlys.has(entity_other) && registry.healths.has(entity_other)) {
+				Health& deadly_health = registry.healths.get(entity_other);
+				Damage& damage = registry.damages.get(entity);
 
+				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - damage.damage);
+
+				std::cout << "entity " << entity_other << " hitpoints: " << deadly_health.hit_points << std::endl;
+
+				if (deadly_health.hit_points <= 0.0f) {
+					registry.remove_all_components_of(entity_other);
+					std::cout << "entity " << entity_other << " died" << std::endl;
+				}
+
+				registry.playerAttacks.get(entity).has_hit = true;
+			}
+		}
+	}
+
+	if (unstick_player) {
+		Motion&  player_motion = registry.motions.get(my_player);
+		player_motion.speed = 300.f;
 	}
 
 	// Remove all collisions from this simulation step
@@ -737,6 +951,18 @@ void WorldSystem::handle_collisions() {
 // Should the game be over ?
 bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
+}
+
+// Helper function to read a file line by line
+std::vector<std::string> read_file(std::string filepath) {
+	std::ifstream ReadFile(filepath);
+	std::string text;
+	std::vector <std::string> lines;
+	while (std::getline(ReadFile, text)) {
+		lines.push_back(text);
+	}
+	ReadFile.close();
+	return lines;
 }
 
 // On key callback
@@ -751,69 +977,71 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
 		is_paused = !is_paused;
+		ScreenState& screen = registry.screenStates.components[0];
+		if (is_paused) {
+			screen.darken_screen_factor = 0.9;
+		}
+		else {
+			screen.darken_screen_factor = 0;
+		}
 		std::cout << is_paused << std::endl;
 	}
 
+	if (action == GLFW_RELEASE && key == GLFW_KEY_F) {
+		display_fps = !display_fps;
+	}
+
 	// Debugging
-	if (key == GLFW_KEY_P && action == GLFW_RELEASE) {
-		debugging.in_debug_mode = !debugging.in_debug_mode;
-		
+	if (key == GLFW_KEY_P) {
+		if (action == GLFW_RELEASE)
+			debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
 
-	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) {
-		Motion& motion = registry.motions.get(my_player);
-		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
-			motion.velocity[0] = motion.speed;
-		}
-		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[0] > 0) {
-			motion.velocity[0] = 0.f;
-		}
-	}
 
-	if (key == GLFW_KEY_LEFT || key == GLFW_KEY_A) {
-		Motion& motion = registry.motions.get(my_player);
-		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
-			motion.velocity[0] = -1.0 * motion.speed;
-		}
-		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[0] < 0) {
-			motion.velocity[0] = 0.f;
-		}
-	}
-
-	if (key == GLFW_KEY_UP || key == GLFW_KEY_W) {
-		Motion& motion = registry.motions.get(my_player);
-		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
-			motion.velocity[1] = -1.0 * motion.speed;
-		}
-		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[1] < 0) {
-			motion.velocity[1] = 0.f;
-		}
-	}
-
-	if (key == GLFW_KEY_DOWN || key == GLFW_KEY_S) {
-		Motion& motion = registry.motions.get(my_player);
-		if ((action == GLFW_PRESS || action == GLFW_REPEAT) && !registry.deathTimers.has(my_player)) {
-			motion.velocity[1] = motion.speed;
-		}
-		else if (action == GLFW_RELEASE && !registry.deathTimers.has(my_player) && motion.velocity[1] > 0) {
-			motion.velocity[1] = 0.f;
-		}
-	}
-
-	// TEMPORARY animation state handler (TO BE CHANGED)
-	// *** NOT PERMANENT ***
+	// Player controller
 	Motion& pmotion = registry.motions.get(my_player);
-	AnimationSet& animSet = registry.animationSets.get(my_player);
-	if (pmotion.velocity != vec2(0,0)) {
-		animSet.current_animation = "player_run_f";
-		
-		if (pmotion.velocity.x < 0) {
-			pmotion.scale.x = -std::abs(pmotion.scale.x);
-		} else {
-			pmotion.scale.x = std::abs(pmotion.scale.x);
+	Player& player = registry.players.get(my_player);
+
+	if (!registry.deathTimers.has(my_player)) {
+		if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) {
+			if ((action == GLFW_PRESS || action == GLFW_REPEAT)) {
+				player.move_direction[0] = 1.f;
+				player.is_moving = true;
+			}
+			else if (action == GLFW_RELEASE && player.move_direction[0] > 0) {
+				player.move_direction[0] = 0.f;
+			}
 		}
-	} else {
-		animSet.current_animation = "player_idle_f";
+
+		if (key == GLFW_KEY_LEFT || key == GLFW_KEY_A) {
+			if ((action == GLFW_PRESS || action == GLFW_REPEAT)) {
+				player.move_direction[0] = -1.f;
+				player.is_moving = true;
+			}
+			else if (action == GLFW_RELEASE && player.move_direction[0] < 0) {
+				player.move_direction[0] = 0.f;
+			}
+		}
+
+		if (key == GLFW_KEY_UP || key == GLFW_KEY_W) {
+			if ((action == GLFW_PRESS || action == GLFW_REPEAT)) {
+				player.move_direction[1] = -1.f;
+				player.is_moving = true;
+			}
+			else if (action == GLFW_RELEASE && player.move_direction[1] < 0) {
+				player.move_direction[1] = 0.f;
+			}
+		}
+
+		if (key == GLFW_KEY_DOWN || key == GLFW_KEY_S) {
+			if ((action == GLFW_PRESS || action == GLFW_REPEAT)) {
+				player.move_direction[1] = 1.f;
+				player.is_moving = true;
+			}
+			else if (action == GLFW_RELEASE && player.move_direction[1] > 0) {
+				player.move_direction[1] = 0.f;
+			}
+		}
 	}
 
 	// Control the current speed with `<` `>`
@@ -842,11 +1070,35 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 				registry.dashing.insert(my_player, new_dash);
 			} 
-			
 		}
 	}
 
-	
+	// Tutorial
+	if (action == GLFW_RELEASE && key == GLFW_KEY_T) {
+		ScreenState& screen = registry.screenStates.components[0];
+		// if the game is already paused then this shouldn't work
+		if (!is_paused) {
+			is_paused = true;
+			is_tutorial_on = true;
+			screen.darken_screen_factor = 0.9;
+			float tutorial_header_x = window_width_px / 2 - 120;
+			float tutorial_header_y = 620;
+			glm::vec3 white = glm::vec3(1.f, 1.f, 1.f);
+			createText({ tutorial_header_x, tutorial_header_y }, 1.0, "TUTORIAL", white);
+			std::vector<std::string> lines = read_file(PROJECT_SOURCE_DIR + std::string("data/tutorial/tutorial.txt"));
+			float y_spacer = 80.f;
+			for (std::string line : lines) {
+				// Render each line
+				createText({ tutorial_header_x - 400.f, tutorial_header_y - y_spacer }, 0.6f, line, white);
+				y_spacer += 70.f;
+			}
+		}
+		else if (is_tutorial_on) {
+			is_paused = false;
+			is_tutorial_on = false;
+			screen.darken_screen_factor = 0.0;
+		}
+	}
 
 	// Dash movement
 	if (registry.dashing.has(my_player)) {
@@ -858,7 +1110,28 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	(vec2)mouse_position; // dummy to avoid compiler warning
+	// Update player attack direction
+	vec2 screen_center = vec2(window_width_px / 2.0f, window_height_px / 2.0f);
+	vec2 direction = mouse_position - screen_center;
+	direction = normalize(direction);
+
+	Player& player = registry.players.get(my_player);
+	player.attack_direction = snapToClosestAxis(direction);
+}
+
+void WorldSystem::on_mouse_button(int button, int action, int mods) {
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		Player& player = registry.players.get(my_player);
+
+		if (player.is_attacking == false) {
+			vec2 player_pos = registry.motions.get(my_player).position;
+			vec2 attack_direction = player.attack_direction;
+
+			createBasicAttackHitbox(renderer, player_pos + (attack_direction * vec2(100, 100)), my_player);
+			player.last_direction = attack_direction;
+			player.is_attacking = true;
+		}
+	}
 }
 
 // TODO: update to work with multiple maps

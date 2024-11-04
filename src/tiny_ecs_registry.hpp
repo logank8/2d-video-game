@@ -28,6 +28,7 @@ public:
 	ComponentContainer<Damage> damages;
 	ComponentContainer<Wall> walls;
 	ComponentContainer<Ground> groundTiles;
+	ComponentContainer<Sticky> stickies;
 	ComponentContainer<Solid> solidObjs;
 	ComponentContainer<Slows> slows;
 	ComponentContainer<Ranged> ranged;
@@ -37,6 +38,8 @@ public:
 	ComponentContainer<AnimationSet> animationSets;
 	ComponentContainer<Path> paths;
 	ComponentContainer<PathTimer> pathTimers;
+	ComponentContainer<Text> texts;
+	ComponentContainer<PlayerAttack> playerAttacks;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -59,6 +62,7 @@ public:
 		registry_list.push_back(&damages);
 		registry_list.push_back(&walls);
 		registry_list.push_back(&groundTiles);
+		registry_list.push_back(&stickies);
 		registry_list.push_back(&solidObjs);
 		registry_list.push_back(&slows);
 		registry_list.push_back(&ranged);
@@ -68,6 +72,8 @@ public:
 		registry_list.push_back(&animationSets);
 		registry_list.push_back(&paths);
 		registry_list.push_back(&pathTimers);
+		registry_list.push_back(&texts);
+		registry_list.push_back(&playerAttacks);
 	}
 
 	void clear_all_components() {

@@ -4,20 +4,20 @@
 #include "world_system.hpp"
 
 WorldSystem world;
+PhysicsSystem phsyics;
 std::vector<std::vector<int>> map = world.get_current_map();
 const float TILE_SIZE = 100.0f;
 
 #include <iostream>
 
-// Returns the local bounding coordinates scaled by the current size of the entity
+// Returns the local bounding coordinates (AABB)
 vec2 get_bounding_box(const Motion& motion)
 {
 	// abs is to avoid negative scale due to the facing direction.
-	return  { abs(motion.scale.x), abs(motion.scale.y) };
+	return { motion.position.x - (abs(motion.scale.x) / 2), motion.position.y - (abs(motion.scale.y) / 2) };
 }
 
 bool collides(const Motion& motion1, const Motion& motion2) {
-
 	float bottom_1 = motion1.position.y - (abs(motion1.scale.y) / 2);
 	float top_1 = motion1.position.y + (abs(motion1.scale.y) / 2);
 	float left_1 = motion1.position.x - (abs(motion1.scale.x) / 2);
@@ -35,6 +35,89 @@ bool collides(const Motion& motion1, const Motion& motion2) {
 			return true;
 		}
 	}
+	return false;
+}
+
+// Check if point is in the triangle with vertices v0, v1, v2
+bool point_in_triangle(vec2 point, vec2 v0, vec2 v1, vec2 v2) {
+    // Calculate barycentric coordinates
+    float denom = (v1.y - v2.y) * (v0.x - v2.x) + (v2.x - v1.x) * (v0.y - v2.y);
+    float a = ((v1.y - v2.y) * (point.x - v2.x) + (v2.x - v1.x) * (point.y - v2.y)) / denom;
+    float b = ((v2.y - v0.y) * (point.x - v2.x) + (v0.x - v2.x) * (point.y - v2.y)) / denom;
+    float c = 1 - a - b;
+
+    // test collision
+    return 0 <= a && a <= 1 && 0 <= b && b <= 1 && 0 <= c && c <= 1;
+}
+
+// Transform vertex on mesh to its in-game position
+vec2 transform(vec2 vertex, const Motion& mesh_motion) {
+    // rotate
+    float c = cosf(mesh_motion.angle);
+    float s = sinf(mesh_motion.angle);
+    mat2 R = { { c, s },{ -s, c } };
+    vertex = vertex * R;
+
+        // scale
+    vertex = vertex * mesh_motion.scale;
+
+        // translate to mesh entity position position
+    vertex = vertex + mesh_motion.position;
+
+    return vertex;
+}
+
+// For mesh-box collision
+bool mesh_collides(const Entity& mesh_entity, const Motion& mesh_motion, const Motion& box_motion)
+{    
+    // Getting AABB bounding box of object box bounding
+	vec2 box_top_left = get_bounding_box(box_motion);
+
+	// Getting mesh
+	auto mesh = registry.meshPtrs.get(mesh_entity);
+	std::vector<ColoredVertex> vertices = mesh->vertices;
+
+    // Check if any vertex of the mesh is in box bounding box
+	for(uint i = 0; i < vertices.size(); i++) {
+		vec3 relative_pos = vertices[i].position;
+		vec2 pos = vec2( relative_pos.x, relative_pos.y );
+
+        pos = transform(pos, mesh_motion);
+
+		if (pos.y < box_top_left.y + abs(box_motion.scale.y)
+		&& pos.y > box_top_left.y
+		&& pos.x < box_top_left.x + abs(box_motion.scale.x)
+		&& pos.x > box_top_left.x)
+			return true;
+	}
+
+    // Check if any of the box bounding box corners are within the triangles that make up the mesh
+    std::vector<uint16_t> vertex_indices = mesh->vertex_indices;
+    for(uint i = 0; i < vertex_indices.size(); i+=3) {
+        // Get vertices of the trangle face
+        uint16_t v0_index = vertex_indices[i];
+        uint16_t v1_index = vertex_indices[i+1];
+        uint16_t v2_index = vertex_indices[i+2];
+		vec2 v0 = vec2( vertices[v0_index].position.x , vertices[v0_index].position.y );
+        vec2 v1 = vec2( vertices[v1_index].position.x , vertices[v1_index].position.y );
+        vec2 v2 = vec2( vertices[v2_index].position.x , vertices[v2_index].position.y );
+        v0 = transform(v0, mesh_motion);
+        v1 = transform(v1, mesh_motion);
+        v2 = transform(v2, mesh_motion);
+
+        // Get corner position of the box BB
+        // box_top_left already exists
+        vec2 box_top_right = box_top_left + vec2( abs(box_motion.scale.x) , 0 );
+        vec2 box_bottom_left = box_top_left + vec2( 0 , abs(box_motion.scale.y) );
+        vec2 box_bottom_right = box_top_left + vec2( abs(box_motion.scale.x) , abs(box_motion.scale.y) );
+
+        // Check if point is in triangle
+        if (point_in_triangle(box_top_left, v0, v1, v2)) return true;
+        if (point_in_triangle(box_top_right, v0, v1, v2)) return true;
+        if (point_in_triangle(box_bottom_left, v0, v1, v2)) return true;
+        if (point_in_triangle(box_bottom_right, v0, v1, v2)) return true;
+	}
+
 	return false;
 }
 
@@ -96,6 +179,76 @@ bool is_walkable(const vec2& pos, vec2 dir) {
 
     return map[grid_y][grid_x] != 0;
 }
+
+// Checking for line of sight using Bresenham's algorithm 
+// adapted to use a TILE_SIZE approximation instead of a pixel based line approximation
+bool PhysicsSystem::has_los(const vec2& start, const vec2& end) {
+    const float GRID_OFFSET_X = (640 - (25 * TILE_SIZE));
+    const float GRID_OFFSET_Y = (640 - (44 * TILE_SIZE));
+
+    // Convert to grid coordinates
+    int x1 = static_cast<int>((start.x - GRID_OFFSET_X) / TILE_SIZE);
+    int y1 = static_cast<int>((start.y - GRID_OFFSET_Y) / TILE_SIZE);
+    int x2 = static_cast<int>((end.x - GRID_OFFSET_X) / TILE_SIZE);
+    int y2 = static_cast<int>((end.y - GRID_OFFSET_Y) / TILE_SIZE);
+
+    int dx = abs(x2 - x1);
+    int dy = abs(y2 - y1);
+    int x = x1;
+    int y = y1;
+
+    // Determine step direction
+    int x_step = (x1 < x2) ? 1 : -1;
+    int y_step = (y1 < y2) ? 1 : -1;
+
+    int err;
+
+    // Choose which axis to move along
+    if (dx > dy) {
+        err = dx / 2;
+        while (x != x2) {
+            if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size()) {
+                return false;
+            }
+
+            if (map[y][x] == 0) {
+                return false;
+            }
+
+            err -= dy;
+            if (err < 0) {
+                y += y_step;
+                err += dx;
+            }
+            x += x_step;
+        }
+    }
+    else {
+        err = dy / 2;
+        while (y != y2) {
+            if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size()) {
+                return false;
+            }
+
+            if (map[y][x] == 0) {
+                return false;
+            }
+
+            err -= dx;
+            if (err < 0) {
+                x += x_step;
+                err += dy;
+            }
+            y += y_step;
+        }
+    }
+
+    if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size()) {
+        return false;
+    }
+    return map[y][x] != 0;
+}
+
 
 // Find A* path for enemy
 std::vector<vec2> find_path(const Motion& enemy, const Motion& player) {
@@ -239,8 +392,14 @@ void update_enemy_movement(Entity enemy, float step_seconds) {
     float raw_x = (enemy_motion.position.x - GRID_OFFSET_X) / TILE_SIZE;
     float raw_y = (enemy_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE;
 
-    // Recalculate path if update time has elapsed AND enemy entity is at the centre of the tile in screen xy coordinates
-    if ((!registry.paths.has(enemy) || timer.timer >= PATH_UPDATE_TIME) && (grid_x == raw_x && grid_y == raw_y)) {
+    // Recalculate path if all below are true:
+    // - update time has elapsed
+    // - enemy entity is at the centre of the tile in screen xy coordinates
+    // - the enemy has line of sight of the palyer
+    if ((!registry.paths.has(enemy) || timer.timer >= PATH_UPDATE_TIME) && 
+        (grid_x == raw_x && grid_y == raw_y) && 
+        phsyics.has_los(enemy_motion.position, player_motion.position)) {
+
         std::vector<vec2> new_path = find_path(motion, player_motion);
 
         if (!new_path.empty()) {
@@ -267,15 +426,38 @@ void update_enemy_movement(Entity enemy, float step_seconds) {
                 direction.x /= length;
                 direction.y /= length;
 
+                float& step_second_counter = registry.deadlys.get(enemy).movement_timer;
+                float movement_limit = round((TILE_SIZE / motion.velocity.x) * 10.0f) / 10.0f;
+
+                // Move enemy stricly bound to TILE_SIZE at all times. Use a step second counter and rounding to make sure this happens while keeping uniformity of movement with fps
                 // If movement is diagonal, apply diagonal scaling to align with movement increments for cardinal directions
                 if (direction.x != 0 && direction.y != 0) {
                     const float diagonal_scale = 1 / sqrt(2);
-                    motion.position.x += direction.x * motion.velocity.x * diagonal_scale;
-                    motion.position.y += direction.y * motion.velocity.y * diagonal_scale;
+                    if ((step_second_counter + step_seconds) > movement_limit) {
+                        motion.position.x += direction.x * motion.velocity.x * (movement_limit - step_second_counter) * diagonal_scale;
+                        motion.position.y += direction.y * motion.velocity.y * (movement_limit - step_second_counter) * diagonal_scale;
+                        motion.position = round(motion.position);
+                        step_second_counter = 0.f;
+                    }
+                    else {
+                        motion.position.x += direction.x * motion.velocity.x * step_seconds * diagonal_scale;
+                        motion.position.y += direction.y * motion.velocity.y * step_seconds * diagonal_scale;
+                        step_second_counter += step_seconds;
+                    }
                 }
                 else {
-                    motion.position.x += direction.x * motion.velocity.x / 2;
-                    motion.position.y += direction.y * motion.velocity.y / 2;
+                    if ((step_second_counter + step_seconds) > movement_limit) {
+                        motion.position.x += direction.x * motion.velocity.x * (movement_limit - step_second_counter);
+                        motion.position.y += direction.y * motion.velocity.y * (movement_limit - step_second_counter);
+                        motion.position = round(motion.position);
+                        step_second_counter = 0.f;
+                    }
+                    else {
+                        motion.position.x += direction.x * motion.velocity.x * step_seconds;
+                        motion.position.y += direction.y * motion.velocity.y * step_seconds;
+                        step_second_counter += step_seconds;
+                    }
+                    
                 }
 
                 // Centre of tile reached, move onto next tile in the path
@@ -304,13 +486,24 @@ void PhysicsSystem::step(float elapsed_ms)
 			if (collides(motion_i, motion_j))
 			{
 				Entity entity_j = motion_container.entities[j];
-				if (registry.players.has(entity_i) && registry.solidObjs.has(entity_j)) {
-					std::cout << "player collision" << std::endl;
-				}
-				// Create a collisions event
-				// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
-				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
-				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+
+                bool is_colliding = true;
+
+                // if player is entity_i do mesh-based collision with entity_i
+				if (registry.stickies.has(entity_i) && registry.players.has(entity_j)) {
+					is_colliding = mesh_collides(entity_i, motion_i, motion_j);
+                    if (is_colliding) std::cout << "player slowed down (mesh collision)" << std::endl;
+				} else if (registry.stickies.has(entity_j) && registry.players.has(entity_i)) {
+                    is_colliding = mesh_collides(entity_j, motion_j, motion_i);
+                    if (is_colliding) std::cout << "player slowed down (mesh collision)" << std::endl;
+                }
+
+                if (is_colliding) {
+                    // Create a collisions event
+                    // We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
+                    registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+                    registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+                }
 			} else {
                 if (registry.players.has(entity_i)) registry.players.get(entity_i).last_pos = motion_i.position;
             }
