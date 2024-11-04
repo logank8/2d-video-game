@@ -280,37 +280,28 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (map1[j][i] == 3) {
 				int encounter = rand() % 3;
 				if (encounter == 0) {
-					std::cout << "encounter 1 generated, level 1" << std::endl;
 					createFish(renderer, world_pos);
-					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
 				} else if (encounter == 1) {
-					std::cout << "encounter 2 generated, level 1" << std::endl;
 
 					createEel(renderer, world_pos);
-					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
 				} else {
-					std::cout << "encounter 3 generated, level 1" << std::endl;
 
 					createFish(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
 					createFish(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
-					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
 			if (map1[j][i] == 4) {
 				int encounter = rand() % 3;
 				if (encounter == 0) {
-					std::cout << "encounter 1 generated, level 2" << std::endl;
 
 					createFish(renderer, vec2(world_pos.x, world_pos.y - TILE_SIZE));
 					createEel(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
 				} else if (encounter == 1) {
-					std::cout << "encounter 2 generated, level 2" << std::endl;
 
 					createEel(renderer, vec2(world_pos.x, world_pos.y - TILE_SIZE));
 					createEel(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
 				} else {
-					std::cout << "encounter 3 generated, level 2" << std::endl;
 					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y + TILE_SIZE));
 					createFish(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
 					createFish(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
@@ -865,14 +856,12 @@ void WorldSystem::handle_collisions() {
 						// player bounding box left bound overlaps with object box
 						//motion_moving.velocity.x = 0.f;
 						motion_moving.position.x += (right_2 - left_1) + 1;
-						std::cout << "left bound overlap" << std::endl;
 
 					}
 					if ((left_2 <= right_1) && (left_2 >= left_1)) {
 						// player bounding box right bound overlaps with object box
 						//motion_moving.velocity.x = 0.f;
 						motion_moving.position.x -= (right_1 - left_2) + 1;
-						std::cout << "right bound overlap" << std::endl;
 					}
 				} else {
 					
@@ -881,13 +870,11 @@ void WorldSystem::handle_collisions() {
 						// player bounding box top bound overlaps with object box
 						motion_moving.position.y += (bottom_2 - top_1) + 1;
 						//motion_moving.velocity.y = 0.f;
-						std::cout << "top bound overlap" << std::endl;
 					}
 					if ((top_2 >= bottom_1) && (top_2 <= top_1)) {
 						// player bounding box bottom bound overlaps with object box
 						motion_moving.position.y -= (bottom_1 - top_2) + 1;
 						//motion_moving.velocity.y = 0.f;
-						std::cout << "bottom bound overlap" << std::endl;
 
 					}
 
