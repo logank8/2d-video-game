@@ -7,6 +7,10 @@
 #include "common.hpp"
 #include "components.hpp"
 #include "tiny_ecs.hpp"
+#include <map>	
+// fonts
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
@@ -60,15 +64,24 @@ class RenderSystem {
 		shader_path("egg"),
 		shader_path("salmon"),
 		shader_path("textured"),
-		shader_path("water") };
+		shader_path("water"),
+		shader_path("font")
+	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
 	std::array<Mesh, geometry_count> meshes;
+	std::map<char, Character> m_ftCharacters;
+	GLuint m_font_vao;
+	GLuint m_font_vbo;
+	GLuint vao;
+	GLuint vbo;
+	FT_Face face;
 
 public:
 	// Initialize the window
 	bool init(GLFWwindow* window);
+	bool fontInit(const std::string& font_filename, unsigned int font_default_size);
 
 	template <class T>
 	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);

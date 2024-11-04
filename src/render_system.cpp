@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "tiny_ecs_registry.hpp"
+#include <glm/gtc/type_ptr.hpp>
 
 void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3 &projection)
