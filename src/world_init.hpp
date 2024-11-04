@@ -24,8 +24,8 @@ const float HPBAR_BB_WIDTH = 0.46f;
 const float HPBAR_BB_HEIGHT = 0.20f;
 
 const float TILE_PX_SIZE = 16.f;
-const float BASIC_ATTACK_WIDTH = 150.f;
-const float BASIC_ATTACK_HEIGHT = 150.f;
+const float BASIC_ATTACK_WIDTH = 100.f;
+const float BASIC_ATTACK_HEIGHT = 100.f;
 
 
 // the player

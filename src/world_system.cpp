@@ -666,6 +666,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	for (Entity entity : registry.lightUps.entities) {
+		LightUp& counter = registry.lightUps.get(entity);
+		counter.duration_ms -= elapsed_ms_since_last_update;
+		if (counter.duration_ms < 0) {
+			registry.lightUps.remove(entity);
+		}		
+	}
+
 	return true;
 }
 
@@ -912,11 +920,25 @@ void WorldSystem::handle_collisions() {
 				registry.remove_all_components_of(entity);
 			}
 		} else if (registry.playerAttacks.has(entity)) {
-			if (registry.deadlys.has(entity_other) && registry.healths.has(entity_other)) {
+			if (registry.deadlys.has(entity_other) && registry.healths.has(entity_other) && registry.motions.has(entity_other)) {
 				Health& deadly_health = registry.healths.get(entity_other);
 				Damage& damage = registry.damages.get(entity);
+				Motion& motion = registry.motions.get(entity_other);
+				Motion& pmotion = registry.motions.get(my_player);
+				Player& player = registry.players.get(my_player);
+
+				vec2 diff = motion.position - pmotion.position;
+
+				if (debugging.in_debug_mode) {
+					motion.position += diff * player.knockback_strength;
+				}
 
 				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - damage.damage);
+				if (registry.lightUps.has(entity_other)) {
+					registry.lightUps.remove(entity_other);
+				}
+
+				registry.lightUps.emplace(entity_other);
 
 				std::cout << "entity " << entity_other << " hitpoints: " << deadly_health.hit_points << std::endl;
 
@@ -1125,7 +1147,7 @@ void WorldSystem::on_mouse_button(int button, int action, int mods) {
 			vec2 player_pos = registry.motions.get(my_player).position;
 			vec2 attack_direction = player.attack_direction;
 
-			createBasicAttackHitbox(renderer, player_pos + (attack_direction * vec2(100, 100)), my_player);
+			createBasicAttackHitbox(renderer, player_pos + (attack_direction * vec2(75, 75)), my_player);
 			player.last_direction = attack_direction;
 			player.is_attacking = true;
 		}

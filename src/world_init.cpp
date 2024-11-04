@@ -304,7 +304,7 @@ Entity createRangedProjectile(RenderSystem* renderer, vec2 position)
 	// Create an (empty) Bug component to be able to refer to all bug
 	auto& enemy = registry.deadlys.emplace(entity);
 	enemy.enemy_type = ENEMY_TYPES::PROJECTILE;
-	registry.healths.emplace(entity);
+	// registry.healths.emplace(entity);
 	auto& damage = registry.damages.emplace(entity);
 	damage.damage = 25.f;
 	registry.projectiles.emplace(entity);

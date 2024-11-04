@@ -35,6 +35,7 @@ struct Player
 	float damage_multiplier = 2.0f;
 	float attack_duration_ms = 230.f;
 	float curr_attack_duration_ms = attack_duration_ms;
+	float knockback_strength = 0.3f;
 
 };
 
@@ -126,6 +127,12 @@ struct Damage
 struct Health
 {
 	float hit_points = 200.f;
+};
+
+// light up damage effect
+struct LightUp 
+{
+	float duration_ms = 100.f;
 };
 
 // All data relevant to the shape and motion of entities

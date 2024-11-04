@@ -62,6 +62,17 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+		GLint light_up_uloc = glGetUniformLocation(program, "light_up");
+
+
+		if (registry.lightUps.has(entity)) {
+			glUniform1i(light_up_uloc, 1);
+			assert(light_up_uloc >= 0);
+		} else {
+			glUniform1i(light_up_uloc, 0);
+		}
+
+
 		gl_has_errors();
 		assert(in_texcoord_loc >= 0);
 

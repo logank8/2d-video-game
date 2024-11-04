@@ -40,6 +40,7 @@ public:
 	ComponentContainer<PathTimer> pathTimers;
 	ComponentContainer<Text> texts;
 	ComponentContainer<PlayerAttack> playerAttacks;
+	ComponentContainer<LightUp> lightUps;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -74,6 +75,7 @@ public:
 		registry_list.push_back(&pathTimers);
 		registry_list.push_back(&texts);
 		registry_list.push_back(&playerAttacks);
+		registry_list.push_back(&lightUps);
 	}
 
 	void clear_all_components() {
