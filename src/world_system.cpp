@@ -806,7 +806,7 @@ void WorldSystem::handle_collisions() {
 				Motion& motion_solid = registry.motions.get(entity_other);
 
 				// Temp solution to prevent player from sticking to solid objects - may not work if solid object is really long or tall
-				/*
+				
 				float x_diff = motion_moving.position.x - motion_solid.position.x;
 				float y_diff = motion_moving.position.y - motion_solid.position.y;
 
@@ -829,9 +829,9 @@ void WorldSystem::handle_collisions() {
 					motion_moving.velocity.y = 0.f;
 					motion_moving.position.y = registry.players.get(entity).last_pos.y;
 				}
-				*/
-
 				
+
+				/*
 				float left_1 = motion_moving.position.x - (abs(motion_moving.scale.x) / 2);
 				float right_1 = motion_moving.position.x + (abs(motion_moving.scale.x) / 2);
 
@@ -879,6 +879,7 @@ void WorldSystem::handle_collisions() {
 					}
 
 				}
+				*/
 				
 				
 			}
