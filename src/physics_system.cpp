@@ -17,24 +17,6 @@ vec2 get_bounding_box(const Motion& motion)
 }
 
 bool collides(const Motion& motion1, const Motion& motion2) {
-	/*
-	vec2 box1 = get_bounding_box(motion1) / 2.f;
-	vec2 box2 = get_bounding_box(motion2) / 2.f;
-
-	// Approximate a circle for each entity in the quadrant
-	float radius1 = length(box1) / 2.f; 
-	float radius2 = length(box2) / 2.f;
-
-	vec2 dp = motion1.position - motion2.position;
-	float distance_squared = dot(dp, dp);
-
-	// Check if the distances between centers is less than the sum of radii
-	if (distance_squared < (radius1 + radius2) * (radius1 + radius2)) {
-		return true;
-	}
-
-	return false;
-	*/
 
 	float bottom_1 = motion1.position.y - (abs(motion1.scale.y) / 2);
 	float top_1 = motion1.position.y + (abs(motion1.scale.y) / 2);
@@ -285,15 +267,38 @@ void update_enemy_movement(Entity enemy, float step_seconds) {
                 direction.x /= length;
                 direction.y /= length;
 
+                float& step_second_counter = registry.deadlys.get(enemy).movement_timer;
+                float movement_limit = round((TILE_SIZE / motion.velocity.x) * 10.0f) / 10.0f;
+
+                // Move enemy stricly bound to TILE_SIZE at all times. Use a step second counter and rounding to make sure this happens while keeping uniformity of movement with fps
                 // If movement is diagonal, apply diagonal scaling to align with movement increments for cardinal directions
                 if (direction.x != 0 && direction.y != 0) {
                     const float diagonal_scale = 1 / sqrt(2);
-                    motion.position.x += direction.x * motion.velocity.x * diagonal_scale;
-                    motion.position.y += direction.y * motion.velocity.y * diagonal_scale;
+                    if ((step_second_counter + step_seconds) > movement_limit) {
+                        motion.position.x += direction.x * motion.velocity.x * (movement_limit - step_second_counter) * diagonal_scale;
+                        motion.position.y += direction.y * motion.velocity.y * (movement_limit - step_second_counter) * diagonal_scale;
+                        motion.position = round(motion.position);
+                        step_second_counter = 0.f;
+                    }
+                    else {
+                        motion.position.x += direction.x * motion.velocity.x * step_seconds * diagonal_scale;
+                        motion.position.y += direction.y * motion.velocity.y * step_seconds * diagonal_scale;
+                        step_second_counter += step_seconds;
+                    }
                 }
                 else {
-                    motion.position.x += direction.x * motion.velocity.x / 2;
-                    motion.position.y += direction.y * motion.velocity.y / 2;
+                    if ((step_second_counter + step_seconds) > movement_limit) {
+                        motion.position.x += direction.x * motion.velocity.x * (movement_limit - step_second_counter);
+                        motion.position.y += direction.y * motion.velocity.y * (movement_limit - step_second_counter);
+                        motion.position = round(motion.position);
+                        step_second_counter = 0.f;
+                    }
+                    else {
+                        motion.position.x += direction.x * motion.velocity.x * step_seconds;
+                        motion.position.y += direction.y * motion.velocity.y * step_seconds;
+                        step_second_counter += step_seconds;
+                    }
+                    
                 }
 
                 // Centre of tile reached, move onto next tile in the path
@@ -340,7 +345,6 @@ void PhysicsSystem::step(float elapsed_ms)
 	auto& motion_registry = registry.motions;
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
-		// !!! TODO A1: update motion.position based on step_seconds and motion.velocity
 		Motion& motion = motion_registry.components[i];
 		Entity entity = motion_registry.entities[i];
 		float step_seconds = elapsed_ms / 1000.f;
@@ -372,9 +376,4 @@ void PhysicsSystem::step(float elapsed_ms)
 			registry.blockedTimers.remove(entity);
 		}
 	}
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A2: HANDLE EGG UPDATES HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 2
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 }

@@ -7,14 +7,16 @@
 // These are hardcoded to the dimensions of the entity texture
 // BB = bounding box
 const float FISH_BB_WIDTH  = 0.6f * 165.f;
-const float PLAYER_BB_WIDTH = 0.6f * 200.f;
-const float PLAYER_BB_HEIGHT = 0.6f * 200.f;
+const float PLAYER_BB_WIDTH = 0.7f * 90.f;
+const float PLAYER_BB_HEIGHT = 0.7f * 110.f;
 const float FISH_BB_HEIGHT = 0.6f * 165.f;
 const float EEL_BB_WIDTH   = 0.6f * 300.f;	// 1001
 const float EEL_BB_HEIGHT  = 0.6f * 202.f;	// 870
 const float HPBAR_BB_WIDTH = 0.46f;
 const float HPBAR_BB_HEIGHT = 0.20f;
 const float TILE_PX_SIZE = 16.f;
+const float BASIC_ATTACK_WIDTH = 150.f;
+const float BASIC_ATTACK_HEIGHT = 150.f;
 
 
 // the player
@@ -22,7 +24,6 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos);
 
 // the hp bar
 Entity createHPBar(RenderSystem* renderer, vec2 pos);
-Entity createHPBarEmpty(RenderSystem* renderer, vec2 pos);
 
 // the prey
 Entity createFish(RenderSystem* renderer, vec2 position);
@@ -33,6 +34,8 @@ Entity createEel(RenderSystem* renderer, vec2 position);
 Entity createRangedEnemy(RenderSystem* renderer, vec2 position);
 
 Entity createRangedProjectile(RenderSystem* renderer, vec2 position);
+
+Entity createBasicAttackHitbox(RenderSystem* renderer, vec2 position);
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);

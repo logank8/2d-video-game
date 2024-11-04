@@ -42,12 +42,35 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 			SPRITE_ASSET_ID::PLAYER,
 			idle_f_vec
 		};
-
+	std::vector<int> attack_f_vec = {36, 37, 38, 39};
+	Animation attack_f = {
+			"player_attack_f",
+			15,
+			SPRITE_ASSET_ID::PLAYER,
+			attack_f_vec
+		};
+	std::vector<int> attack_s_vec = {42, 43, 44, 45};
+	Animation attack_s = {
+			"player_attack_s",
+			15,
+			SPRITE_ASSET_ID::PLAYER,
+			attack_s_vec
+		};
+	std::vector<int> attack_b_vec = {48, 49, 50, 51};
+	Animation attack_b = {
+			"player_attack_b",
+			15,
+			SPRITE_ASSET_ID::PLAYER,
+			attack_b_vec
+		};
 
 
 	auto& animSet = registry.animationSets.emplace(entity);
 	animSet.animations[run_f.name] = run_f;
 	animSet.animations[idle_f.name] = idle_f;
+	animSet.animations[attack_f.name] = attack_f;
+	animSet.animations[attack_b.name] = attack_b;
+	animSet.animations[attack_s.name] = attack_s;
 	animSet.current_animation=idle_f.name;
 
 
@@ -72,10 +95,10 @@ Entity createHPBar(RenderSystem* renderer, vec2 pos)
 	// motion.position = pos;
 	// motion.scale = vec2({ HPBAR_BB_WIDTH, HPBAR_BB_HEIGHT });
 
-	auto& userInterface = registry.userInterfaces.emplace(entity);
-	userInterface.angle = 0.f;
-	userInterface.position = pos;
-	userInterface.scale = vec2({ HPBAR_BB_WIDTH, -HPBAR_BB_HEIGHT });
+	auto& ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = pos;
+	ui.scale = vec2({ HPBAR_BB_WIDTH, -HPBAR_BB_HEIGHT });
 
 	registry.renderRequests.insert(
 		entity,
@@ -118,37 +141,6 @@ Entity createText(vec2 pos, float scale, std::string content, glm::vec3 color) {
 	return entity;
 }
 
-Entity createHPBarEmpty(RenderSystem* renderer, vec2 pos)
-{
-	auto entity = Entity();
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Initialize the position, scale, and physics components
-	// auto& motion = registry.motions.emplace(entity);
-	// motion.angle = 0.f;
-	// motion.velocity = { 0, 0 };
-	// motion.position = pos;
-	// motion.scale = vec2({ HPBAR_BB_WIDTH, HPBAR_BB_HEIGHT });
-
-	auto& userInterface = registry.userInterfaces.emplace(entity);
-	userInterface.angle = 0.f;
-	userInterface.position = pos;
-	userInterface.scale = vec2({ HPBAR_BB_WIDTH, HPBAR_BB_HEIGHT });
-
-	registry.renderRequests.insert(
-		entity,
-		{
-			TEXTURE_ASSET_ID::HP_BAR_0,
-			SPRITE_ASSET_ID::SPRITE_COUNT,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE
-		}
-	);
-
-	return entity;
-}
-
 Entity createFish(RenderSystem* renderer, vec2 position)
 {
 	// Reserve en entity
@@ -161,7 +153,7 @@ Entity createFish(RenderSystem* renderer, vec2 position)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 2.5f, 2.5f };
+	motion.velocity = { 100.f, 100.f };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
@@ -194,7 +186,7 @@ Entity createEel(RenderSystem* renderer, vec2 position)
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 5.f, 5.f };
+	motion.velocity = { 200.f, 200.f };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
@@ -230,7 +222,7 @@ Entity createRangedEnemy(RenderSystem* renderer, vec2 position)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 1.f, 1.f };
+	motion.velocity = { 50.f, 50.f };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
@@ -291,6 +283,24 @@ Entity createRangedProjectile(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
+Entity createBasicAttackHitbox(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+
+	motion.scale = vec2({ BASIC_ATTACK_WIDTH, BASIC_ATTACK_HEIGHT});
+
+	auto& damage = registry.damages.emplace(entity);
+	damage.damage = 25.f;
+
+	registry.playerAttacks.emplace(entity);
+
+	return entity;
+}
+
 Entity createLine(vec2 position, vec2 scale)
 {
 	Entity entity = Entity();
@@ -312,6 +322,29 @@ Entity createLine(vec2 position, vec2 scale)
 	motion.scale = scale;
 
 	registry.debugComponents.emplace(entity);
+	return entity;
+}
+
+Entity createText(vec2 position, vec2 scale)
+{
+	Entity entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	registry.renderRequests.insert(
+		entity, {
+			TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
+			EFFECT_ASSET_ID::EGG,
+			GEOMETRY_BUFFER_ID::DEBUG_LINE
+		});
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = scale;
+
 	return entity;
 }
 

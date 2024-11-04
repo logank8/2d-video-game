@@ -3,7 +3,6 @@
 #include <SDL.h>
 
 #include <iostream>
-#include <glm/gtc/type_ptr.hpp>
 
 #include "tiny_ecs_registry.hpp"
 
@@ -17,8 +16,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	Transform transform;
 	transform.translate(motion.position);
 	transform.scale(motion.scale);
-	// !!! TODO A1: add rotation to the chain of transformations, mind the order
-	// of transformations
+	if (registry.players.has(entity)) {
+		transform.scale(vec2(2.6f, 2.f));
+	}
 
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest &render_request = registry.renderRequests.get(entity);
@@ -29,6 +29,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	// Setting shaders
 	glUseProgram(program);
+	gl_has_errors();
 
 	assert(render_request.used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
 	const GLuint vbo = vertex_buffers[(GLuint)render_request.used_geometry];
@@ -96,8 +97,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			GLuint uv_scale_loc = glGetUniformLocation(program, "uv_scale");
 			glUniform2f(uv_scale_loc, (u1 - u0), (v1 - v0));
 		}
-	}
-	else if (render_request.used_effect == EFFECT_ASSET_ID::EGG) {
+	} else if (render_request.used_effect == EFFECT_ASSET_ID::EGG) {
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_color_loc = glGetAttribLocation(program, "in_color");
 		gl_has_errors();
@@ -228,7 +228,6 @@ void RenderSystem::drawScreenSpaceObject(Entity entity) {
 	glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
 	gl_has_errors();
 }
-
 
 void RenderSystem::renderText() {
 	glEnable(GL_BLEND);
@@ -390,7 +389,6 @@ void RenderSystem::draw()
 							  // and alpha blending, one would have to sort
 							  // sprites back to front
 	gl_has_errors();
-	
 
 	Entity player_entity = registry.players.entities.front();
 	vec2 player_position = registry.motions.get(player_entity).position;
@@ -414,6 +412,7 @@ void RenderSystem::draw()
 		// albeit iterating through all Sprites in sequence. A good point to optimize
 		drawTexturedMesh(entity, projection_2D);
 	}
+
 	for (Entity entity : uiEntities) {
 		drawScreenSpaceObject(entity);
 	}
@@ -422,7 +421,6 @@ void RenderSystem::draw()
 	drawToScreen();
 
 	renderText();
-
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();

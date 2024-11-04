@@ -6,18 +6,8 @@
 
 #include "../ext/stb_image/stb_image.h"
 
-
 // This creates circular header inclusion, that is quite bad.
 #include "tiny_ecs_registry.hpp"
-
-// matrices
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-// fonts
-#include <ft2build.h>
-#include FT_FREETYPE_H
 
 // stlib
 #include <iostream>
@@ -27,6 +17,7 @@
 bool RenderSystem::init(GLFWwindow* window_arg)
 {
 	this->window = window_arg;
+
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1); // vsync
 
@@ -59,6 +50,7 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 
 	// We are not really using VAO's but without at least one bound we will crash in
 	// some systems.
+	GLuint vao;
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 	gl_has_errors();
@@ -164,20 +156,8 @@ bool RenderSystem::fontInit(const std::string& font_filename, unsigned int font_
 	// clean up
 	FT_Done_Face(face);
 	FT_Done_FreeType(ft);
-
-	// bind buffers
-	glBindVertexArray(m_font_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, m_font_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-
-	// release buffers
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(vao);
 	return true;
 }
-
 
 void RenderSystem::initializeGlTextures()
 {
