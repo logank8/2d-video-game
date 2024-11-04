@@ -15,6 +15,8 @@ const float EEL_BB_HEIGHT  = 0.6f * 202.f;	// 870
 const float HPBAR_BB_WIDTH = 0.46f;
 const float HPBAR_BB_HEIGHT = 0.20f;
 const float TILE_PX_SIZE = 16.f;
+const float BASIC_ATTACK_WIDTH = 150.f;
+const float BASIC_ATTACK_HEIGHT = 150.f;
 
 
 // the player
@@ -33,11 +35,16 @@ Entity createRangedEnemy(RenderSystem* renderer, vec2 position);
 
 Entity createRangedProjectile(RenderSystem* renderer, vec2 position);
 
+Entity createBasicAttackHitbox(RenderSystem* renderer, vec2 position);
+
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
 
 // a egg
 Entity createEgg(vec2 pos, vec2 size);
+
+// Text
+Entity createText(vec2 pos, float scale, std::string text, glm::vec3 color);
 
 // a wall
 Entity createWalls(RenderSystem* renderer, vec2 pos, bool is_side_wall);
