@@ -1,0 +1,7 @@
+Use WASD or the arrow keys to move
+Use the mouse to aim
+Left-mouse click to attack
+Press X for dash movement
+Press ESC to pause/unpause
+Press T to pause and view the tutorial
+Press F to toggle display of the FPS counter

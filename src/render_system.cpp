@@ -50,13 +50,13 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		glEnableVertexAttribArray(in_position_loc);
 		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
-							sizeof(TexturedVertex), (void *)0);
+			sizeof(TexturedVertex), (void*)0);
 		gl_has_errors();
 
 		glEnableVertexAttribArray(in_texcoord_loc);
 		glVertexAttribPointer(
 			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
-			(void *)sizeof(
+			(void*)sizeof(
 				vec3)); // note the stride to skip the preceeding vertex position
 
 		// Enabling and binding texture to slot 0
@@ -70,18 +70,19 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		}
 		GLuint texture_id = texture_gl_handles[texture_index];;
 		if (render_request.used_sprite == SPRITE_ASSET_ID::SPRITE_COUNT || render_request.sprite_index == -1) {
-		texture_id =
-			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+			texture_id =
+				texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
 
 			glBindTexture(GL_TEXTURE_2D, texture_id);
 			gl_has_errors();
 
 			GLuint uv_offset_loc = glGetUniformLocation(program, "uv_offset");
-			glUniform2f(uv_offset_loc, 0.0f, 0.0f);  
+			glUniform2f(uv_offset_loc, 0.0f, 0.0f);
 
 			GLuint uv_scale_loc = glGetUniformLocation(program, "uv_scale");
-			glUniform2f(uv_scale_loc, 1.0f, 1.0f);  
-		} else {
+			glUniform2f(uv_scale_loc, 1.0f, 1.0f);
+		}
+		else {
 			texture_id = texture_gl_handles[(GLuint)sprite_sheets[registry.renderRequests.get(entity).used_sprite].texture_id];
 
 			glBindTexture(GL_TEXTURE_2D, texture_id);
@@ -228,6 +229,75 @@ void RenderSystem::drawScreenSpaceObject(Entity entity) {
 	gl_has_errors();
 }
 
+void RenderSystem::renderText() {
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	GLuint m_font_shaderProgram = effects[(GLuint)EFFECT_ASSET_ID::FONT];
+	glUseProgram(m_font_shaderProgram);
+	gl_has_errors();
+	for (Entity& entity : registry.texts.entities) {
+		Motion& motion_component = registry.motions.get(entity);
+		float x = motion_component.position.x;
+		float y = motion_component.position.y;
+
+		Text& text_component = registry.texts.get(entity);
+		glm::vec3 color = text_component.color;
+		std::string text = text_component.content;
+		float scale = text_component.scale;
+
+		// get shader uniforms
+		GLint textColor_location =
+			glGetUniformLocation(m_font_shaderProgram, "textColor");
+		glUniform3f(textColor_location, color.x, color.y, color.z);
+		gl_has_errors();
+		GLint transformLoc =
+			glGetUniformLocation(m_font_shaderProgram, "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+		gl_has_errors();
+		glBindVertexArray(m_font_vao);
+		gl_has_errors();
+		// iterate through all characters
+		std::string::const_iterator c;
+		for (c = text.begin(); c != text.end(); c++)
+		{
+			Character ch = m_ftCharacters[*c];
+
+			float xpos = x + ch.Bearing.x * scale;
+			float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+
+			float w = ch.Size.x * scale;
+			float h = ch.Size.y * scale;
+			// update VBO for each character
+			float vertices[6][4] = {
+				{ xpos,     ypos + h,   0.0f, 0.0f },
+				{ xpos,     ypos,       0.0f, 1.0f },
+				{ xpos + w, ypos,       1.0f, 1.0f },
+
+				{ xpos,     ypos + h,   0.0f, 0.0f },
+				{ xpos + w, ypos,       1.0f, 1.0f },
+				{ xpos + w, ypos + h,   1.0f, 0.0f }
+			};
+
+			// render glyph texture over quad
+			glBindTexture(GL_TEXTURE_2D, ch.TextureID);
+
+			// update content of VBO memory
+			glBindBuffer(GL_ARRAY_BUFFER, m_font_vbo);
+			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+			gl_has_errors();
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			// render quad
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			gl_has_errors();
+
+			// now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+			x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
+		}
+	}
+	glBindVertexArray(vao);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 // draw the intermediate texture to the screen, with some distortion to simulate
 // water
 void RenderSystem::drawToScreen()
@@ -335,6 +405,9 @@ void RenderSystem::draw()
 		}
 		if (!registry.motions.has(entity))
 			continue;
+		
+		if (registry.texts.has(entity))
+			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
 		drawTexturedMesh(entity, projection_2D);
@@ -347,6 +420,7 @@ void RenderSystem::draw()
 	// Truely render to the screen
 	drawToScreen();
 
+	renderText();
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();

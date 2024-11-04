@@ -113,6 +113,34 @@ Entity createHPBar(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
+Entity createText(vec2 pos, float scale, std::string content, glm::vec3 color) {
+	auto entity = Entity();
+
+	registry.renderRequests.insert(
+		entity, {
+			TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
+			EFFECT_ASSET_ID::FONT,
+			GEOMETRY_BUFFER_ID::DEBUG_LINE
+		});
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = pos;
+	motion.scale = {1.f, 1.f};
+
+	// Create text component
+	Text& text = registry.texts.emplace(entity);
+	text.content = content;
+	text.color = color;
+	text.scale = scale;
+
+	registry.debugComponents.emplace(entity);
+	return entity;
+}
+
 Entity createFish(RenderSystem* renderer, vec2 position)
 {
 	// Reserve en entity

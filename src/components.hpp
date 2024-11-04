@@ -198,6 +198,13 @@ struct Mesh
 	std::vector<uint16_t> vertex_indices;
 };
 
+// for all Text components
+struct Text {
+	std::string content = "";
+	glm::vec3 color;
+	float scale;
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture

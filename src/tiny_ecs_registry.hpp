@@ -37,6 +37,7 @@ public:
 	ComponentContainer<AnimationSet> animationSets;
 	ComponentContainer<Path> paths;
 	ComponentContainer<PathTimer> pathTimers;
+	ComponentContainer<Text> texts;
 	ComponentContainer<PlayerAttack> playerAttacks;
 
 	// constructor that adds all containers for looping over them
@@ -69,6 +70,7 @@ public:
 		registry_list.push_back(&animationSets);
 		registry_list.push_back(&paths);
 		registry_list.push_back(&pathTimers);
+		registry_list.push_back(&texts);
 		registry_list.push_back(&playerAttacks);
 	}
 

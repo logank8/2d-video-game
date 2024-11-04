@@ -106,6 +106,8 @@ private:
 	void drawTexturedMesh(Entity entity, const mat3& projection);
 	void drawScreenSpaceObject(Entity entity);
 	void drawToScreen();
+	void renderText();
+
 
 	// Window handle
 	GLFWwindow* window;
