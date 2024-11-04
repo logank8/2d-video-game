@@ -679,8 +679,18 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 
-	// create a slime patch for testing
-	Entity test_slime_patch = createSlimePatch(renderer, { window_width_px/2 + 50, window_height_px/2 });
+	// create a slime patches
+	for (int i = 0; i < map1.size(); i++) {
+		for (int j = 0; j < map1[0].size(); j++) {
+			vec2 world_pos = {(640 - (25*100)) + (j * TILE_SIZE) + (TILE_SIZE/2), (640 - (44*100)) + (i * TILE_SIZE) + (TILE_SIZE/2)};
+
+			// create slime patches on ground
+			if (map1[i][j] == 7) {
+				createSlimePatch(renderer, world_pos);
+				// tile_vec.push_back(vec2(i, j));
+			}
+		}
+	}
 
 	// create a new Player
 	my_player = createPlayer(renderer, { window_width_px/2, window_height_px - 200 });
@@ -885,7 +895,7 @@ void WorldSystem::handle_collisions() {
 			}
 			if (registry.stickies.has(entity_other)) {
 				Motion&  player_motion = registry.motions.get(my_player);
-				player_motion.speed = 150.f;
+				player_motion.speed = 120.f;
 				unstick_player = false;
 			}
 		} else if (registry.deadlys.has(entity)) {
