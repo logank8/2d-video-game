@@ -17,25 +17,6 @@ vec2 get_bounding_box(const Motion& motion)
 }
 
 bool collides(const Motion& motion1, const Motion& motion2) {
-	/*
-	vec2 box1 = get_bounding_box(motion1) / 2.f;
-	vec2 box2 = get_bounding_box(motion2) / 2.f;
-
-	// Approximate a circle for each entity in the quadrant
-	float radius1 = length(box1) / 2.f; 
-	float radius2 = length(box2) / 2.f;
-
-	vec2 dp = motion1.position - motion2.position;
-	float distance_squared = dot(dp, dp);
-
-	// Check if the distances between centers is less than the sum of radii
-	if (distance_squared < (radius1 + radius2) * (radius1 + radius2)) {
-		return true;
-	}
-
-	return false;
-	*/
-
 	float bottom_1 = motion1.position.y - (abs(motion1.scale.y) / 2);
 	float top_1 = motion1.position.y + (abs(motion1.scale.y) / 2);
 	float left_1 = motion1.position.x - (abs(motion1.scale.x) / 2);
@@ -56,6 +37,35 @@ bool collides(const Motion& motion1, const Motion& motion2) {
 	return false;
 }
 
+// Check if point is in the triangle with vertices v0, v1, v2
+bool point_in_triangle(vec2 point, vec2 v0, vec2 v1, vec2 v2) {
+    // Calculate barycentric coordinates
+    float denom = (v1.y - v2.y) * (v0.x - v2.x) + (v2.x - v1.x) * (v0.y - v2.y);
+    float a = ((v1.y - v2.y) * (point.x - v2.x) + (v2.x - v1.x) * (point.y - v2.y)) / denom;
+    float b = ((v2.y - v0.y) * (point.x - v2.x) + (v0.x - v2.x) * (point.y - v2.y)) / denom;
+    float c = 1 - a - b;
+
+    // test collision
+    return 0 <= a && a <= 1 && 0 <= b && b <= 1 && 0 <= c && c <= 1;
+}
+
+// Transform vertex on mesh to its in-game position
+vec2 transform(vec2 vertex, const Motion& mesh_motion) {
+    // rotate
+    float c = cosf(mesh_motion.angle);
+    float s = sinf(mesh_motion.angle);
+    mat2 R = { { c, s },{ -s, c } };
+    vertex = vertex * R;
+
+        // scale
+    vertex = vertex * mesh_motion.scale;
+
+        // translate to mesh entity position position
+    vertex = vertex + mesh_motion.position;
+
+    return vertex;
+}
+
 // For mesh-box collision
 bool mesh_collides(const Entity& mesh_entity, const Motion& mesh_motion, const Motion& box_motion)
 {    
@@ -66,25 +76,45 @@ bool mesh_collides(const Entity& mesh_entity, const Motion& mesh_motion, const M
 	auto mesh = registry.meshPtrs.get(mesh_entity);
 	std::vector<ColoredVertex> vertices = mesh->vertices;
 
+    // Check if any vertex of the mesh is in box bounding box
 	for(uint i = 0; i < vertices.size(); i++) {
 		vec3 relative_pos = vertices[i].position;
 		vec2 pos = vec2( relative_pos.x, relative_pos.y );
-		
-		// rotate
-		float c = cosf(mesh_motion.angle);
-		float s = sinf(mesh_motion.angle);
-		mat2 R = { { c, s },{ -s, c } };
-		pos = pos * R;
 
-		pos = pos * mesh_motion.scale; // scale
-
-		pos = pos + mesh_motion.position; // translate to mesh entity position position
+        pos = transform(pos, mesh_motion);
 
 		if (pos.y < box_top_left.y + abs(box_motion.scale.y)
 		&& pos.y > box_top_left.y
 		&& pos.x < box_top_left.x + abs(box_motion.scale.x)
 		&& pos.x > box_top_left.x)
 			return true;
+	}
+
+    // Check if any of the box bounding box corners are within the triangles that make up the mesh
+    std::vector<uint16_t> vertex_indices = mesh->vertex_indices;
+    for(uint i = 0; i < vertex_indices.size(); i+=3) {
+        // Get vertices of the trangle face
+        uint16_t v0_index = vertex_indices[i];
+        uint16_t v1_index = vertex_indices[i+1];
+        uint16_t v2_index = vertex_indices[i+2];
+		vec2 v0 = vec2( vertices[v0_index].position.x , vertices[v0_index].position.y );
+        vec2 v1 = vec2( vertices[v1_index].position.x , vertices[v1_index].position.y );
+        vec2 v2 = vec2( vertices[v2_index].position.x , vertices[v2_index].position.y );
+        v0 = transform(v0, mesh_motion);
+        v1 = transform(v1, mesh_motion);
+        v2 = transform(v2, mesh_motion);
+
+        // Get corner position of the box BB
+        // box_top_left already exists
+        vec2 box_top_right = box_top_left + vec2( abs(box_motion.scale.x) , 0 );
+        vec2 box_bottom_left = box_top_left + vec2( 0 , abs(box_motion.scale.y) );
+        vec2 box_bottom_right = box_top_left + vec2( abs(box_motion.scale.x) , abs(box_motion.scale.y) );
+
+        // Check if point is in triangle
+        if (point_in_triangle(box_top_left, v0, v1, v2)) return true;
+        if (point_in_triangle(box_top_right, v0, v1, v2)) return true;
+        if (point_in_triangle(box_bottom_left, v0, v1, v2)) return true;
+        if (point_in_triangle(box_bottom_right, v0, v1, v2)) return true;
 	}
 
 	return false;
@@ -362,10 +392,10 @@ void PhysicsSystem::step(float elapsed_ms)
                 // if player is entity_i do mesh-based collision with entity_i
 				if (registry.stickies.has(entity_i) && registry.players.has(entity_j)) {
 					is_colliding = mesh_collides(entity_i, motion_i, motion_j);
-                    if (is_colliding) std::cout << "player slowed down" << std::endl;
+                    if (is_colliding) std::cout << "player slowed down (mesh collision)" << std::endl;
 				} else if (registry.stickies.has(entity_j) && registry.players.has(entity_i)) {
                     is_colliding = mesh_collides(entity_j, motion_j, motion_i);
-                    if (is_colliding) std::cout << "player slowed down" << std::endl;
+                    if (is_colliding) std::cout << "player slowed down (mesh collision)" << std::endl;
                 }
 
                 if (is_colliding) {
