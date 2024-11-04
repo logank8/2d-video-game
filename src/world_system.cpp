@@ -6,6 +6,7 @@
 #include <cassert>
 #include <sstream>
 #include <iostream>
+#include <fstream> 
 
 #include "physics_system.hpp"
 #include "animation_system.hpp"
@@ -27,6 +28,9 @@ const int FPS_COUNTER_MS = 1000;
 int lightflicker_counter_ms;
 int fps_counter_ms;
 int fps = 0;
+bool display_fps = false;
+
+bool is_tutorial_on = false;
 
 // create the underwater world
 WorldSystem::WorldSystem()
@@ -158,12 +162,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	vec2 player_pos = motions_registry.get(my_player).position;
 	vec2 world_origin = vec2(-1860, -3760);
 
-	fps_counter_ms -= elapsed_ms_since_last_update;
-	if (fps_counter_ms <= 0.f) {
-		fps = (int)(1000 / elapsed_ms_since_last_update);
-		fps_counter_ms = FPS_COUNTER_MS;
+	if (display_fps) {
+		fps_counter_ms -= elapsed_ms_since_last_update;
+		if (fps_counter_ms <= 0.f) {
+			fps = (int)(1000 / elapsed_ms_since_last_update);
+			fps_counter_ms = FPS_COUNTER_MS;
+		}
+		createText({ 1000.f, 650.f }, 1.f, "FPS: " + std::to_string(fps), glm::vec3(1.0f, 0.f, 0.f));
 	}
-	createText({ 1000.f, 650.f }, { 0,0 }, "FPS: " + std::to_string(fps), glm::vec3(1.0f, 0.f, 0.f));
 	
 	for (int i = (int) motions_registry.components.size()-1; i>=0; --i) {
 		Motion& motion = motions_registry.components[i];
@@ -685,6 +691,18 @@ bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
 
+// Helper function to read a file line by line
+std::vector<std::string> read_file(std::string filepath) {
+	std::ifstream ReadFile(filepath);
+	std::string text;
+	std::vector <std::string> lines;
+	while (std::getline(ReadFile, text)) {
+		lines.push_back(text);
+	}
+	ReadFile.close();
+	return lines;
+}
+
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Resetting game
@@ -697,7 +715,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
 		is_paused = !is_paused;
+		ScreenState& screen = registry.screenStates.components[0];
+		if (is_paused) {
+			screen.darken_screen_factor = 0.9;
+		}
+		else {
+			screen.darken_screen_factor = 0;
+		}
 		std::cout << is_paused << std::endl;
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_F) {
+		display_fps = !display_fps;
 	}
 
 	// Debugging
@@ -794,7 +823,32 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	
+	// Tutorial
+	if (action == GLFW_RELEASE && key == GLFW_KEY_T) {
+		ScreenState& screen = registry.screenStates.components[0];
+		// if the game is already paused then this shouldn't work
+		if (!is_paused) {
+			is_paused = true;
+			is_tutorial_on = true;
+			screen.darken_screen_factor = 0.9;
+			float tutorial_header_x = window_width_px / 2 - 120;
+			float tutorial_header_y = 600;
+			glm::vec3 white = glm::vec3(1.f, 1.f, 1.f);
+			createText({ tutorial_header_x, tutorial_header_y }, 1.0, "TUTORIAL", white);
+			std::vector<std::string> lines = read_file(PROJECT_SOURCE_DIR + std::string("data/tutorial/tutorial.txt"));
+			float y_spacer = 80.f;
+			for (std::string line : lines) {
+				// Render each line
+				createText({ tutorial_header_x - 400.f, tutorial_header_y - y_spacer }, 0.6f, line, white);
+				y_spacer += 70.f;
+			}
+		}
+		else if (is_tutorial_on) {
+			is_paused = false;
+			is_tutorial_on = false;
+			screen.darken_screen_factor = 0.0;
+		}
+	}
 
 	// Dash movement
 	if (registry.dashing.has(my_player)) {

@@ -240,11 +240,11 @@ void RenderSystem::renderText() {
 		Motion& motion_component = registry.motions.get(entity);
 		float x = motion_component.position.x;
 		float y = motion_component.position.y;
-		float scale = 1.0f; // currently not using motion's scale, just 1.0f
 
 		Text& text_component = registry.texts.get(entity);
 		glm::vec3 color = text_component.color;
 		std::string text = text_component.content;
+		float scale = text_component.scale;
 
 		// get shader uniforms
 		GLint textColor_location =

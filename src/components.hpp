@@ -178,6 +178,7 @@ struct Mesh
 struct Text {
 	std::string content = "";
 	glm::vec3 color;
+	float scale;
 };
 
 /**

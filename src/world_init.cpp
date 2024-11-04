@@ -90,7 +90,7 @@ Entity createHPBar(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createText(vec2 pos, vec2 scale, std::string content, glm::vec3 color) {
+Entity createText(vec2 pos, float scale, std::string content, glm::vec3 color) {
 	auto entity = Entity();
 
 	registry.renderRequests.insert(
@@ -106,12 +106,13 @@ Entity createText(vec2 pos, vec2 scale, std::string content, glm::vec3 color) {
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	motion.position = pos;
-	motion.scale = scale;
+	motion.scale = {1.f, 1.f};
 
 	// Create text component
 	Text& text = registry.texts.emplace(entity);
 	text.content = content;
 	text.color = color;
+	text.scale = scale;
 
 	registry.debugComponents.emplace(entity);
 	return entity;

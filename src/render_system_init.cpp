@@ -68,7 +68,7 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	initializeGlEffects();
 	initializeGlGeometryBuffers();
 	initializeSpriteSheets();
-	fontInit(PROJECT_SOURCE_DIR + std::string("data/fonts/Kenney_Future.ttf"), 48);
+	fontInit(PROJECT_SOURCE_DIR + std::string("data/fonts/Kenney_Pixel.ttf"), 74);
 
 	return true;
 }

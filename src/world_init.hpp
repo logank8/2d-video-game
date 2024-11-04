@@ -41,7 +41,7 @@ Entity createLine(vec2 position, vec2 size);
 Entity createEgg(vec2 pos, vec2 size);
 
 // Text
-Entity createText(vec2 pos, vec2 scale, std::string text, glm::vec3 color);
+Entity createText(vec2 pos, float scale, std::string text, glm::vec3 color);
 
 // a wall
 Entity createWalls(RenderSystem* renderer, vec2 pos, bool is_side_wall);
