@@ -49,7 +49,7 @@ void main()
 
 	vec3 diffuse = diff * vec3(1.0, 1.0, 1.0);
 
-	float specularStrength = 0.2;
+	float specularStrength = 0.1;
 
 	vec3 viewDir = normalize(viewPos1 - fragPos);
 	vec3 reflectDir = reflect(-lightDir, norm);
@@ -93,16 +93,8 @@ void main()
 				color = color;
 			} 
 			else {
-				color = in_color;
+				color = in_color;		
 			}
 		}
 	}
-
-
-	// points to cut out of box
-	// x=-0.98 -> y = [0.95, 0.91], [0.79, 0.75]
-	// x=-0.97 -> y = [0.95, 0.92], [0.78, 0.75]
-	// x=-0.96 -> y = [0.95, 0.93], [0.77, 0.75]
-	// x=-0.95 -> y = [0.95, 0.94], [0.76, 0.75]
-	// x=-0.94 -> y = 0.94, 0.75
 }
