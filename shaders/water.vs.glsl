@@ -16,6 +16,6 @@ void main()
 	texcoord = (in_position.xy + 1) / 2.f;
 
     // pass normal and fragment position to fragment shader
-    normal = (vec3(0, 0, 1) - vec3(in_position.xy, 0));
+    normal = (viewPos - vec3(in_position.xy, 0));
     fragPos = vec3(in_position.xy, 0); // not sure about the values we're passing here...
 }

@@ -31,8 +31,8 @@ void main()
 	// general lighting
 	// calculate ambient component
 
-	// viewPos: center of screen
-	vec3 viewPos1 = vec3(0, 0, 2);
+	// viewPos
+	vec3 viewPos1 = 2 * viewPos;
 
 	// ambient calculation
 	float lightStrength = 0.45;
@@ -49,7 +49,15 @@ void main()
 
 	vec3 diffuse = diff * vec3(1.0, 1.0, 1.0);
 
-	color = vec4((ambient + diffuse) * color.xyz, 1.0);
+	float specularStrength = 0.2;
+
+	vec3 viewDir = normalize(viewPos1 - fragPos);
+	vec3 reflectDir = reflect(-lightDir, norm);
+
+	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+	vec3 specular = specularStrength * spec * vec3(1.0, 1.0, 1.0);
+
+	color = vec4((ambient + diffuse + specular) * color.xyz, 1.0);
 	color = fade_color(color);
 
 	// excluding UI from lighting effects:

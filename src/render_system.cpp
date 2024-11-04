@@ -367,7 +367,7 @@ void RenderSystem::drawToScreen()
 	// Pass lighting variables
 	GLuint view_pos_uloc = glGetUniformLocation(water_program, "viewPos");
 
-	glUniform3f(view_pos_uloc, window_width_px / 2, window_height_px / 2, 1.0);
+	glUniform3f(view_pos_uloc, 0, 0, 1.0);
 
 	gl_has_errors();
 	// Set the vertex position and vertex texture coordinates (both stored in the
