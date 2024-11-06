@@ -29,7 +29,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG) {
 			transform.scale(vec2(2.5f,1.6f));
 		} else if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG_2) {
-			transform.scale(vec2(2.16f, 1.98f));
+			transform.scale(vec2(2.4f, 2.2f));
 		} else if (enemy.enemy_type == ENEMY_TYPES::RANGED) {
 			transform.scale(vec2(1.5, 2.7));
 		} else if (enemy.enemy_type == ENEMY_TYPES::PROJECTILE) {

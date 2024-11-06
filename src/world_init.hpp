@@ -27,9 +27,6 @@ const float TILE_PX_SIZE = 16.f;
 const float BASIC_ATTACK_WIDTH = 100.f;
 const float BASIC_ATTACK_HEIGHT = 100.f;
 
-const float PLANT_BB_HEIGHT = 72.f;
-const float PLANT_BB_WIDTH = 60.f;
-
 
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
@@ -62,7 +59,7 @@ Entity createText(vec2 pos, float scale, std::string text, glm::vec3 color);
 Entity createWalls(RenderSystem* renderer, vec2 pos, bool side_wall);
 
 // a piece of furniture
-Entity createFurniture(RenderSystem* renderer, vec2 pos, vec2 size);
+Entity createFurniture(RenderSystem* renderer, vec2 pos);
 
 // a slime patch
 Entity createSlimePatch(RenderSystem* renderer, vec2 pos);

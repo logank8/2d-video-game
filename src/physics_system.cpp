@@ -166,22 +166,18 @@ bool is_walkable(const vec2& pos, vec2 dir) {
     // Check for clipping through walls when moving diagonally
     if (dir == diagonals[0]) {  // Moving top-right
         if (map[grid_y][grid_x - 1] == 0 || map[grid_y - 1][grid_x] == 0) return false;
-        if (map[grid_y][grid_x - 1] == 2 || map[grid_y - 1][grid_x] == 2) return false;
     }
     else if (dir == diagonals[1]) {  // Moving top-left
         if (map[grid_y][grid_x + 1] == 0 || map[grid_y - 1][grid_x] == 0) return false;
-        if (map[grid_y][grid_x + 1] == 2 || map[grid_y - 1][grid_x] == 2) return false;
     }
     else if (dir == diagonals[2]) {  // Moving bottom-right
         if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x - 1] == 0) return false;
-        if (map[grid_y + 1][grid_x] == 2 || map[grid_y][grid_x - 1] == 2) return false;
     }
     else if (dir == diagonals[3]) {  // Moving bottom-left
         if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x + 1] == 0) return false;
-        if (map[grid_y + 1][grid_x] == 2 || map[grid_y][grid_x + 1] == 2) return false;
     }
 
-    return map[grid_y][grid_x] != 0 && map[grid_y][grid_x] != 2;
+    return map[grid_y][grid_x] != 0;
 }
 
 // Checking for line of sight using Bresenham's algorithm 
@@ -215,7 +211,7 @@ bool PhysicsSystem::has_los(const vec2& start, const vec2& end) {
                 return false;
             }
 
-            if (map[y][x] == 0 || map[y][x] == 2) {
+            if (map[y][x] == 0) {
                 return false;
             }
 
@@ -234,7 +230,7 @@ bool PhysicsSystem::has_los(const vec2& start, const vec2& end) {
                 return false;
             }
 
-            if (map[y][x] == 0 || map[y][x] == 2) {
+            if (map[y][x] == 0) {
                 return false;
             }
 
@@ -250,7 +246,7 @@ bool PhysicsSystem::has_los(const vec2& start, const vec2& end) {
     if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size()) {
         return false;
     }
-    return map[y][x] != 0 && map[y][x] != 2;
+    return map[y][x] != 0;
 }
 
 
@@ -427,8 +423,9 @@ void update_enemy_movement(Entity enemy, float step_seconds) {
 
             float length = sqrt(direction.x * direction.x + direction.y * direction.y);
             if (length > 0) {
-                registry.deadlys.get(enemy).state = ENEMY_STATE::RUN;
-                direction = normalize(direction);
+                direction.x /= length;
+                direction.y /= length;
+
                 float& step_second_counter = registry.deadlys.get(enemy).movement_timer;
                 float movement_limit = round((TILE_SIZE / motion.velocity.x) * 10.0f) / 10.0f;
 
@@ -467,8 +464,6 @@ void update_enemy_movement(Entity enemy, float step_seconds) {
                 if (length == 0.f) {
                     path.current_index++;
                 }
-            } else {
-                registry.deadlys.get(enemy).state = ENEMY_STATE::IDLE;
             }
         }
     }

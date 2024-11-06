@@ -49,7 +49,6 @@ private:
 	// restart level
 	void restart_game();
 
-
 	// OpenGL window handle
 	GLFWwindow* window;
 
