@@ -504,11 +504,11 @@ void PhysicsSystem::step(float elapsed_ms)
                 }
                 
                 // touching health buffs
-                if (registry.healthBuffs.has(entity_i) && registry.players.has(entity_j)) {
-                    Buff& hb = registry.healthBuffs.get(entity_i);
+                if (registry.buffs.has(entity_i) && registry.players.has(entity_j)) {
+                    Buff& hb = registry.buffs.get(entity_i);
                     hb.touching = true;
-                } else if (registry.healthBuffs.has(entity_j) && registry.players.has(entity_i)) {
-                    Buff& hb = registry.healthBuffs.get(entity_j);
+                } else if (registry.buffs.has(entity_j) && registry.players.has(entity_i)) {
+                    Buff& hb = registry.buffs.get(entity_j);
                     hb.touching = true;
                 }
 
@@ -526,8 +526,8 @@ void PhysicsSystem::step(float elapsed_ms)
 
     // Modify health buffs that are not touching player
     const Motion& player_motion = registry.motions.get(registry.players.entities[0]);
-    for (Entity e : registry.healthBuffs.entities) {
-        Buff& hb = registry.healthBuffs.get(e);
+    for (Entity e : registry.buffs.entities) {
+        Buff& hb = registry.buffs.get(e);
         if (hb.touching) {
             if (!collides(registry.motions.get(e),player_motion)) {
                 hb.touching = false;

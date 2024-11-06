@@ -1155,24 +1155,30 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	if (key == GLFW_KEY_E && action == GLFW_RELEASE) {
-		for (Entity e : registry.healthBuffs.entities) {
-			Buff& buff = registry.healthBuffs.get(e);
+		for (Entity e : registry.buffs.entities) {
+			Buff& buff = registry.buffs.get(e);
 			if (buff.touching) {
-				// gain health
 				Health& p_health = registry.healths.get(my_player);
-				if (p_health.hit_points < 200) {
-					std::cout << "player regained health" << std::endl;
-					p_health.hit_points += min(25.f, 200.f - p_health.hit_points);
-				}
-
-				vec2 effectpos = {registry.motions.get(e).position.x + (-0.5 * (registry.motions.get(e).position.x - registry.motions.get(my_player).position.x)), (float) registry.motions.get(e).position.y - 20.f};
-				createEffect(renderer, effectpos, 1400.f, EFFECT_TYPE::SMOKE);
-				
 				RenderRequest& hp_bar_render = registry.renderRequests.get(hp_bar);
-				
-				if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_FULL) {
-					hp_bar_render.used_texture = static_cast<TEXTURE_ASSET_ID>(static_cast<int>(hp_bar_render.used_texture) + 1);
+				switch (buff.type) {
+					case BUFF_TYPE::HEALTH:
+						// gain health
+						if (p_health.hit_points < 200) {
+							std::cout << "player regained health" << std::endl;
+							p_health.hit_points += min(buff.factor * 25.f, 200.f - p_health.hit_points);
+							createEffect(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);
+						}
+					
+						if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_FULL) {
+							hp_bar_render.used_texture = static_cast<TEXTURE_ASSET_ID>(static_cast<int>(hp_bar_render.used_texture) + 1);
+						}
+						break;
+					default:
+						std::cout << "player speed increased" << std::endl;
+						pmotion.velocity *= buff.factor;
+						createEffect(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);
 				}
+				
 			} 
 		}
 

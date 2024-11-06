@@ -41,7 +41,7 @@ public:
 	ComponentContainer<Text> texts;
 	ComponentContainer<PlayerAttack> playerAttacks;
 	ComponentContainer<LightUp> lightUps;
-	ComponentContainer<Buff> healthBuffs;
+	ComponentContainer<Buff> buffs;
 	ComponentContainer<Effect> effects;
 
 	// constructor that adds all containers for looping over them
@@ -78,7 +78,7 @@ public:
 		registry_list.push_back(&texts);
 		registry_list.push_back(&playerAttacks);
 		registry_list.push_back(&lightUps);
-		registry_list.push_back(&healthBuffs);
+		registry_list.push_back(&buffs);
 		registry_list.push_back(&effects);
 	}
 

@@ -1,6 +1,8 @@
 #include "world_init.hpp"
 #include "tiny_ecs_registry.hpp"
 
+#include <iostream>
+
 Entity createPlayer(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
@@ -607,14 +609,23 @@ Entity createBuff(RenderSystem* renderer, vec2 pos, BUFF_TYPE type) {
 		case BUFF_TYPE::HEALTH:
 			sprite = SPRITE_ASSET_ID::GREY_CAT;
 			sprite_name = "greycat";
+			registry.buffs.insert(entity, {
+				1, // regain 1 heart
+				type,
+				false
+			});
 			break;
 		default:
 			sprite = SPRITE_ASSET_ID::ORANGE_CAT;
 			sprite_name = "orangecat";
+			registry.buffs.insert(entity, {
+				2, // speed * 2
+				type,
+				false
+			});
 	}
 
 	// create an empty component for the furniture as a solid object
-	registry.healthBuffs.emplace(entity);
 	registry.renderRequests.insert(
 		entity, {
 			TEXTURE_ASSET_ID::TEXTURE_COUNT,
@@ -642,7 +653,7 @@ Entity createBuff(RenderSystem* renderer, vec2 pos, BUFF_TYPE type) {
 }
 
 void createSmoke(RenderSystem* renderer, vec2 pos) {
-	for (int i = 0; i < 50; i++) {
+	for (int i = 0; i < 70; i++) {
 		createEffect(renderer, pos, 1000, EFFECT_TYPE::SMOKE);
 	}
 }
@@ -667,9 +678,10 @@ Entity createEffect(RenderSystem* renderer, vec2 pos, float lifespan_ms, EFFECT_
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::HEART;
 
 	switch (type) {
-		case EFFECT_TYPE::SMOKE:
+		case (EFFECT_TYPE::SMOKE):
 			// change velocity stuff so it's in a circle around
-			motion.velocity = {(pow(-1, rand() % 2)) * (rand() % 15), (pow(-1, rand() % 2)) * (rand() % 15)};
+			motion.velocity = {(pow(-1, rand() % 2)) * (rand() % 12), (pow(-1, rand() % 2)) * (rand() % 12)};
+			
 			motion.scale = vec2(20, 20);
 			texture = TEXTURE_ASSET_ID::SMOKE_PARTICLE;
 			break;

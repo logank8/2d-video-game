@@ -37,7 +37,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		}
 	}
 
-	if (registry.healthBuffs.has(entity)) {
+	if (registry.buffs.has(entity)) {
 		transform.scale(vec2(2, 2));
 	}
 
