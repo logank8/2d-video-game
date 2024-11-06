@@ -35,10 +35,10 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos);
 Entity createHPBar(RenderSystem* renderer, vec2 pos);
 
 // the prey
-Entity createFish(RenderSystem* renderer, vec2 position);
+Entity createSlowEnemy(RenderSystem* renderer, vec2 position);
 
 // the enemy
-Entity createEel(RenderSystem* renderer, vec2 position);
+Entity createFastEnemy(RenderSystem* renderer, vec2 position);
 
 Entity createRangedEnemy(RenderSystem* renderer, vec2 position);
 
