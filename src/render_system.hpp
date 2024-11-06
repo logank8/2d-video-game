@@ -54,9 +54,8 @@ class RenderSystem {
 			textures_path("plant.png"),
 			textures_path("wall.png"),
 			textures_path("side_wall.png"),
-			textures_path("player.png"),
-			textures_path("grey_cat.png"),
-			textures_path("orange_cat.png")
+			textures_path("player.png")
+			
 	};
 
 	std::array<GLuint, effect_count> effects;

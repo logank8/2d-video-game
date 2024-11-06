@@ -4,7 +4,7 @@
 #include "world_system.hpp"
 
 WorldSystem world;
-PhysicsSystem physics;
+PhysicsSystem phsyics;
 std::vector<std::vector<int>> map = world.get_current_map();
 const float TILE_SIZE = 100.0f;
 
@@ -402,7 +402,7 @@ void update_enemy_movement(Entity enemy, float step_seconds) {
     // - the enemy has line of sight of the palyer
     if ((!registry.paths.has(enemy) || timer.timer >= PATH_UPDATE_TIME) && 
         (grid_x == raw_x && grid_y == raw_y) && 
-        physics.has_los(enemy_motion.position, player_motion.position)) {
+        phsyics.has_los(enemy_motion.position, player_motion.position)) {
 
         std::vector<vec2> new_path = find_path(motion, player_motion);
 
@@ -502,15 +502,6 @@ void PhysicsSystem::step(float elapsed_ms)
                     is_colliding = mesh_collides(entity_j, motion_j, motion_i);
                     if (is_colliding) std::cout << "player slowed down (mesh collision)" << std::endl;
                 }
-                
-                // touching health buffs
-                if (registry.healthBuffs.has(entity_i) && registry.players.has(entity_j)) {
-                    Buff& hb = registry.healthBuffs.get(entity_i);
-                    hb.touching = true;
-                } else if (registry.healthBuffs.has(entity_j) && registry.players.has(entity_i)) {
-                    Buff& hb = registry.healthBuffs.get(entity_j);
-                    hb.touching = true;
-                }
 
                 if (is_colliding) {
                     // Create a collisions event
@@ -523,17 +514,6 @@ void PhysicsSystem::step(float elapsed_ms)
             }
 		}
 	}
-
-    // Modify health buffs that are not touching player
-    const Motion& player_motion = registry.motions.get(registry.players.entities[0]);
-    for (Entity e : registry.healthBuffs.entities) {
-        Buff& hb = registry.healthBuffs.get(e);
-        if (hb.touching) {
-            if (!collides(registry.motions.get(e),player_motion)) {
-                hb.touching = false;
-            }
-        }
-    }
     
 	// Move fish based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.

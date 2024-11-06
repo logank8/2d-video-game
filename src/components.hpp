@@ -19,12 +19,6 @@ enum class ENEMY_STATE {
 	DEAD = ATTACK + 1
 };
 
-enum class BUFF_TYPE {
-	HEALTH = 0,
-	SPEED = HEALTH + 1,
-	ATTACK = SPEED + 1
-};
-
 // Player component
 struct Player
 {
@@ -147,16 +141,6 @@ struct Health
 struct LightUp 
 {
 	float duration_ms = 100.f;
-};
-
-// Health buff
-struct Buff
-{
-	float factor = 1;
-	BUFF_TYPE type = BUFF_TYPE::HEALTH;
-	// collision stuff - 
-	// if it collides on bounding box then allow key to interact with entity
-	bool touching = false;
 };
 
 // All data relevant to the shape and motion of entities
@@ -294,9 +278,7 @@ enum class TEXTURE_ASSET_ID {
 	WALL = FURNITURE + 1,
 	SIDE_WALL = WALL + 1,
 	PLAYERS = SIDE_WALL + 1,
-	GREY_CAT = PLAYERS + 1,
-	ORANGE_CAT = GREY_CAT + 1,
-	TEXTURE_COUNT = ORANGE_CAT + 1
+	TEXTURE_COUNT = PLAYERS + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -305,9 +287,7 @@ enum class SPRITE_ASSET_ID {
 	SKELETON = PLAYER + 1,
 	SLIME = SKELETON + 1,
 	RANGED_ENEMY = SLIME + 1,
-	GREY_CAT = RANGED_ENEMY + 1,
-	ORANGE_CAT = GREY_CAT + 1,
-	SPRITE_COUNT = ORANGE_CAT + 1,
+	SPRITE_COUNT = RANGED_ENEMY + 1,
 };
 const int sprite_count = (int) SPRITE_ASSET_ID::SPRITE_COUNT;
 
