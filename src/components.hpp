@@ -12,6 +12,13 @@ enum class PLAYER_STATE {
 	DEAD = DASH + 1
 };
 
+enum class ENEMY_STATE {
+	IDLE = 0,
+	RUN = IDLE + 1,
+	ATTACK = RUN + 1,
+	DEAD = ATTACK + 1
+};
+
 // Player component
 struct Player
 {
@@ -57,6 +64,7 @@ struct Deadly
 {
 	ENEMY_TYPES enemy_type = ENEMY_TYPES::CONTACT_DMG;
 	float movement_timer = 0.f;
+	ENEMY_STATE state = ENEMY_STATE::IDLE;
 };
 
 struct Ranged

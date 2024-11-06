@@ -221,8 +221,17 @@ Entity createSlowEnemy(RenderSystem* renderer, vec2 position)
 		idle_f_vec
 	};
 
+	std::vector<int> run_f_vec = {18, 19, 20, 21, 22, 23};
+	Animation run_f = {
+		"slowenemy_run_f",
+		10,
+		SPRITE_ASSET_ID::SKELETON,
+		run_f_vec
+	};
+
 	auto& animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;
+	animSet.animations[run_f.name] = run_f;
 	animSet.current_animation = idle_f.name;
 
 	return entity;
@@ -271,8 +280,17 @@ Entity createFastEnemy(RenderSystem* renderer, vec2 position)
 		idle_f_vec
 	};
 
+	std::vector<int> run_f_vec = {10, 11, 12, 13, 14};
+	Animation run_f = {
+		"fastenemy_run_f",
+		8,
+		SPRITE_ASSET_ID::SLIME,
+		run_f_vec
+	};
+
 	auto& animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;
+	animSet.animations[run_f.name] = run_f;
 	animSet.current_animation = idle_f.name;
 
 	return entity;
@@ -316,12 +334,21 @@ Entity createRangedEnemy(RenderSystem* renderer, vec2 position)
 	Animation idle_f = {
 		"rangedenemy_idle_f",
 		12, 
-		SPRITE_ASSET_ID::SLIME,
+		SPRITE_ASSET_ID::RANGED_ENEMY,
 		idle_f_vec
+	};
+
+	std::vector<int> run_f_vec = {8, 9, 10, 11, 12, 13, 14, 15};
+	Animation run_f = {
+		"rangedenemy_run_f",
+		10,
+		SPRITE_ASSET_ID::RANGED_ENEMY,
+		run_f_vec
 	};
 
 	auto& animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;
+	animSet.animations[run_f.name] = run_f;
 	animSet.current_animation = idle_f.name;
 
 	return entity;
@@ -505,7 +532,7 @@ Entity createGround(RenderSystem* renderer, vec2 pos, vec2 size)
 	return entity;
 }
 
-Entity createFurniture(RenderSystem* renderer, vec2 pos)
+Entity createFurniture(RenderSystem* renderer, vec2 pos, vec2 size)
 {
 	auto entity = Entity();
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -516,7 +543,7 @@ Entity createFurniture(RenderSystem* renderer, vec2 pos)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = vec2({ TILE_PX_SIZE * 3, TILE_PX_SIZE * 3 });
+	motion.scale = vec2({ PLANT_BB_WIDTH, PLANT_BB_HEIGHT});
 
 	// create an empty component for the furniture as a solid object
 	registry.solidObjs.emplace(entity);
@@ -559,3 +586,4 @@ Entity createSlimePatch(RenderSystem* renderer, vec2 pos)
 
 	return entity;
 }
+

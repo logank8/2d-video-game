@@ -256,6 +256,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				createWalls(renderer, world_pos, false);
 				tile_vec.push_back(vec2(i, j));
 			}
+
+			// furniture spawning
+			if (map1[j][i] == 2) {
+				if (map1[j - 1][i] == 1 && map1[j][i-1] == 1) {
+					// add 2 while loops here to find furniture size
+					if (map1[j][i+1] == 1 && map1[j + 1][i] == 1) {
+						createFurniture(renderer, world_pos, {1, 1});
+					}
+				}
+				tile_vec.push_back(vec2(i, j));
+				
+			}
 			
 
 			// spawn enemies in any new tiles
@@ -535,7 +547,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	Motion& pmotion = registry.motions.get(my_player);
-	AnimationSet& animSet = registry.animationSets.get(my_player);
+	AnimationSet& animSet_player = registry.animationSets.get(my_player);
 
 	if (registry.deathTimers.has(my_player)) {
 		player.state = PLAYER_STATE::DEAD;
@@ -599,68 +611,117 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			break;
 	}
 
+	for (Entity enemy : registry.deadlys.entities) {
+		if (registry.deadlys.get(enemy).enemy_type == ENEMY_TYPES::PROJECTILE) {
+			continue;
+		}
+		Deadly& d = registry.deadlys.get(enemy);
 
-	// handle animations
+		switch (d.state) {
+			case ENEMY_STATE::RUN:
+				if (registry.motions.get(enemy).velocity == vec2(0, 0)) {
+					d.state = ENEMY_STATE::IDLE;
+				}
+				break;
+			default:
+				break;
+		}
+	}
 
 	switch(player.state) {
 		case PLAYER_STATE::DEAD:
-			animSet.current_animation = "player_die";
-			animSet.current_frame = 0;
+			animSet_player.current_animation = "player_die";
+			animSet_player.current_frame = 0;
 			break;
 		case PLAYER_STATE::DASH:
 			break;
 		case PLAYER_STATE::ATTACK:	
 			if (player.last_direction == vec2(0,1)) {
-				if (animSet.current_animation != "player_attack_f") {
-					animSet.current_frame = 0;
+				if (animSet_player.current_animation != "player_attack_f") {
+					animSet_player.current_frame = 0;
 				}
 
-				animSet.current_animation = "player_attack_f";
+				animSet_player.current_animation = "player_attack_f";
 			} else if (player.last_direction == vec2(1,0)) {
-				if (animSet.current_animation != "player_attack_s") {
-					animSet.current_frame = 0;
+				if (animSet_player.current_animation != "player_attack_s") {
+					animSet_player.current_frame = 0;
 				}
 
-				animSet.current_animation = "player_attack_s";
+				animSet_player.current_animation = "player_attack_s";
 			} else if (player.last_direction == vec2(-1,0)) {
-				if (animSet.current_animation != "player_attack_s") {
-					animSet.current_frame = 0;
+				if (animSet_player.current_animation != "player_attack_s") {
+					animSet_player.current_frame = 0;
 				}
 
-				animSet.current_animation = "player_attack_s";
+				animSet_player.current_animation = "player_attack_s";
 			} else {
-				if (animSet.current_animation != "player_attack_b") {
-					animSet.current_frame = 0;
+				if (animSet_player.current_animation != "player_attack_b") {
+					animSet_player.current_frame = 0;
 				}
 
-				animSet.current_animation = "player_attack_b";
+				animSet_player.current_animation = "player_attack_b";
 			}
 			break;
 		case PLAYER_STATE::RUN:
 			if (player.last_direction == vec2(1,0)) {
-				animSet.current_animation = "player_run_s";
+				animSet_player.current_animation = "player_run_s";
 			} else if (player.last_direction == vec2(-1,0)) {
-				animSet.current_animation = "player_run_s";
+				animSet_player.current_animation = "player_run_s";
 			} else if (player.last_direction == vec2(0,-1)) {
-				animSet.current_animation = "player_run_b";
+				animSet_player.current_animation = "player_run_b";
 			} else {
-				animSet.current_animation = "player_run_f";
+				animSet_player.current_animation = "player_run_f";
 			}
 			break;
 		case PLAYER_STATE::IDLE:
 			if (player.last_direction == vec2(1,0)) {
-				animSet.current_animation = "player_idle_s";
+				animSet_player.current_animation = "player_idle_s";
 			} else if (player.last_direction == vec2(-1,0)) {
-				animSet.current_animation = "player_idle_s";
+				animSet_player.current_animation = "player_idle_s";
 			} else if (player.last_direction == vec2(0,-1)) {
-				animSet.current_animation = "player_idle_b";
+				animSet_player.current_animation = "player_idle_b";
 			} else {
-				animSet.current_animation = "player_idle_f";
+				animSet_player.current_animation = "player_idle_f";
 			}
 			break;
 		default:
 			std::cout << "player state not found" << std::endl;
 			break;
+	}
+
+	for (Entity& e : registry.deadlys.entities) {
+		Deadly& enemy = registry.deadlys.get(e);
+		if (enemy.enemy_type == ENEMY_TYPES::PROJECTILE) {
+			continue;
+		}
+
+		AnimationSet& animSet_enemy = registry.animationSets.get(e);
+		std::string enemy_name = "";
+		switch (enemy.enemy_type) {
+			case ENEMY_TYPES::PROJECTILE:
+				continue;
+			case ENEMY_TYPES::RANGED:
+				enemy_name = "ranged";
+				break;
+			case ENEMY_TYPES::CONTACT_DMG:
+				enemy_name = "slow";
+				break;
+			case ENEMY_TYPES::CONTACT_DMG_2:
+				enemy_name = "fast";
+				break;
+			default:
+				break;
+		}
+		switch (enemy.state) {
+			case ENEMY_STATE::IDLE:
+				animSet_enemy.current_animation = enemy_name + "enemy_idle_f";
+				break;
+			case ENEMY_STATE::RUN:
+				animSet_enemy.current_animation = enemy_name + "enemy_run_f";
+				break;
+			default:
+				animSet_enemy.current_animation = enemy_name + "enemy_idle_f";
+		}
 	}
 
 	if (player.last_direction.x < 0) {
