@@ -41,6 +41,7 @@ public:
 	ComponentContainer<Text> texts;
 	ComponentContainer<PlayerAttack> playerAttacks;
 	ComponentContainer<LightUp> lightUps;
+	ComponentContainer<Buff> healthBuffs;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -76,6 +77,7 @@ public:
 		registry_list.push_back(&texts);
 		registry_list.push_back(&playerAttacks);
 		registry_list.push_back(&lightUps);
+		registry_list.push_back(&healthBuffs);
 	}
 
 	void clear_all_components() {

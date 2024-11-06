@@ -24,12 +24,15 @@ const float HPBAR_BB_WIDTH = 0.46f;
 const float HPBAR_BB_HEIGHT = 0.20f;
 
 const float TILE_PX_SIZE = 16.f;
+
 const float BASIC_ATTACK_WIDTH = 100.f;
 const float BASIC_ATTACK_HEIGHT = 100.f;
 
 const float PLANT_BB_HEIGHT = 72.f;
 const float PLANT_BB_WIDTH = 60.f;
 
+const float CAT_BB_HEIGHT = 50.f;
+const float CAT_BB_WIDTH = 40.f;
 
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
@@ -66,3 +69,5 @@ Entity createFurniture(RenderSystem* renderer, vec2 pos, vec2 size);
 
 // a slime patch
 Entity createSlimePatch(RenderSystem* renderer, vec2 pos);
+
+Entity createBuff(RenderSystem* renderer, vec2 pos, BUFF_TYPE type);

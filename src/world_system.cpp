@@ -33,7 +33,7 @@ bool display_fps = false;
 
 bool is_tutorial_on = false;
 
-PhysicsSystem physics;
+PhysicsSystem phsyics;
 
 // create the underwater world
 WorldSystem::WorldSystem()
@@ -339,7 +339,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				tile_vec.push_back(vec2(i, j));
 			}
 
-
+			if (map1[j][i] == 6) {
+				BUFF_TYPE type = static_cast<BUFF_TYPE>((int) (rand() % 3));
+				createBuff(renderer, world_pos, type);
+				tile_vec.push_back(vec2(i, j));
+			}
 		}
 	}
 
@@ -417,7 +421,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Spawn projectiles for ranged enemies
 	for (auto& ranged : registry.ranged.entities) {
 		//Don't shoot if there's no los
-		if (physics.has_los(registry.motions.get(ranged).position, player_pos)) {
+		if (phsyics.has_los(registry.motions.get(ranged).position, player_pos)) {
 			float& projectile_delay = registry.ranged.get(ranged).projectile_delay;
 			projectile_delay -= elapsed_ms_since_last_update * current_speed;
 			if (projectile_delay < 0.f) {
@@ -1140,6 +1144,24 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			pmotion.speed = 10000.f;
 			player.is_dash_up = false;
 		}
+	}
+
+	if (key == GLFW_KEY_E && action == GLFW_RELEASE) {
+		for (Entity e : registry.healthBuffs.entities) {
+			Buff& buff = registry.healthBuffs.get(e);
+			if (buff.touching) {
+				// gain health
+				Health& p_health = registry.healths.get(my_player);
+				p_health.hit_points += 25;
+				std::cout << "player regained health" << std::endl;
+				RenderRequest& hp_bar_render = registry.renderRequests.get(hp_bar);
+				
+				if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_FULL) {
+					hp_bar_render.used_texture = static_cast<TEXTURE_ASSET_ID>(static_cast<int>(hp_bar_render.used_texture) + 1);
+				}
+			} 
+		}
+
 	}
 
 
