@@ -673,7 +673,7 @@ Entity createEffect(RenderSystem* renderer, vec2 pos, float lifespan_ms, EFFECT_
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = vec2({ 50, 50});
+	motion.scale = vec2({ 60, 60});
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::HEART;
 

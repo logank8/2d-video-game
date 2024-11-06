@@ -238,8 +238,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			// if it is adjacent to three walls - use single side wall and rotate accordingly
 			// if it is adjacent to all four walls - default sprite
 
-
-
 			if ((i < 0) || (j < 0) || (i >= map1[0].size()) || j >= map1.size()) {
 				if ((std::find(tile_vec.begin(), tile_vec.end(), vec2(i, j)) == tile_vec.end())) {
 					createWalls(renderer, world_pos, false);
@@ -347,76 +345,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-
-
-	/*
-	//TODO: spawn frequencies and spawn radius to be adjusted
-	// Spawn Level 1 type enemy: slow with contact damage
-	next_fish_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.eatables.components.size() <= MAX_NUM_FISH && next_fish_spawn < 0.f) {
-		next_fish_spawn = (FISH_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (FISH_SPAWN_DELAY_MS / 2);
-		vec2 fish_pos;
-		float distance_to_player;
-		do {
-			//fish_pos = { 50.0f + uniform_dist(rng) * (window_width_px - 100.f), 50.f + uniform_dist(rng) * (window_height_px - 100.f) };
-			int i;
-			int j;
-			do {
-				i = static_cast<int>(uniform_dist(rng) * map1[0].size());
-				j = static_cast<int>(uniform_dist(rng) * map1.size());
-			} while (map1[j][i] != 1);
-			int tile_size = 100;
-			fish_pos = { (640 - (25 * 100)) + (i * tile_size) + (tile_size / 2), (640 - (44 * 100)) + (j * tile_size) + (tile_size / 2) };
-			distance_to_player = sqrt(pow(fish_pos.x - player_pos.x, 2) + pow(fish_pos.y - player_pos.y, 2));
-		} while (distance_to_player < 500.f);
-		Entity fish = createFish(renderer, fish_pos);
-		registry.motions.get(fish).velocity = { 2.5f, 2.5f };
-	}
-
-	// Spawn Level 2 type enemy: fast with contact damage
-	next_eel_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.deadlys.components.size() <= MAX_NUM_EELS && next_eel_spawn < 0.f) {
-		// reset timer
-		next_eel_spawn = (EEL_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (EEL_SPAWN_DELAY_MS / 2);
-		vec2 eel_pos;
-		float distance_to_player;
-		do {
-			int i;
-			int j;
-			do {
-				i = static_cast<int>(uniform_dist(rng) * map1[0].size());
-				j = static_cast<int>(uniform_dist(rng) * map1.size());
-			} while (map1[j][i] != 1);
-			int tile_size = 100;
-			eel_pos = { (640 - (25 * 100)) + (i * tile_size) + (tile_size / 2), (640 - (44 * 100)) + (j * tile_size) + (tile_size / 2) };
-			distance_to_player = sqrt(pow(eel_pos.x - player_pos.x, 2) + pow(eel_pos.y - player_pos.y, 2));
-		} while (distance_to_player < 500.f);
-		Entity eel = createEel(renderer, eel_pos);
-		registry.motions.get(eel).velocity = { 5.f, 5.f };
-	}
-
-	// Spawn Level 3 type enemy: slow ranged enemy
-	next_ranged_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.ranged.components.size() <= MAX_NUM_RANGED_ENEMY && next_ranged_spawn < 0.f) {
-		// reset timer
-		next_ranged_spawn = (RANGED_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_SPAWN_DELAY_MS / 2);
-		vec2 ranged_enemy_pos;
-		float distance_to_player;
-		do {
-			int i;
-			int j;
-			do {
-				i = static_cast<int>(uniform_dist(rng) * map1[0].size());
-				j = static_cast<int>(uniform_dist(rng) * map1.size());
-			} while (map1[j][i] != 1);
-			int tile_size = 100;
-			ranged_enemy_pos = { (640 - (25 * 100)) + (i * tile_size) + (tile_size / 2), (640 - (44 * 100)) + (j * tile_size) + (tile_size / 2) };
-			distance_to_player = sqrt(pow(ranged_enemy_pos.x - player_pos.x, 2) + pow(ranged_enemy_pos.y - player_pos.y, 2));
-		} while (distance_to_player < 500.f);
-		Entity ranged_enemy = createRangedEnemy(renderer, ranged_enemy_pos);
-		registry.motions.get(ranged_enemy).velocity = { 1.f, 1.f };
-	}
-	*/
 
 	// Spawn projectiles for ranged enemies
 	for (auto& ranged : registry.ranged.entities) {
@@ -1166,7 +1094,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 						if (p_health.hit_points < 200) {
 							std::cout << "player regained health" << std::endl;
 							p_health.hit_points += min(buff.factor * 25.f, 200.f - p_health.hit_points);
-							createEffect(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);
+							createEffect(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, 1300.f, EFFECT_TYPE::HEART);
 						}
 					
 						if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_FULL) {
@@ -1175,8 +1103,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 						break;
 					default:
 						std::cout << "player speed increased" << std::endl;
-						pmotion.velocity *= buff.factor;
-						createEffect(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);
+						pmotion.speed *= buff.factor;
+						createEffect(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, 1300.f, EFFECT_TYPE::HEART);
 				}
 				
 			} 
