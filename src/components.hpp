@@ -12,6 +12,19 @@ enum class PLAYER_STATE {
 	DEAD = DASH + 1
 };
 
+enum class ENEMY_STATE {
+	IDLE = 0,
+	RUN = IDLE + 1,
+	ATTACK = RUN + 1,
+	DEAD = ATTACK + 1
+};
+
+enum class BUFF_TYPE {
+	HEALTH = 0,
+	SPEED = HEALTH + 1,
+	ATTACK = SPEED + 1
+};
+
 // Player component
 struct Player
 {
@@ -24,14 +37,18 @@ struct Player
 
 	// For dashing and after taking damage;
 	bool invulnerable = false;
-	float invulnerable_duration_ms = 3000.f;
+	float invulnerable_duration_ms = 2000.f;
 	vec2 last_pos = { 0, 0 };
+	float dash_cooldown_ms = 1000.f;
+	float curr_dash_cooldown_ms = dash_cooldown_ms;
+	bool is_dash_up = true;
 
 	// For attacking
 	bool is_attacking = false;
 	float damage_multiplier = 2.0f;
 	float attack_duration_ms = 230.f;
 	float curr_attack_duration_ms = attack_duration_ms;
+	float knockback_strength = 0.3f;
 
 };
 
@@ -53,6 +70,7 @@ struct Deadly
 {
 	ENEMY_TYPES enemy_type = ENEMY_TYPES::CONTACT_DMG;
 	float movement_timer = 0.f;
+	ENEMY_STATE state = ENEMY_STATE::IDLE;
 };
 
 struct Ranged
@@ -123,6 +141,22 @@ struct Damage
 struct Health
 {
 	float hit_points = 200.f;
+};
+
+// light up damage effect
+struct LightUp 
+{
+	float duration_ms = 100.f;
+};
+
+// Health buff
+struct Buff
+{
+	float factor = 1;
+	BUFF_TYPE type = BUFF_TYPE::HEALTH;
+	// collision stuff - 
+	// if it collides on bounding box then allow key to interact with entity
+	bool touching = false;
 };
 
 // All data relevant to the shape and motion of entities
@@ -260,7 +294,9 @@ enum class TEXTURE_ASSET_ID {
 	WALL = FURNITURE + 1,
 	SIDE_WALL = WALL + 1,
 	PLAYERS = SIDE_WALL + 1,
-	TEXTURE_COUNT = PLAYERS + 1
+	GREY_CAT = PLAYERS + 1,
+	ORANGE_CAT = GREY_CAT + 1,
+	TEXTURE_COUNT = ORANGE_CAT + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -269,7 +305,9 @@ enum class SPRITE_ASSET_ID {
 	SKELETON = PLAYER + 1,
 	SLIME = SKELETON + 1,
 	RANGED_ENEMY = SLIME + 1,
-	SPRITE_COUNT = RANGED_ENEMY + 1,
+	GREY_CAT = RANGED_ENEMY + 1,
+	ORANGE_CAT = GREY_CAT + 1,
+	SPRITE_COUNT = ORANGE_CAT + 1,
 };
 const int sprite_count = (int) SPRITE_ASSET_ID::SPRITE_COUNT;
 

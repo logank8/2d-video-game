@@ -4,7 +4,7 @@
 #include "world_system.hpp"
 
 WorldSystem world;
-PhysicsSystem phsyics;
+PhysicsSystem physics;
 std::vector<std::vector<int>> map = world.get_current_map();
 const float TILE_SIZE = 100.0f;
 
@@ -166,18 +166,22 @@ bool is_walkable(const vec2& pos, vec2 dir) {
     // Check for clipping through walls when moving diagonally
     if (dir == diagonals[0]) {  // Moving top-right
         if (map[grid_y][grid_x - 1] == 0 || map[grid_y - 1][grid_x] == 0) return false;
+        if (map[grid_y][grid_x - 1] == 2 || map[grid_y - 1][grid_x] == 2) return false;
     }
     else if (dir == diagonals[1]) {  // Moving top-left
         if (map[grid_y][grid_x + 1] == 0 || map[grid_y - 1][grid_x] == 0) return false;
+        if (map[grid_y][grid_x + 1] == 2 || map[grid_y - 1][grid_x] == 2) return false;
     }
     else if (dir == diagonals[2]) {  // Moving bottom-right
         if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x - 1] == 0) return false;
+        if (map[grid_y + 1][grid_x] == 2 || map[grid_y][grid_x - 1] == 2) return false;
     }
     else if (dir == diagonals[3]) {  // Moving bottom-left
         if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x + 1] == 0) return false;
+        if (map[grid_y + 1][grid_x] == 2 || map[grid_y][grid_x + 1] == 2) return false;
     }
 
-    return map[grid_y][grid_x] != 0;
+    return map[grid_y][grid_x] != 0 && map[grid_y][grid_x] != 2;
 }
 
 // Checking for line of sight using Bresenham's algorithm 
@@ -211,7 +215,7 @@ bool PhysicsSystem::has_los(const vec2& start, const vec2& end) {
                 return false;
             }
 
-            if (map[y][x] == 0) {
+            if (map[y][x] == 0 || map[y][x] == 2) {
                 return false;
             }
 
@@ -230,7 +234,7 @@ bool PhysicsSystem::has_los(const vec2& start, const vec2& end) {
                 return false;
             }
 
-            if (map[y][x] == 0) {
+            if (map[y][x] == 0 || map[y][x] == 2) {
                 return false;
             }
 
@@ -246,7 +250,7 @@ bool PhysicsSystem::has_los(const vec2& start, const vec2& end) {
     if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size()) {
         return false;
     }
-    return map[y][x] != 0;
+    return map[y][x] != 0 && map[y][x] != 2;
 }
 
 
@@ -398,7 +402,7 @@ void update_enemy_movement(Entity enemy, float step_seconds) {
     // - the enemy has line of sight of the palyer
     if ((!registry.paths.has(enemy) || timer.timer >= PATH_UPDATE_TIME) && 
         (grid_x == raw_x && grid_y == raw_y) && 
-        phsyics.has_los(enemy_motion.position, player_motion.position)) {
+        physics.has_los(enemy_motion.position, player_motion.position)) {
 
         std::vector<vec2> new_path = find_path(motion, player_motion);
 
@@ -423,9 +427,8 @@ void update_enemy_movement(Entity enemy, float step_seconds) {
 
             float length = sqrt(direction.x * direction.x + direction.y * direction.y);
             if (length > 0) {
-                direction.x /= length;
-                direction.y /= length;
-
+                registry.deadlys.get(enemy).state = ENEMY_STATE::RUN;
+                direction = normalize(direction);
                 float& step_second_counter = registry.deadlys.get(enemy).movement_timer;
                 float movement_limit = round((TILE_SIZE / motion.velocity.x) * 10.0f) / 10.0f;
 
@@ -464,6 +467,8 @@ void update_enemy_movement(Entity enemy, float step_seconds) {
                 if (length == 0.f) {
                     path.current_index++;
                 }
+            } else {
+                registry.deadlys.get(enemy).state = ENEMY_STATE::IDLE;
             }
         }
     }
@@ -497,6 +502,15 @@ void PhysicsSystem::step(float elapsed_ms)
                     is_colliding = mesh_collides(entity_j, motion_j, motion_i);
                     if (is_colliding) std::cout << "player slowed down (mesh collision)" << std::endl;
                 }
+                
+                // touching health buffs
+                if (registry.healthBuffs.has(entity_i) && registry.players.has(entity_j)) {
+                    Buff& hb = registry.healthBuffs.get(entity_i);
+                    hb.touching = true;
+                } else if (registry.healthBuffs.has(entity_j) && registry.players.has(entity_i)) {
+                    Buff& hb = registry.healthBuffs.get(entity_j);
+                    hb.touching = true;
+                }
 
                 if (is_colliding) {
                     // Create a collisions event
@@ -509,6 +523,17 @@ void PhysicsSystem::step(float elapsed_ms)
             }
 		}
 	}
+
+    // Modify health buffs that are not touching player
+    const Motion& player_motion = registry.motions.get(registry.players.entities[0]);
+    for (Entity e : registry.healthBuffs.entities) {
+        Buff& hb = registry.healthBuffs.get(e);
+        if (hb.touching) {
+            if (!collides(registry.motions.get(e),player_motion)) {
+                hb.touching = false;
+            }
+        }
+    }
     
 	// Move fish based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.

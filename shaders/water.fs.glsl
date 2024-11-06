@@ -31,11 +31,11 @@ void main()
 	// general lighting
 	// calculate ambient component
 
-	// viewPos: center of screen
-	vec3 viewPos1 = vec3(0, 0, 2);
+	// viewPos - making it farther to make calculations come out nicer here 
+	vec3 viewPos1 = 2 * viewPos;
 
 	// ambient calculation
-	float lightStrength = 0.45;
+	float lightStrength = 0.35;
 	vec3 ambient = lightStrength * vec3(1.0, 1.0, 1.0);
 	// ambient done
 
@@ -49,7 +49,15 @@ void main()
 
 	vec3 diffuse = diff * vec3(1.0, 1.0, 1.0);
 
-	color = vec4((ambient + diffuse) * color.xyz, 1.0);
+	float specularStrength = 0.05;
+
+	vec3 viewDir = normalize(viewPos1 - fragPos);
+	vec3 reflectDir = reflect(-lightDir, norm);
+
+	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+	vec3 specular = specularStrength * spec * vec3(1.0, 1.0, 1.0);
+
+	color = vec4((ambient + diffuse + specular) * color.xyz, 1.0);
 	color = fade_color(color);
 
 	// excluding UI from lighting effects:
@@ -85,16 +93,8 @@ void main()
 				color = color;
 			} 
 			else {
-				color = in_color;
+				color = in_color;		
 			}
 		}
 	}
-
-
-	// points to cut out of box
-	// x=-0.98 -> y = [0.95, 0.91], [0.79, 0.75]
-	// x=-0.97 -> y = [0.95, 0.92], [0.78, 0.75]
-	// x=-0.96 -> y = [0.95, 0.93], [0.77, 0.75]
-	// x=-0.95 -> y = [0.95, 0.94], [0.76, 0.75]
-	// x=-0.94 -> y = 0.94, 0.75
 }

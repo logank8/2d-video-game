@@ -24,9 +24,15 @@ const float HPBAR_BB_WIDTH = 0.46f;
 const float HPBAR_BB_HEIGHT = 0.20f;
 
 const float TILE_PX_SIZE = 16.f;
-const float BASIC_ATTACK_WIDTH = 150.f;
-const float BASIC_ATTACK_HEIGHT = 150.f;
 
+const float BASIC_ATTACK_WIDTH = 100.f;
+const float BASIC_ATTACK_HEIGHT = 100.f;
+
+const float PLANT_BB_HEIGHT = 72.f;
+const float PLANT_BB_WIDTH = 60.f;
+
+const float CAT_BB_HEIGHT = 50.f;
+const float CAT_BB_WIDTH = 40.f;
 
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
@@ -35,10 +41,10 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos);
 Entity createHPBar(RenderSystem* renderer, vec2 pos);
 
 // the prey
-Entity createFish(RenderSystem* renderer, vec2 position);
+Entity createSlowEnemy(RenderSystem* renderer, vec2 position);
 
 // the enemy
-Entity createEel(RenderSystem* renderer, vec2 position);
+Entity createFastEnemy(RenderSystem* renderer, vec2 position);
 
 Entity createRangedEnemy(RenderSystem* renderer, vec2 position);
 
@@ -59,7 +65,9 @@ Entity createText(vec2 pos, float scale, std::string text, glm::vec3 color);
 Entity createWalls(RenderSystem* renderer, vec2 pos, bool side_wall);
 
 // a piece of furniture
-Entity createFurniture(RenderSystem* renderer, vec2 pos);
+Entity createFurniture(RenderSystem* renderer, vec2 pos, vec2 size);
 
 // a slime patch
 Entity createSlimePatch(RenderSystem* renderer, vec2 pos);
+
+Entity createBuff(RenderSystem* renderer, vec2 pos, BUFF_TYPE type);

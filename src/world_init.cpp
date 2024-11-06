@@ -91,6 +91,13 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 			SPRITE_ASSET_ID::PLAYER,
 			attack_b_vec
 		};
+	std::vector<int> die_vec = {54, 55, 56};
+	Animation die = {
+			"player_die",
+			15,
+			SPRITE_ASSET_ID::PLAYER,
+			die_vec
+		};
 
 
 	auto& animSet = registry.animationSets.emplace(entity);
@@ -103,6 +110,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	animSet.animations[attack_f.name] = attack_f;
 	animSet.animations[attack_b.name] = attack_b;
 	animSet.animations[attack_s.name] = attack_s;
+	animSet.animations[die.name] = die;
 	animSet.current_animation=idle_f.name;
 
 
@@ -173,7 +181,7 @@ Entity createText(vec2 pos, float scale, std::string content, glm::vec3 color) {
 	return entity;
 }
 
-Entity createFish(RenderSystem* renderer, vec2 position)
+Entity createSlowEnemy(RenderSystem* renderer, vec2 position)
 {
 	// Reserve en entity
 	auto entity = Entity();
@@ -205,10 +213,31 @@ Entity createFish(RenderSystem* renderer, vec2 position)
 			1
 		});
 
+	std::vector<int> idle_f_vec = {0, 1, 2, 3, 4, 5};
+	Animation idle_f = {
+		"slowenemy_idle_f",
+		15,
+		SPRITE_ASSET_ID::SKELETON,
+		idle_f_vec
+	};
+
+	std::vector<int> run_f_vec = {18, 19, 20, 21, 22, 23};
+	Animation run_f = {
+		"slowenemy_run_f",
+		10,
+		SPRITE_ASSET_ID::SKELETON,
+		run_f_vec
+	};
+
+	auto& animSet = registry.animationSets.emplace(entity);
+	animSet.animations[idle_f.name] = idle_f;
+	animSet.animations[run_f.name] = run_f;
+	animSet.current_animation = idle_f.name;
+
 	return entity;
 }
 
-Entity createEel(RenderSystem* renderer, vec2 position)
+Entity createFastEnemy(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
 
@@ -223,7 +252,8 @@ Entity createEel(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ EEL_BB_WIDTH * (sign(motion.velocity.x)) , EEL_BB_HEIGHT });
+	motion.scale = vec2({ EEL_BB_WIDTH * sign(motion.velocity.x), EEL_BB_HEIGHT });
+
 
 	// create an empty Eel component to be able to refer to all eels
 	Deadly& deadly = registry.deadlys.emplace(entity);
@@ -241,6 +271,27 @@ Entity createEel(RenderSystem* renderer, vec2 position)
 			GEOMETRY_BUFFER_ID::SPRITE,
 			1
 		});
+
+	std::vector<int> idle_f_vec = {0, 1};
+	Animation idle_f = {
+		"fastenemy_idle_f",
+		2, 
+		SPRITE_ASSET_ID::SLIME,
+		idle_f_vec
+	};
+
+	std::vector<int> run_f_vec = {10, 11, 12, 13, 14};
+	Animation run_f = {
+		"fastenemy_run_f",
+		8,
+		SPRITE_ASSET_ID::SLIME,
+		run_f_vec
+	};
+
+	auto& animSet = registry.animationSets.emplace(entity);
+	animSet.animations[idle_f.name] = idle_f;
+	animSet.animations[run_f.name] = run_f;
+	animSet.current_animation = idle_f.name;
 
 	return entity;
 }
@@ -279,6 +330,27 @@ Entity createRangedEnemy(RenderSystem* renderer, vec2 position)
 			0
 		});
 
+	std::vector<int> idle_f_vec = {0, 1, 2, 3, 4};
+	Animation idle_f = {
+		"rangedenemy_idle_f",
+		12, 
+		SPRITE_ASSET_ID::RANGED_ENEMY,
+		idle_f_vec
+	};
+
+	std::vector<int> run_f_vec = {8, 9, 10, 11, 12, 13, 14, 15};
+	Animation run_f = {
+		"rangedenemy_run_f",
+		10,
+		SPRITE_ASSET_ID::RANGED_ENEMY,
+		run_f_vec
+	};
+
+	auto& animSet = registry.animationSets.emplace(entity);
+	animSet.animations[idle_f.name] = idle_f;
+	animSet.animations[run_f.name] = run_f;
+	animSet.current_animation = idle_f.name;
+
 	return entity;
 }
 
@@ -303,7 +375,7 @@ Entity createRangedProjectile(RenderSystem* renderer, vec2 position)
 	// Create an (empty) Bug component to be able to refer to all bug
 	auto& enemy = registry.deadlys.emplace(entity);
 	enemy.enemy_type = ENEMY_TYPES::PROJECTILE;
-	registry.healths.emplace(entity);
+	// registry.healths.emplace(entity);
 	auto& damage = registry.damages.emplace(entity);
 	damage.damage = 25.f;
 	registry.projectiles.emplace(entity);
@@ -460,7 +532,7 @@ Entity createGround(RenderSystem* renderer, vec2 pos, vec2 size)
 	return entity;
 }
 
-Entity createFurniture(RenderSystem* renderer, vec2 pos)
+Entity createFurniture(RenderSystem* renderer, vec2 pos, vec2 size)
 {
 	auto entity = Entity();
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -471,7 +543,7 @@ Entity createFurniture(RenderSystem* renderer, vec2 pos)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = vec2({ TILE_PX_SIZE * 3, TILE_PX_SIZE * 3 });
+	motion.scale = vec2({ PLANT_BB_WIDTH, PLANT_BB_HEIGHT});
 
 	// create an empty component for the furniture as a solid object
 	registry.solidObjs.emplace(entity);
@@ -511,6 +583,59 @@ Entity createSlimePatch(RenderSystem* renderer, vec2 pos)
 			GEOMETRY_BUFFER_ID::SALMON
 		}
 	);
+
+	return entity;
+}
+
+Entity createBuff(RenderSystem* renderer, vec2 pos, BUFF_TYPE type) {
+	auto entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.scale = vec2({ PLANT_BB_WIDTH, PLANT_BB_HEIGHT});
+
+	SPRITE_ASSET_ID sprite = SPRITE_ASSET_ID::GREY_CAT;
+	std::string sprite_name = "";
+
+	switch (type) {
+		case BUFF_TYPE::HEALTH:
+			sprite = SPRITE_ASSET_ID::GREY_CAT;
+			sprite_name = "greycat";
+			break;
+		default:
+			sprite = SPRITE_ASSET_ID::ORANGE_CAT;
+			sprite_name = "orangecat";
+	}
+
+	// create an empty component for the furniture as a solid object
+	registry.healthBuffs.emplace(entity);
+	registry.renderRequests.insert(
+		entity, {
+			TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			sprite,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			0
+		}
+	);
+
+	std::vector<int> idle_f_vec = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 16, 17, 18, 19};
+	Animation idle_f = {
+		sprite_name + "_idle_f",
+		10, 
+		sprite,
+		idle_f_vec
+	};
+
+	auto& animSet = registry.animationSets.emplace(entity);
+	animSet.animations[idle_f.name] = idle_f;
+	animSet.current_animation = idle_f.name;
+
 
 	return entity;
 }

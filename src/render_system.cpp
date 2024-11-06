@@ -23,17 +23,22 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	if (registry.players.has(entity)) {
 		transform.scale(vec2(2.6f, 2.f));
 	} 
+	
 	if (registry.deadlys.has(entity)) {
 		Deadly& enemy = registry.deadlys.get(entity);
 		if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG) {
 			transform.scale(vec2(2.5f,1.6f));
 		} else if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG_2) {
-			transform.scale(vec2(2.4f, 2.2f));
+			transform.scale(vec2(2.16f, 1.98f));
 		} else if (enemy.enemy_type == ENEMY_TYPES::RANGED) {
 			transform.scale(vec2(1.5, 2.7));
 		} else if (enemy.enemy_type == ENEMY_TYPES::PROJECTILE) {
 			transform.scale(vec2(5, 5));
 		}
+	}
+
+	if (registry.healthBuffs.has(entity)) {
+		transform.scale(vec2(2, 2));
 	}
 
 	assert(registry.renderRequests.has(entity));
@@ -61,6 +66,17 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+		GLint light_up_uloc = glGetUniformLocation(program, "light_up");
+
+
+		if (registry.lightUps.has(entity)) {
+			glUniform1i(light_up_uloc, 1);
+			assert(light_up_uloc >= 0);
+		} else {
+			glUniform1i(light_up_uloc, 0);
+		}
+
+
 		gl_has_errors();
 		assert(in_texcoord_loc >= 0);
 
@@ -355,7 +371,7 @@ void RenderSystem::drawToScreen()
 	// Pass lighting variables
 	GLuint view_pos_uloc = glGetUniformLocation(water_program, "viewPos");
 
-	glUniform3f(view_pos_uloc, window_width_px / 2, window_height_px / 2, 1.0);
+	glUniform3f(view_pos_uloc, 0, 0, 1.0);
 
 	gl_has_errors();
 	// Set the vertex position and vertex texture coordinates (both stored in the
