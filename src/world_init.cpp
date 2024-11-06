@@ -587,6 +587,7 @@ Entity createSlimePatch(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
+// TODO: change buffs so player has to button mash or hold down
 Entity createBuff(RenderSystem* renderer, vec2 pos, BUFF_TYPE type) {
 	auto entity = Entity();
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -636,6 +637,61 @@ Entity createBuff(RenderSystem* renderer, vec2 pos, BUFF_TYPE type) {
 	animSet.animations[idle_f.name] = idle_f;
 	animSet.current_animation = idle_f.name;
 
+
+	return entity;
+}
+
+void createSmoke(RenderSystem* renderer, vec2 pos) {
+	for (int i = 0; i < 50; i++) {
+		createEffect(renderer, pos, 1000, EFFECT_TYPE::SMOKE);
+	}
+}
+
+
+// plan for effects - used for particles, heart popups, whatever:
+// give lifespan
+// i guess probably hardcode fps relative to lifespan ? so it gets smaller until it dies
+// what if we had no sprite animation and just edited scale ? 
+Entity createEffect(RenderSystem* renderer, vec2 pos, float lifespan_ms, EFFECT_TYPE type) {
+	auto entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.scale = vec2({ 50, 50});
+
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::HEART;
+
+	switch (type) {
+		case EFFECT_TYPE::SMOKE:
+			// change velocity stuff so it's in a circle around
+			motion.velocity = {(pow(-1, rand() % 2)) * (rand() % 15), (pow(-1, rand() % 2)) * (rand() % 15)};
+			motion.scale = vec2(20, 20);
+			texture = TEXTURE_ASSET_ID::SMOKE_PARTICLE;
+			break;
+		default:
+			break;
+	}
+
+	registry.effects.insert(entity, {
+		0.f,
+		lifespan_ms,
+		motion.scale.x,
+		motion.scale.y,
+		type
+	});
+	registry.renderRequests.insert(
+		entity, {
+			texture,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE
+		}
+	);
 
 	return entity;
 }

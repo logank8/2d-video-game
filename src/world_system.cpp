@@ -632,6 +632,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	for (Entity e : registry.effects.entities) {
+		Effect& effect = registry.effects.get(e);
+		if (effect.ms_passed >= effect.lifespan_ms) {
+			registry.remove_all_components_of(e);
+		}
+	}
+
 	switch(player.state) {
 		case PLAYER_STATE::DEAD:
 			animSet_player.current_animation = "player_die";
@@ -1025,6 +1032,7 @@ void WorldSystem::handle_collisions() {
 				std::cout << "entity " << entity_other << " hitpoints: " << deadly_health.hit_points << std::endl;
 
 				if (deadly_health.hit_points <= 0.0f) {
+					createSmoke(renderer, registry.motions.get(entity_other).position);
 					registry.remove_all_components_of(entity_other);
 					std::cout << "entity " << entity_other << " died" << std::endl;
 				}
@@ -1152,8 +1160,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			if (buff.touching) {
 				// gain health
 				Health& p_health = registry.healths.get(my_player);
-				p_health.hit_points += 25;
-				std::cout << "player regained health" << std::endl;
+				if (p_health.hit_points < 200) {
+					std::cout << "player regained health" << std::endl;
+					p_health.hit_points += min(25.f, 200.f - p_health.hit_points);
+				}
+
+				vec2 effectpos = {registry.motions.get(e).position.x + (-0.5 * (registry.motions.get(e).position.x - registry.motions.get(my_player).position.x)), (float) registry.motions.get(e).position.y - 20.f};
+				createEffect(renderer, effectpos, 1400.f, EFFECT_TYPE::SMOKE);
+				
 				RenderRequest& hp_bar_render = registry.renderRequests.get(hp_bar);
 				
 				if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_FULL) {

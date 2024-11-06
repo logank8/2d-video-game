@@ -25,6 +25,11 @@ enum class BUFF_TYPE {
 	ATTACK = SPEED + 1
 };
 
+enum class EFFECT_TYPE {
+	HEART = 0,
+	SMOKE = HEART + 1
+};
+
 // Player component
 struct Player
 {
@@ -71,6 +76,15 @@ struct Deadly
 	ENEMY_TYPES enemy_type = ENEMY_TYPES::CONTACT_DMG;
 	float movement_timer = 0.f;
 	ENEMY_STATE state = ENEMY_STATE::IDLE;
+};
+
+struct Effect
+{
+	float ms_passed = 0.f;
+	float lifespan_ms = 1000.f;
+	float width_init;
+	float height_init;
+	EFFECT_TYPE type;
 };
 
 struct Ranged
@@ -296,7 +310,9 @@ enum class TEXTURE_ASSET_ID {
 	PLAYERS = SIDE_WALL + 1,
 	GREY_CAT = PLAYERS + 1,
 	ORANGE_CAT = GREY_CAT + 1,
-	TEXTURE_COUNT = ORANGE_CAT + 1
+	HEART = ORANGE_CAT + 1,
+	SMOKE_PARTICLE = HEART + 1,
+	TEXTURE_COUNT = SMOKE_PARTICLE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

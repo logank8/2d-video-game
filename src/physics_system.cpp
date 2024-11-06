@@ -534,6 +534,23 @@ void PhysicsSystem::step(float elapsed_ms)
             }
         }
     }
+
+    // Effect movement
+    for (Entity e : registry.effects.entities) {
+        Effect& effect = registry.effects.get(e);
+        Motion& effect_motion = registry.motions.get(e);
+        effect_motion.scale =  {((effect.lifespan_ms - effect.ms_passed) / effect.lifespan_ms) * effect.width_init, ((effect.lifespan_ms - effect.ms_passed) / effect.lifespan_ms) * effect.height_init};
+        effect.ms_passed += elapsed_ms;
+        if (effect.type == EFFECT_TYPE::SMOKE) {
+            effect_motion.velocity *= 0.5;
+            //if (effect.ms_passed >= (0.5 * effect.lifespan_ms)) {
+            //    effect_motion.velocity.y = 0;
+            //}
+        }
+
+        effect_motion.position.x += effect_motion.velocity.x * elapsed_ms;
+        effect_motion.position.y += effect_motion.velocity.y * elapsed_ms;
+    }
     
 	// Move fish based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
