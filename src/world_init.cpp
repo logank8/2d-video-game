@@ -181,7 +181,7 @@ Entity createText(vec2 pos, float scale, std::string content, glm::vec3 color) {
 	return entity;
 }
 
-Entity createSlowEnemy(RenderSystem* renderer, vec2 position)
+Entity createFish(RenderSystem* renderer, vec2 position)
 {
 	// Reserve en entity
 	auto entity = Entity();
@@ -213,22 +213,10 @@ Entity createSlowEnemy(RenderSystem* renderer, vec2 position)
 			1
 		});
 
-	std::vector<int> idle_f_vec = {0, 1, 2, 3, 4, 5};
-	Animation idle_f = {
-		"slowenemy_idle_f",
-		15,
-		SPRITE_ASSET_ID::SKELETON,
-		idle_f_vec
-	};
-
-	auto& animSet = registry.animationSets.emplace(entity);
-	animSet.animations[idle_f.name] = idle_f;
-	animSet.current_animation = idle_f.name;
-
 	return entity;
 }
 
-Entity createFastEnemy(RenderSystem* renderer, vec2 position)
+Entity createEel(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
 
@@ -262,18 +250,6 @@ Entity createFastEnemy(RenderSystem* renderer, vec2 position)
 			GEOMETRY_BUFFER_ID::SPRITE,
 			1
 		});
-
-	std::vector<int> idle_f_vec = {0, 1};
-	Animation idle_f = {
-		"fastenemy_idle_f",
-		2, 
-		SPRITE_ASSET_ID::SLIME,
-		idle_f_vec
-	};
-
-	auto& animSet = registry.animationSets.emplace(entity);
-	animSet.animations[idle_f.name] = idle_f;
-	animSet.current_animation = idle_f.name;
 
 	return entity;
 }
@@ -311,18 +287,6 @@ Entity createRangedEnemy(RenderSystem* renderer, vec2 position)
 			GEOMETRY_BUFFER_ID::SPRITE,
 			0
 		});
-
-	std::vector<int> idle_f_vec = {0, 1, 2, 3, 4};
-	Animation idle_f = {
-		"rangedenemy_idle_f",
-		12, 
-		SPRITE_ASSET_ID::SLIME,
-		idle_f_vec
-	};
-
-	auto& animSet = registry.animationSets.emplace(entity);
-	animSet.animations[idle_f.name] = idle_f;
-	animSet.current_animation = idle_f.name;
 
 	return entity;
 }

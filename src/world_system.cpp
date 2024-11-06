@@ -280,14 +280,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (map1[j][i] == 3) {
 				int encounter = rand() % 3;
 				if (encounter == 0) {
-					createSlowEnemy(renderer, world_pos);
+					createFish(renderer, world_pos);
 				} else if (encounter == 1) {
 
-					createFastEnemy(renderer, world_pos);
+					createEel(renderer, world_pos);
 				} else {
 
-					createSlowEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createSlowEnemy(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+					createFish(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createFish(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
@@ -295,34 +295,34 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				int encounter = rand() % 3;
 				if (encounter == 0) {
 
-					createSlowEnemy(renderer, vec2(world_pos.x, world_pos.y - TILE_SIZE));
-					createFastEnemy(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+					createFish(renderer, vec2(world_pos.x, world_pos.y - TILE_SIZE));
+					createEel(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
 				} else if (encounter == 1) {
 
-					createFastEnemy(renderer, vec2(world_pos.x, world_pos.y - TILE_SIZE));
-					createFastEnemy(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+					createEel(renderer, vec2(world_pos.x, world_pos.y - TILE_SIZE));
+					createEel(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
 				} else {
 					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y + TILE_SIZE));
-					createSlowEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createSlowEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
+					createFish(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createFish(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
 			if (map1[j][i] == 5) {
 				int encounter = rand() % 3;
 				if (encounter == 0) {
-					createFastEnemy(renderer, vec2(world_pos.x, world_pos.y));
+					createEel(renderer, vec2(world_pos.x, world_pos.y));
 					createRangedEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
 					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
 				} else if (encounter == 1) {
-					createSlowEnemy(renderer, vec2(world_pos.x, world_pos.y));
-					createFastEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createFastEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
+					createFish(renderer, vec2(world_pos.x, world_pos.y));
+					createEel(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createEel(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
 				} else {
 					createRangedEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createFastEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createSlowEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
-					createSlowEnemy(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+					createEel(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createFish(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
+					createFish(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
