@@ -174,6 +174,20 @@ std::string toString(PLAYER_STATE status) {
     }
 }
 
+// Create an HP bar for an enemy
+void createHPBar(Entity enemy) {
+	//Check to avoid errors since collisions occur after world step
+	if (registry.healths.has(enemy)) {
+		float& hp = registry.healths.get(enemy).hit_points;
+		Motion& enemy_motion = registry.motions.get(enemy);
+		// Shift centre of line to left as the hp bar decreases
+		Entity hp_bar = createLine({ enemy_motion.position.x - ((100.f) * (1 - (hp / 200.f))) / 2, 
+			enemy_motion.position.y - enemy_motion.scale.y * 0.75f }, { (100.f) * hp / 200.f, 15.f });
+		vec3& color = registry.colors.emplace(hp_bar);
+		color = vec3(0.f, 5.f, 0.f);
+	}
+}
+
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
@@ -329,6 +343,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 
 		}
+	}
+
+	// create hp bars for enemies
+	for (auto& enemy : registry.deadlys.entities) {
+		createHPBar(enemy);
 	}
 
 
