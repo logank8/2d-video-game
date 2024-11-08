@@ -539,13 +539,17 @@ void PhysicsSystem::step(float elapsed_ms)
     for (Entity e : registry.effects.entities) {
         Effect& effect = registry.effects.get(e);
         Motion& effect_motion = registry.motions.get(e);
+        
         effect_motion.scale =  {((effect.lifespan_ms - effect.ms_passed) / effect.lifespan_ms) * effect.width_init, ((effect.lifespan_ms - effect.ms_passed) / effect.lifespan_ms) * effect.height_init};
         effect.ms_passed += elapsed_ms;
         if (effect.type == EFFECT_TYPE::SMOKE) {
-            effect_motion.velocity *= 0.5;
+            effect_motion.velocity *= 0.7;
             //if (effect.ms_passed >= (0.5 * effect.lifespan_ms)) {
             //    effect_motion.velocity.y = 0;
             //}
+        }
+        if (effect.type == EFFECT_TYPE::DASH) {
+            effect_motion.scale = {effect.width_init, effect.height_init};
         }
 
         effect_motion.position.x += effect_motion.velocity.x * elapsed_ms;
@@ -561,6 +565,12 @@ void PhysicsSystem::step(float elapsed_ms)
 		Entity entity = motion_registry.entities[i];
 		float step_seconds = elapsed_ms / 1000.f;
     if (registry.players.has(entity)) {
+        // Updating speed to make sure most recent value is applied to motion
+        if (distance({0, 0}, motion.velocity) != 0) {
+            motion.velocity = (1 / distance({0, 0}, motion.velocity)) * motion.velocity;
+        }
+        motion.velocity = motion.speed * motion.velocity;
+        
 		motion.position[0] += motion.velocity[0] * step_seconds;
 		motion.position[1] += motion.velocity[1] * step_seconds;
     } else {

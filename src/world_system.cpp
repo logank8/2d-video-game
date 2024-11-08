@@ -259,9 +259,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (map1[j][i] == 2) {
 				if (map1[j - 1][i] == 1 && map1[j][i-1] == 1) {
 					// add 2 while loops here to find furniture size
-					if (map1[j][i+1] == 1 && map1[j + 1][i] == 1) {
-						createFurniture(renderer, world_pos, {1, 1});
+					int horiz_idx = 1;
+					int vert_idx = 1;
+					while (map1[j + vert_idx][i] == 2) {
+						vert_idx += 1;
 					}
+					while (map1[j][i + horiz_idx] == 2) {
+						horiz_idx += 1;
+					}
+					
+					// pos {world_pos.x + (TILE_SIZE * ((horiz_idx - 1) / 2)), world_pos.y + (TILE_SIZE * ((vert_idx - 1) / 2))}
+					createFurniture(renderer, {world_pos.x, world_pos.y}, {horiz_idx, vert_idx});
 				}
 				tile_vec.push_back(vec2(i, j));
 				
@@ -672,10 +680,37 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (!player.is_dash_up) {
 		player.curr_dash_cooldown_ms -= elapsed_ms_since_last_update;
 
+		// Player able to dash again
 		if (player.curr_dash_cooldown_ms < 0.f) {
+			std::cout << "dash up" << std::endl;
 			player.curr_dash_cooldown_ms = player.dash_cooldown_ms;
+			registry.motions.get(my_player).speed = 300.f;
 			player.is_dash_up = true;
+
+		// Player done dashing
+		} else if (player.curr_dash_cooldown_ms < 2900.f) {
+			std::cout << "dash cooling down" << std::endl;
+			registry.motions.get(my_player).speed = 300.f;
+			registry.lightUps.remove(my_player);
+		
+		// Player dashing
+		} else {
+			std::cout << "dash still going " << player.curr_dash_cooldown_ms << std::endl;
+			registry.motions.get(my_player).speed = 2000.f;
+			if (!registry.lightUps.has(my_player)) {
+				registry.lightUps.emplace(my_player);
+			}
+			for (int i = 0; i < 5; i++) {
+				int bound = 2900 + (i * 20);
+				if (player.curr_dash_cooldown_ms < bound && player.curr_dash_cooldown_ms + elapsed_ms_since_last_update > bound) {
+					// TODO: modify this a little bit to make dash shadows fully even
+					createEffect(renderer, registry.motions.get(my_player).position, 500, EFFECT_TYPE::DASH);
+				}
+			}
+			
 		}
+
+		
 	}
 
 	for (Entity entity : registry.lightUps.entities) {
@@ -950,6 +985,8 @@ void WorldSystem::handle_collisions() {
 					motion.position += diff * player.knockback_strength;
 				}
 
+				createSmoke(renderer, motion.position);
+
 				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - damage.damage);
 				if (registry.lightUps.has(entity_other)) {
 					registry.lightUps.remove(entity_other);
@@ -1077,8 +1114,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (key == GLFW_KEY_SPACE) {
 		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player) && player.is_dash_up) {
-			pmotion.speed = 10000.f;
+			pmotion.speed = 5500.f;
 			player.is_dash_up = false;
+			registry.lightUps.emplace(my_player);
 		}
 	}
 

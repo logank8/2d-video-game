@@ -52,13 +52,15 @@ class RenderSystem {
 			textures_path("hp_bar/hp_bar_7.png"), // 7
 			textures_path("hp_bar/hp_bar_full.png"), // full
 			textures_path("plant.png"),
+			textures_path("long_table.png"),
 			textures_path("wall.png"),
 			textures_path("side_wall.png"),
 			textures_path("player.png"),
 			textures_path("grey_cat.png"),
 			textures_path("orange_cat.png"),
 			textures_path("heart.png"),
-			textures_path("smoke_particle.png")
+			textures_path("smoke_particle.png"),
+			textures_path("dash.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -69,7 +71,8 @@ class RenderSystem {
 		shader_path("salmon"),
 		shader_path("textured"),
 		shader_path("water"),
-		shader_path("font")
+		shader_path("font"),
+		shader_path("dash")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;

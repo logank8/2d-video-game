@@ -78,6 +78,24 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 
 		gl_has_errors();
+
+		GLuint time_passed_uloc = glGetUniformLocation(program, "time_passed");
+		GLuint lifespan_uloc = glGetUniformLocation(program, "lifespan");
+		float ms_passed = 1.f;
+		float lifespan = 1.f;
+
+		if (registry.effects.has(entity)) {
+			if (registry.effects.get(entity).type == EFFECT_TYPE::DASH) {
+				ms_passed = registry.effects.get(entity).ms_passed;
+				lifespan = registry.effects.get(entity).lifespan_ms;
+			}
+		}
+		
+		glUniform1f(time_passed_uloc, ms_passed);
+		glUniform1f(lifespan_uloc, lifespan);
+
+		gl_has_errors();
+
 		assert(in_texcoord_loc >= 0);
 
 		glEnableVertexAttribArray(in_position_loc);

@@ -27,7 +27,8 @@ enum class BUFF_TYPE {
 
 enum class EFFECT_TYPE {
 	HEART = 0,
-	SMOKE = HEART + 1
+	SMOKE = HEART + 1,
+	DASH = SMOKE + 1
 };
 
 // Player component
@@ -44,7 +45,7 @@ struct Player
 	bool invulnerable = false;
 	float invulnerable_duration_ms = 2000.f;
 	vec2 last_pos = { 0, 0 };
-	float dash_cooldown_ms = 1000.f;
+	float dash_cooldown_ms = 3000.f;
 	float curr_dash_cooldown_ms = dash_cooldown_ms;
 	bool is_dash_up = true;
 
@@ -179,7 +180,7 @@ struct Motion {
 	float angle = 0;
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { 10, 10 };
-	float speed = 300.0f; // To control player speed
+	float speed = 30.0f; // To control player speed
 };
 
 // Stucture to store collision information
@@ -304,15 +305,17 @@ enum class TEXTURE_ASSET_ID {
 	HP_BAR_6 = HP_BAR_5 + 1,
 	HP_BAR_7 = HP_BAR_6 + 1,
 	HP_BAR_FULL = HP_BAR_7 + 1,
-	FURNITURE = HP_BAR_FULL + 1,
-	WALL = FURNITURE + 1,
+	PLANT = HP_BAR_FULL + 1,
+	TABLE = PLANT + 1,
+	WALL = TABLE + 1,
 	SIDE_WALL = WALL + 1,
 	PLAYERS = SIDE_WALL + 1,
 	GREY_CAT = PLAYERS + 1,
 	ORANGE_CAT = GREY_CAT + 1,
 	HEART = ORANGE_CAT + 1,
 	SMOKE_PARTICLE = HEART + 1,
-	TEXTURE_COUNT = SMOKE_PARTICLE + 1
+	DASH = SMOKE_PARTICLE + 1,
+	TEXTURE_COUNT = DASH + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -334,7 +337,8 @@ enum class EFFECT_ASSET_ID {
 	TEXTURED = SALMON + 1,
 	WATER = TEXTURED + 1,
 	FONT = WATER + 1,
-	EFFECT_COUNT = FONT + 1
+	DASH = FONT + 1,
+	EFFECT_COUNT = DASH + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

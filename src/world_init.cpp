@@ -2,6 +2,7 @@
 #include "tiny_ecs_registry.hpp"
 
 #include <iostream>
+#include <random>
 
 Entity createPlayer(RenderSystem* renderer, vec2 pos)
 {
@@ -230,10 +231,18 @@ Entity createSlowEnemy(RenderSystem* renderer, vec2 position)
 		SPRITE_ASSET_ID::SKELETON,
 		run_f_vec
 	};
+	std::vector<int> die_vec = {36, 37, 38, 39};
+	Animation die = {
+			"slowenemy_die",
+			10,
+			SPRITE_ASSET_ID::PLAYER,
+			die_vec
+		};
 
 	auto& animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;
 	animSet.animations[run_f.name] = run_f;
+	animSet.animations[die.name] = die;
 	animSet.current_animation = idle_f.name;
 
 	return entity;
@@ -347,6 +356,14 @@ Entity createRangedEnemy(RenderSystem* renderer, vec2 position)
 		SPRITE_ASSET_ID::RANGED_ENEMY,
 		run_f_vec
 	};
+
+	// std::vector<int> die_vec = {54, 55, 56};
+	// Animation die = {
+	// 		"player_die",
+	// 		15,
+	// 		SPRITE_ASSET_ID::PLAYER,
+	// 		die_vec
+	// 	};
 
 	auto& animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;
@@ -547,11 +564,26 @@ Entity createFurniture(RenderSystem* renderer, vec2 pos, vec2 size)
 	motion.velocity = { 0.f, 0.f };
 	motion.scale = vec2({ PLANT_BB_WIDTH, PLANT_BB_HEIGHT});
 
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLANT;
+
+	switch ((int) size.x) {
+		case 3:
+			if (size.y == 2) {
+				std::cout << "table" << std::endl;
+				// need to fix the scaling on this
+				texture = TEXTURE_ASSET_ID::TABLE;
+				motion.scale = vec2(150, 100);
+			}
+			break;
+		default:
+			break;
+	}
+
 	// create an empty component for the furniture as a solid object
 	registry.solidObjs.emplace(entity);
 	registry.renderRequests.insert(
 		entity, {
-			TEXTURE_ASSET_ID::FURNITURE,
+			texture,
 			SPRITE_ASSET_ID::SPRITE_COUNT,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
@@ -653,8 +685,8 @@ Entity createBuff(RenderSystem* renderer, vec2 pos, BUFF_TYPE type) {
 }
 
 void createSmoke(RenderSystem* renderer, vec2 pos) {
-	for (int i = 0; i < 70; i++) {
-		createEffect(renderer, pos, 1000, EFFECT_TYPE::SMOKE);
+	for (int i = 0; i < 20; i++) {
+		createEffect(renderer, pos, 500, EFFECT_TYPE::SMOKE);
 	}
 }
 
@@ -676,15 +708,26 @@ Entity createEffect(RenderSystem* renderer, vec2 pos, float lifespan_ms, EFFECT_
 	motion.scale = vec2({ 60, 60});
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::HEART;
+	EFFECT_ASSET_ID effect = EFFECT_ASSET_ID::TEXTURED;
+
+	std::random_device rd; 
+    std::mt19937 gen(rd());
+	std::uniform_real_distribution<> distrib(0, 1);
 
 	switch (type) {
 		case (EFFECT_TYPE::SMOKE):
 			// change velocity stuff so it's in a circle around
-			motion.velocity = {(pow(-1, rand() % 2)) * (rand() % 12), (pow(-1, rand() % 2)) * (rand() % 12)};
 			
-			motion.scale = vec2(20, 20);
+			motion.velocity = {-1 * distrib(gen), (pow(-1, rand() % 2)) * (distrib(gen))};
+			motion.velocity *= 6.f * distrib(gen);
+			
+			motion.scale = vec2(15, 15);
 			texture = TEXTURE_ASSET_ID::SMOKE_PARTICLE;
 			break;
+		case EFFECT_TYPE::DASH:
+			texture = TEXTURE_ASSET_ID::DASH;
+			effect = EFFECT_ASSET_ID::DASH;
+			motion.scale = vec2(0.85 * PLAYER_BB_WIDTH, 0.85 * PLAYER_BB_HEIGHT);
 		default:
 			break;
 	}
