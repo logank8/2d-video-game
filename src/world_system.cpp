@@ -1048,9 +1048,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		ScreenState& screen = registry.screenStates.components[0];
 		if (is_paused) {
 			screen.darken_screen_factor = 0.9;
+			screen.paused = true;
 		}
 		else {
 			screen.darken_screen_factor = 0;
+			screen.paused = false;
 		}
 		std::cout << is_paused << std::endl;
 	}

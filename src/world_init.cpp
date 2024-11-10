@@ -718,7 +718,7 @@ Entity createEffect(RenderSystem* renderer, vec2 pos, float lifespan_ms, EFFECT_
 		case (EFFECT_TYPE::SMOKE):
 			// change velocity stuff so it's in a circle around
 			
-			motion.velocity = {-1 * distrib(gen), (pow(-1, rand() % 2)) * (distrib(gen))};
+			motion.velocity = {pow(-1, rand() % 2) * distrib(gen), (pow(-1, rand() % 2)) * (distrib(gen))};
 			motion.velocity *= 6.f * distrib(gen);
 			
 			motion.scale = vec2(15, 15);
@@ -749,4 +749,12 @@ Entity createEffect(RenderSystem* renderer, vec2 pos, float lifespan_ms, EFFECT_
 	);
 
 	return entity;
+}
+
+Entity createStaminaBar(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
 }

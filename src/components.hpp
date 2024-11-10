@@ -202,6 +202,7 @@ extern Debug debugging;
 struct ScreenState
 {
 	float darken_screen_factor = -1;
+	bool paused = false;
 };
 
 struct UserInterface {

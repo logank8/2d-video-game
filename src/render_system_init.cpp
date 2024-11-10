@@ -87,6 +87,8 @@ bool RenderSystem::fontInit(const std::string& font_filename, unsigned int font_
 	glUseProgram(m_font_shader_program);
 	int w, h;
 	glfwGetFramebufferSize(window, &w, &h);
+	w = 1280;
+	h = 720;
 	glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(w), 0.0f, static_cast<float>(h));
 	GLint project_location = glGetUniformLocation(m_font_shader_program, "projection");
 	assert(project_location > -1);

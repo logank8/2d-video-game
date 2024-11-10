@@ -386,6 +386,12 @@ void RenderSystem::drawToScreen()
 	ScreenState &screen = registry.screenStates.get(screen_state_entity);
 	glUniform1f(dead_timer_uloc, screen.darken_screen_factor);
 
+	// Pause uniform 0-1 switch
+	GLuint paused_uloc = glGetUniformLocation(water_program, "paused");
+	int pause = screen.paused ? 1 : 0;
+	glUniform1i(paused_uloc, pause);
+	
+
 	// Pass lighting variables
 	GLuint view_pos_uloc = glGetUniformLocation(water_program, "viewPos");
 

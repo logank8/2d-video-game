@@ -4,6 +4,7 @@ uniform sampler2D screen_texture;
 uniform float time;
 uniform float darken_screen_factor;
 uniform vec3 viewPos;
+uniform int paused;
 
 in vec2 texcoord;
 in vec3 normal;
@@ -60,41 +61,44 @@ void main()
 	color = vec4((ambient + diffuse + specular) * color.xyz, 1.0);
 	color = fade_color(color);
 
-	// excluding UI from lighting effects:
+	// excluding UI from lighting effects (unless it is paused):
 
-	// HP Bar
-	if ((fragPos.y >= 0.75) && (fragPos.y <= 0.95)) {
-		if ((fragPos.x >= -0.98) && (fragPos.x <= -0.52)) {
-			if ((fragPos.x <= -0.97) && (fragPos.y >= 0.9 || fragPos.y <= 0.84)) {
-				color = color;
-			} else if ((fragPos.x <= -0.965) && (fragPos.y >= 0.91 || fragPos.y <= 0.827)) {
-				color = color;
-			} else if ((fragPos.x <= -0.95) && (fragPos.y >= 0.925 || fragPos.y <= 0.817)) {
-				color = color;
-			} else if ((fragPos.x <= -0.942) && (fragPos.y <= 0.79)){
-				color = color;
-			} else if ((fragPos.x <= -0.937) && (fragPos.y <= 0.78)) {
-				color = color;
-			} else if ((fragPos.x <= -0.93) && (fragPos.y <= 0.77)) {
-				color = color;
-			} else if ((fragPos.x <= -0.91) && (fragPos.y >= 0.935 || (fragPos.y <= 0.78))) {
-				color = color;
-			} else if ((fragPos.x >= -0.895) && (fragPos.y >= 0.935)) {
-				color = color;
-			} else if ((fragPos.x >= -0.95) && (fragPos.y <= 0.775)) {
-				color = color;
-			} else if ((fragPos.x >= -0.91) && (fragPos.y <= 0.8)) {
-				color = color;
-			} else if ((fragPos.x >= -0.887) && (fragPos.y >= 0.912)) {
-				color = color;
-			} else if ((fragPos.x >= -0.875) && (fragPos.y >= 0.9)) {
-				color = color;
-			} else if ((fragPos.x >= -0.53) && (fragPos.y >= 0.887)) {
-				color = color;
-			} 
-			else {
-				color = in_color;		
+	if (paused != 1) {
+		// HP Bar
+		if ((fragPos.y >= 0.75) && (fragPos.y <= 0.95)) {
+			if ((fragPos.x >= -0.98) && (fragPos.x <= -0.52)) {
+				if ((fragPos.x <= -0.97) && (fragPos.y >= 0.9 || fragPos.y <= 0.84)) {
+					color = color;
+				} else if ((fragPos.x <= -0.965) && (fragPos.y >= 0.91 || fragPos.y <= 0.827)) {
+					color = color;
+				} else if ((fragPos.x <= -0.95) && (fragPos.y >= 0.925 || fragPos.y <= 0.817)) {
+					color = color;
+				} else if ((fragPos.x <= -0.942) && (fragPos.y <= 0.79)){
+					color = color;
+				} else if ((fragPos.x <= -0.937) && (fragPos.y <= 0.78)) {
+					color = color;
+				} else if ((fragPos.x <= -0.93) && (fragPos.y <= 0.77)) {
+					color = color;
+				} else if ((fragPos.x <= -0.91) && (fragPos.y >= 0.935 || (fragPos.y <= 0.78))) {
+					color = color;
+				} else if ((fragPos.x >= -0.895) && (fragPos.y >= 0.935)) {
+					color = color;
+				} else if ((fragPos.x >= -0.95) && (fragPos.y <= 0.775)) {
+					color = color;
+				} else if ((fragPos.x >= -0.91) && (fragPos.y <= 0.8)) {
+					color = color;
+				} else if ((fragPos.x >= -0.887) && (fragPos.y >= 0.912)) {
+					color = color;
+				} else if ((fragPos.x >= -0.875) && (fragPos.y >= 0.9)) {
+					color = color;
+				} else if ((fragPos.x >= -0.53) && (fragPos.y >= 0.887)) {
+					color = color;
+				} 
+				else {
+					color = in_color;		
+				}
 			}
 		}
 	}
+	
 }
