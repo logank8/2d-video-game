@@ -60,7 +60,8 @@ class RenderSystem {
 			textures_path("orange_cat.png"),
 			textures_path("heart.png"),
 			textures_path("smoke_particle.png"),
-			textures_path("dash.png")
+			textures_path("dash.png"),
+			textures_path("stamina_regen.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

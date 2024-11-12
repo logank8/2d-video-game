@@ -256,11 +256,41 @@ void RenderSystem::drawScreenSpaceObject(Entity entity) {
 		gl_has_errors();
 
 		assert(registry.renderRequests.has(entity));
-		GLuint texture_id =
-			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+		GLuint texture_index = (GLuint)registry.renderRequests.get(entity).used_texture - 1;
+		if (texture_index == -1) {
+			texture_index = 0;
+		}
+		GLuint texture_id = texture_gl_handles[texture_index];;
 
-		glBindTexture(GL_TEXTURE_2D, texture_id);
-		gl_has_errors();
+		if (render_request.used_sprite == SPRITE_ASSET_ID::SPRITE_COUNT || render_request.sprite_index == -1) {
+			texture_id =
+				texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+
+			glBindTexture(GL_TEXTURE_2D, texture_id);
+			gl_has_errors();
+
+			GLuint uv_offset_loc = glGetUniformLocation(program, "uv_offset");
+			glUniform2f(uv_offset_loc, 0.0f, 0.0f);
+
+			GLuint uv_scale_loc = glGetUniformLocation(program, "uv_scale");
+			glUniform2f(uv_scale_loc, 1.0f, 1.0f);
+		}
+		else {
+			texture_id = texture_gl_handles[(GLuint)sprite_sheets[registry.renderRequests.get(entity).used_sprite].texture_id];
+
+			glBindTexture(GL_TEXTURE_2D, texture_id);
+			gl_has_errors();
+
+			float u0, v0, u1, v1;
+			getUVCoordinates(registry.renderRequests.get(entity).used_sprite, registry.renderRequests.get(entity).sprite_index, u0, v0, u1, v1);
+
+			GLuint uv_offset_loc = glGetUniformLocation(program, "uv_offset");
+			glUniform2f(uv_offset_loc, u0, v0);
+
+			GLuint uv_scale_loc = glGetUniformLocation(program, "uv_scale");
+			glUniform2f(uv_scale_loc, (u1 - u0), (v1 - v0));
+
+		}
 	}
 
 	GLint size = 0;

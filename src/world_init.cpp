@@ -757,4 +757,58 @@ Entity createStaminaBar(RenderSystem* renderer, vec2 pos) {
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
+
+	auto& ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = pos;
+	ui.scale = vec2({ HPBAR_BB_WIDTH, -HPBAR_BB_HEIGHT });
+
+	registry.renderRequests.insert(
+		entity,
+		{
+			TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			SPRITE_ASSET_ID::STAMINA_BAR,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			14
+		});
+
+	// 3 states: 
+	// regenerating (0-14) - might need to adjust amounts for time
+	// full (14)
+	// dashing (14, 11, 12, 13, 0) - might need to adjust amounts for time
+
+	std::vector<int> full_vec = {14};
+	Animation full = {
+		"staminabar_full",
+		15, 
+		SPRITE_ASSET_ID::STAMINA_BAR,
+		full_vec
+	};
+
+	std::vector<int> regen_vec = {0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10,  11, 12, 13, 14};
+	Animation regen = {
+		"staminabar_regen",
+		8, 
+		SPRITE_ASSET_ID::STAMINA_BAR,
+		regen_vec
+	};
+
+	std::vector<int> depleting_vec = {14, 11, 12, 13, 13, 13, 13, 13, 0};
+	Animation depleting = {
+		"staminabar_depleting",
+		15, 
+		SPRITE_ASSET_ID::STAMINA_BAR,
+		depleting_vec
+	};
+
+
+	auto& animSet = registry.animationSets.emplace(entity);
+	animSet.animations[full.name] = full;
+	animSet.animations[regen.name] = regen;
+	animSet.animations[depleting.name] = depleting;
+	animSet.current_animation = full.name;
+
+	return entity;
+
 }

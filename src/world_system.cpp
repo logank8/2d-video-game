@@ -679,6 +679,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	if (!player.is_dash_up) {
 		player.curr_dash_cooldown_ms -= elapsed_ms_since_last_update;
+		AnimationSet& stamina_anim = registry.animationSets.get(stamina_bar);
 
 		// Player able to dash again
 		if (player.curr_dash_cooldown_ms < 0.f) {
@@ -686,12 +687,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			player.curr_dash_cooldown_ms = player.dash_cooldown_ms;
 			registry.motions.get(my_player).speed = 300.f;
 			player.is_dash_up = true;
+			stamina_anim.current_animation = "staminabar_full";
 
 		// Player done dashing
 		} else if (player.curr_dash_cooldown_ms < 2900.f) {
 			std::cout << "dash cooling down" << std::endl;
 			registry.motions.get(my_player).speed = 300.f;
 			registry.lightUps.remove(my_player);
+			
+			stamina_anim.current_animation = "staminabar_regen";
 		
 		// Player dashing
 		} else {
@@ -704,7 +708,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				int bound = 2900 + (i * 20);
 				if (player.curr_dash_cooldown_ms < bound && player.curr_dash_cooldown_ms + elapsed_ms_since_last_update > bound) {
 					// TODO: modify this a little bit to make dash shadows fully even
-					createEffect(renderer, registry.motions.get(my_player).position, 500, EFFECT_TYPE::DASH);
+					vec2 effectPos = registry.motions.get(my_player).position;
+					createEffect(renderer, effectPos, 500, EFFECT_TYPE::DASH);
 				}
 			}
 			
@@ -795,7 +800,8 @@ void WorldSystem::restart_game() {
 	hp_bar = createHPBar(renderer, hp_bar_pos);
 	//createHPBarEmpty(renderer, hp_bar_pos);
 	
-
+	vec2 stamina_bar_pos = { -0.74f, 0.7f };
+	stamina_bar = createStaminaBar(renderer, stamina_bar_pos);
 
 }
 
@@ -1119,6 +1125,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			pmotion.speed = 5500.f;
 			player.is_dash_up = false;
 			registry.lightUps.emplace(my_player);
+			AnimationSet& stamina_anim = registry.animationSets.get(stamina_bar);
+			stamina_anim.current_animation = "staminabar_depleting";
 		}
 	}
 
