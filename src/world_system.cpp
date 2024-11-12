@@ -612,8 +612,6 @@ void WorldSystem::restart_game()
 	player_controller.set_player_reference(&my_player);
 	player_controller.set_renderer(renderer);
 
-	createExperience(renderer, {window_width_px / 2, window_height_px - 100}, 5);
-
 	lightflicker_counter_ms = 1000;
 	tile_vec.clear();
 
@@ -841,18 +839,20 @@ void WorldSystem::handle_collisions()
 			{
 				Health &deadly_health = registry.healths.get(entity_other);
 				Damage &damage = registry.damages.get(entity);
-				Motion &motion = registry.motions.get(entity_other);
+				Motion &enemy_motion = registry.motions.get(entity_other);
 				Motion &pmotion = registry.motions.get(my_player);
 				Player &player = registry.players.get(my_player);
+				Deadly &deadly = registry.deadlys.get(entity_other);
 
-				vec2 diff = motion.position - pmotion.position;
+				vec2 diff = enemy_motion.position - pmotion.position;
 
 				if (debugging.in_debug_mode)
 				{
-					motion.position += diff * player.knockback_strength;
+					enemy_motion.position += diff * player.knockback_strength;
 				}
 
 				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - damage.damage);
+
 				if (registry.lightUps.has(entity_other))
 				{
 					registry.lightUps.remove(entity_other);
@@ -860,12 +860,16 @@ void WorldSystem::handle_collisions()
 
 				registry.lightUps.emplace(entity_other);
 
-				std::cout << "entity " << entity_other << " hitpoints: " << deadly_health.hit_points << std::endl;
-
 				if (deadly_health.hit_points <= 0.0f)
 				{
+					float roll = uniform_dist(rng);
+
+					if (roll <= deadly.drop_chance)
+					{
+						createExperience(renderer, enemy_motion.position, deadly.experience);
+					}
+
 					registry.remove_all_components_of(entity_other);
-					std::cout << "entity " << entity_other << " died" << std::endl;
 				}
 
 				registry.playerAttacks.get(entity).has_hit = true;

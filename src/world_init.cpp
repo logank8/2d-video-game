@@ -495,16 +495,36 @@ Entity createExperience(RenderSystem *renderer, vec2 pos, int experience)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = {0.f, 0.f};
-	motion.scale = vec2({TILE_PX_SIZE * (50 / TILE_PX_SIZE), TILE_PX_SIZE * (50 / TILE_PX_SIZE)});
+	motion.scale = vec2({TILE_PX_SIZE * (75 / TILE_PX_SIZE), TILE_PX_SIZE * (75 / TILE_PX_SIZE)});
 
 	// create an empty component for the furniture as a solid object
 	registry.collectibles.emplace(entity);
+	auto &experienceComponent = registry.experiences.emplace(entity);
+	experienceComponent.experience = experience;
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
 				 SPRITE_ASSET_ID::COIN,
 				 EFFECT_ASSET_ID::TEXTURED,
 				 GEOMETRY_BUFFER_ID::SPRITE,
-				 79});
+				 1});
+
+	std::vector<int> idle_vec = {0, 1, 2, 3, 4, 5};
+	Animation idle = {
+		"experience_idle",
+		15,
+		SPRITE_ASSET_ID::COIN,
+		idle_vec};
+	std::vector<int> collect_vec = {6, 7, 8, 8};
+	Animation collect = {
+		"experience_collect",
+		10,
+		SPRITE_ASSET_ID::COIN,
+		collect_vec};
+
+	auto &animSet = registry.animationSets.emplace(entity);
+	animSet.animations[idle.name] = idle;
+	animSet.animations[collect.name] = collect;
+	animSet.current_animation = idle.name;
 
 	return entity;
 }

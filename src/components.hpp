@@ -37,6 +37,10 @@ struct Player
 	float attack_duration_ms = 230.f;
 	float curr_attack_duration_ms = attack_duration_ms;
 	float knockback_strength = 0.3f;
+
+	// Other
+	float collection_distance = 100.f;
+	int experience = 0;
 };
 
 enum class ENEMY_TYPES
@@ -59,7 +63,7 @@ struct Deadly
 	ENEMY_TYPES enemy_type = ENEMY_TYPES::CONTACT_DMG;
 	float movement_timer = 0.f;
 	float drop_chance = 1.0f;
-	int experience = 1;
+	int experience = 5;
 };
 
 struct Ranged
@@ -78,6 +82,7 @@ struct Experience
 
 struct Collectible
 {
+	bool is_collected = false;
 };
 
 struct Path

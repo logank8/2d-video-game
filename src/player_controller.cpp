@@ -275,6 +275,43 @@ void PlayerController::step(float elapsed_ms_since_last_update)
             player.invulnerable_duration_ms = 1000.f;
         }
     }
+
+    // collectibles
+
+    for (Entity entity : registry.collectibles.entities)
+    {
+        if (!registry.motions.has(entity))
+            continue;
+        Collectible &collectible = registry.collectibles.get(entity);
+        Motion &collectible_motion = registry.motions.get(entity);
+        auto &animation = registry.animationSets.get(entity);
+
+        if (glm::distance(collectible_motion.position, pmotion.position) < player.collection_distance && !collectible.is_collected)
+        {
+            collectible_motion.position = glm::mix(collectible_motion.position, pmotion.position, 0.1f);
+
+            if (glm::distance(collectible_motion.position, pmotion.position) < 25.f)
+            {
+                collectible.is_collected = true;
+
+                if (registry.experiences.has(entity))
+                {
+                    auto &collectible_experience = registry.experiences.get(entity);
+
+                    player.experience += collectible_experience.experience;
+
+                    animation.current_animation = "experience_collect";
+                    animation.current_frame = 0;
+                }
+            }
+        }
+
+        // Remove entity when animation is finished playing
+        if (collectible.is_collected && animation.current_frame == animation.animations[animation.current_animation].sprite_indices.size() - 1)
+        {
+            registry.remove_all_components_of(entity);
+        }
+    }
 }
 
 void PlayerController::on_key(int key, int, int action, int mod)

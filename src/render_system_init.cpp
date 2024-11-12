@@ -212,7 +212,7 @@ void RenderSystem::initializeSpriteSheets()
 	sprite_sheets[SPRITE_ASSET_ID::SKELETON] = {TEXTURE_ASSET_ID::SKELETON, 10, 6, 64, 64};
 	sprite_sheets[SPRITE_ASSET_ID::SLIME] = {TEXTURE_ASSET_ID::SLIME, 5, 5, 64, 64};
 	sprite_sheets[SPRITE_ASSET_ID::RANGED_ENEMY] = {TEXTURE_ASSET_ID::RANGED_ENEMY, 5, 8, 64, 64};
-	sprite_sheets[SPRITE_ASSET_ID::COIN] = {TEXTURE_ASSET_ID::COINS, 4, 26, 16, 16};
+	sprite_sheets[SPRITE_ASSET_ID::COIN] = {TEXTURE_ASSET_ID::COINS, 1, 10, 16, 16};
 }
 
 void RenderSystem::initializeGlEffects()
