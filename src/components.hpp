@@ -4,7 +4,8 @@
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
 
-enum class PLAYER_STATE {
+enum class PLAYER_STATE
+{
 	IDLE = 0,
 	RUN = IDLE + 1,
 	ATTACK = RUN + 1,
@@ -25,7 +26,7 @@ struct Player
 	// For dashing and after taking damage;
 	bool invulnerable = false;
 	float invulnerable_duration_ms = 2000.f;
-	vec2 last_pos = { 0, 0 };
+	vec2 last_pos = {0, 0};
 	float dash_cooldown_ms = 1000.f;
 	float curr_dash_cooldown_ms = dash_cooldown_ms;
 	bool is_dash_up = true;
@@ -36,27 +37,29 @@ struct Player
 	float attack_duration_ms = 230.f;
 	float curr_attack_duration_ms = attack_duration_ms;
 	float knockback_strength = 0.3f;
-
 };
 
-enum class ENEMY_TYPES {
+enum class ENEMY_TYPES
+{
 	CONTACT_DMG = 0,
 	CONTACT_DMG_2 = CONTACT_DMG + 1,
 	RANGED = CONTACT_DMG_2 + 1,
 	PROJECTILE = RANGED + 1
 };
 
-struct PlayerAttack {
+struct PlayerAttack
+{
 	float duration_ms = 100.f;
 	bool has_hit = false;
 };
-
 
 // anything that is deadly to the player
 struct Deadly
 {
 	ENEMY_TYPES enemy_type = ENEMY_TYPES::CONTACT_DMG;
 	float movement_timer = 0.f;
+	float drop_chance = 1.0f;
+	int experience = 1;
 };
 
 struct Ranged
@@ -66,41 +69,46 @@ struct Ranged
 
 struct Projectile
 {
-
 };
 
-struct Path {
+struct Experience
+{
+	int experience;
+};
+
+struct Collectible
+{
+};
+
+struct Path
+{
 	std::vector<vec2> points;
 	size_t current_index = 0;
 };
 
-struct PathTimer {
+struct PathTimer
+{
 	float timer = 0.f;
 };
 
 // Walls component
 struct Wall
 {
-
 };
 
 // Ground component
 struct Ground
 {
-
 };
 
 // Ground component
 struct Sticky
 {
-
 };
-
 
 // player can't move through
 struct Solid
 {
-
 };
 
 // slows player down when walked on - applied to specific ground tiles
@@ -109,12 +117,9 @@ struct Slows
 	float speed_dec = 20;
 };
 
-
-
 // anything the player can eat
 struct Eatable
 {
-
 };
 
 // anything that can cause damage
@@ -130,17 +135,18 @@ struct Health
 };
 
 // light up damage effect
-struct LightUp 
+struct LightUp
 {
 	float duration_ms = 100.f;
 };
 
 // All data relevant to the shape and motion of entities
-struct Motion {
-	vec2 position = { 0, 0 };
+struct Motion
+{
+	vec2 position = {0, 0};
 	float angle = 0;
-	vec2 velocity = { 0, 0 };
-	vec2 scale = { 10, 10 };
+	vec2 velocity = {0, 0};
+	vec2 scale = {10, 10};
 	float speed = 300.0f; // To control player speed
 };
 
@@ -149,11 +155,12 @@ struct Collision
 {
 	// Note, the first object is stored in the ECS container.entities
 	Entity other; // the second object involved in the collision
-	Collision(Entity& other) { this->other = other; };
+	Collision(Entity &other) { this->other = other; };
 };
 
 // Data structure for toggling debug mode
-struct Debug {
+struct Debug
+{
 	bool in_debug_mode = 0;
 	bool in_freeze_mode = 0;
 };
@@ -165,10 +172,11 @@ struct ScreenState
 	float darken_screen_factor = -1;
 };
 
-struct UserInterface {
+struct UserInterface
+{
 	vec2 position = {0, 0};
 	float angle = 0;
-	vec2 scale = { 10, 10 };
+	vec2 scale = {10, 10};
 };
 
 // A struct to refer to debugging graphics in the ECS
@@ -184,7 +192,8 @@ struct DeathTimer
 };
 
 // Movement mechanic
-struct Dash {
+struct Dash
+{
 	vec2 target;
 	vec2 diff;
 	float stamina_timer_ms = 1000;
@@ -213,14 +222,15 @@ struct TexturedVertex
 // Mesh datastructure for storing vertex and index buffers
 struct Mesh
 {
-	static bool loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out_vertices, std::vector<uint16_t>& out_vertex_indices, vec2& out_size);
-	vec2 original_size = {1,1};
+	static bool loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex> &out_vertices, std::vector<uint16_t> &out_vertex_indices, vec2 &out_size);
+	vec2 original_size = {1, 1};
 	std::vector<ColoredVertex> vertices;
 	std::vector<uint16_t> vertex_indices;
 };
 
 // for all Text components
-struct Text {
+struct Text
+{
 	std::string content = "";
 	glm::vec3 color;
 	float scale;
@@ -250,7 +260,8 @@ struct Text {
  * enums there are, and as a default value to represent uninitialized fields.
  */
 
-enum class TEXTURE_ASSET_ID {
+enum class TEXTURE_ASSET_ID
+{
 	SLIME = 0,
 	SKELETON = SLIME + 1,
 	PLAYER = SKELETON + 1,
@@ -270,20 +281,24 @@ enum class TEXTURE_ASSET_ID {
 	WALL = FURNITURE + 1,
 	SIDE_WALL = WALL + 1,
 	PLAYERS = SIDE_WALL + 1,
-	TEXTURE_COUNT = PLAYERS + 1
+	COINS = PLAYERS + 1,
+	TEXTURE_COUNT = COINS + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
-enum class SPRITE_ASSET_ID {
+enum class SPRITE_ASSET_ID
+{
 	PLAYER = 0,
 	SKELETON = PLAYER + 1,
 	SLIME = SKELETON + 1,
 	RANGED_ENEMY = SLIME + 1,
-	SPRITE_COUNT = RANGED_ENEMY + 1,
+	COIN = RANGED_ENEMY + 1,
+	SPRITE_COUNT = COIN + 1,
 };
-const int sprite_count = (int) SPRITE_ASSET_ID::SPRITE_COUNT;
+const int sprite_count = (int)SPRITE_ASSET_ID::SPRITE_COUNT;
 
-enum class EFFECT_ASSET_ID {
+enum class EFFECT_ASSET_ID
+{
 	COLOURED = 0,
 	EGG = COLOURED + 1,
 	SALMON = EGG + 1,
@@ -294,7 +309,8 @@ enum class EFFECT_ASSET_ID {
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
-enum class GEOMETRY_BUFFER_ID {
+enum class GEOMETRY_BUFFER_ID
+{
 	SALMON = 0,
 	SPRITE = SALMON + 1,
 	EGG = SPRITE + 1,
@@ -304,7 +320,8 @@ enum class GEOMETRY_BUFFER_ID {
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
-struct SpriteSheetInfo {
+struct SpriteSheetInfo
+{
 	TEXTURE_ASSET_ID texture_id;
 	int rows;
 	int cols;
@@ -312,7 +329,8 @@ struct SpriteSheetInfo {
 	int sprite_height;
 };
 
-struct RenderRequest {
+struct RenderRequest
+{
 	TEXTURE_ASSET_ID used_texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
 	SPRITE_ASSET_ID used_sprite = SPRITE_ASSET_ID::SPRITE_COUNT;
 	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
@@ -320,18 +338,18 @@ struct RenderRequest {
 	int sprite_index = -1;
 };
 
-struct Animation {
+struct Animation
+{
 	std::string name;
-	int frameRate; // fps
+	int frameRate;												 // fps
 	SPRITE_ASSET_ID used_sprite = SPRITE_ASSET_ID::SPRITE_COUNT; // sprite sheet to grab sprites from
-	std::vector<int> sprite_indices; // list of indices used in animation 
+	std::vector<int> sprite_indices;							 // list of indices used in animation
 };
 
-struct AnimationSet {
+struct AnimationSet
+{
 	std::unordered_map<std::string, Animation> animations;
 	std::string current_animation;
 	int current_frame = 0;
 	float elapsed_time = 0.0f;
 };
-
-
