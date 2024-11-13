@@ -33,11 +33,11 @@ Entity createPlayer(RenderSystem *renderer, vec2 pos);
 // the hp bar
 Entity createHPBar(RenderSystem *renderer, vec2 pos);
 
-// the prey
-Entity createFish(RenderSystem *renderer, vec2 position);
+// slow contact damage enemy
+Entity createContactSlow(RenderSystem *renderer, vec2 position);
 
-// the enemy
-Entity createEel(RenderSystem *renderer, vec2 position);
+// fast contact damage enemy
+Entity createContactFast(RenderSystem *renderer, vec2 position);
 
 Entity createRangedEnemy(RenderSystem *renderer, vec2 position);
 

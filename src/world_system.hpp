@@ -60,8 +60,8 @@ private:
 	// Game state
 	RenderSystem *renderer;
 	float current_speed;
-	float next_eel_spawn;
-	float next_fish_spawn;
+	float next_contact_slow_spawn;
+	float next_contact_fast_spawn;
 	float next_ranged_spawn;
 	Entity my_player;
 	Entity hp_bar;

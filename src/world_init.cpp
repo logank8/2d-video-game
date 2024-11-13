@@ -164,7 +164,7 @@ Entity createText(vec2 pos, float scale, std::string content, glm::vec3 color)
 	return entity;
 }
 
-Entity createFish(RenderSystem *renderer, vec2 position)
+Entity createContactSlow(RenderSystem *renderer, vec2 position)
 {
 	// Reserve en entity
 	auto entity = Entity();
@@ -197,7 +197,7 @@ Entity createFish(RenderSystem *renderer, vec2 position)
 	return entity;
 }
 
-Entity createEel(RenderSystem *renderer, vec2 position)
+Entity createContactFast(RenderSystem *renderer, vec2 position)
 {
 	auto entity = Entity();
 
@@ -291,6 +291,8 @@ Entity createRangedProjectile(RenderSystem *renderer, vec2 position)
 	// registry.healths.emplace(entity);
 	auto &damage = registry.damages.emplace(entity);
 	damage.damage = 25.f;
+	auto& health = registry.healths.emplace(entity);
+	health.hit_points = 1.f;
 	registry.projectiles.emplace(entity);
 	registry.renderRequests.insert(
 		entity,

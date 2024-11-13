@@ -14,16 +14,17 @@
 #include "player_controller.hpp"
 
 // Game configuration
-const size_t MAX_NUM_EELS = 5;
-const size_t MAX_NUM_FISH = 2;
-const size_t EEL_SPAWN_DELAY_MS = 2000 * 3;
-const size_t FISH_SPAWN_DELAY_MS = 5000 * 3;
-const size_t MAX_NUM_RANGED_ENEMY = 1;
+//const size_t MAX_NUM_CONTACT_SLOW = 2;
+//const size_t MAX_NUM_CONTACT_FAST = 5;
+const size_t CONTACT_SLOW_SPAWN_DELAY_MS = 5000 * 3;
+const size_t CONTACT_FAST_SPAWN_DELAY_MS = 2000 * 3;
+//const size_t MAX_NUM_RANGED_ENEMY = 1;
 const size_t RANGED_ENEMY_SPAWN_DELAY_MS = 5000 * 3;
 const size_t RANGED_ENEMY_PROJECTILE_DELAY_MS = 3000;
 
 const int TILE_SIZE = 100;
 std::vector<vec2> tile_vec;
+std::vector<vec2> spawnable_tiles;
 const int LIGHT_FLICKER_RATE = 2000 * 10;
 const int FPS_COUNTER_MS = 1000;
 
@@ -38,7 +39,7 @@ PhysicsSystem physics;
 
 // create the underwater world
 WorldSystem::WorldSystem()
-	: points(0), next_eel_spawn(0.f), next_fish_spawn(0.f), next_ranged_spawn(0.f)
+	: points(0), next_contact_fast_spawn(0.f), next_contact_slow_spawn(0.f), next_ranged_spawn(0.f)
 {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -166,7 +167,7 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 void createHPBar(Entity enemy)
 {
 	// Check to avoid errors since collisions occur after world step
-	if (registry.healths.has(enemy))
+	if (registry.healths.has(enemy) && registry.deadlys.get(enemy).enemy_type != ENEMY_TYPES::PROJECTILE)
 	{
 		float &hp = registry.healths.get(enemy).hit_points;
 		Motion &enemy_motion = registry.motions.get(enemy);
@@ -294,18 +295,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				int encounter = rand() % 3;
 				if (encounter == 0)
 				{
-					createFish(renderer, world_pos);
+					createContactSlow(renderer, world_pos);
 				}
 				else if (encounter == 1)
 				{
 
-					createEel(renderer, world_pos);
+					createContactFast(renderer, world_pos);
 				}
 				else
 				{
 
-					createFish(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createFish(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+					createContactSlow(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createContactSlow(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
@@ -315,20 +316,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				if (encounter == 0)
 				{
 
-					createFish(renderer, vec2(world_pos.x, world_pos.y - TILE_SIZE));
-					createEel(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+					createContactSlow(renderer, vec2(world_pos.x, world_pos.y - TILE_SIZE));
+					createContactFast(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
 				}
 				else if (encounter == 1)
 				{
 
-					createEel(renderer, vec2(world_pos.x, world_pos.y - TILE_SIZE));
-					createEel(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+					createContactFast(renderer, vec2(world_pos.x, world_pos.y - TILE_SIZE));
+					createContactFast(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
 				}
 				else
 				{
 					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y + TILE_SIZE));
-					createFish(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createFish(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
+					createContactSlow(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createContactSlow(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
@@ -337,22 +338,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				int encounter = rand() % 3;
 				if (encounter == 0)
 				{
-					createEel(renderer, vec2(world_pos.x, world_pos.y));
+					createContactFast(renderer, vec2(world_pos.x, world_pos.y));
 					createRangedEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
 					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
 				}
 				else if (encounter == 1)
 				{
-					createFish(renderer, vec2(world_pos.x, world_pos.y));
-					createEel(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createEel(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
+					createContactSlow(renderer, vec2(world_pos.x, world_pos.y));
+					createContactFast(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createContactFast(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
 				}
 				else
 				{
 					createRangedEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createEel(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createFish(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
-					createFish(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+					createContactFast(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createContactSlow(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
+					createContactSlow(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
@@ -365,74 +366,57 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		createHPBar(enemy);
 	}
 
-	/*
 	//TODO: spawn frequencies and spawn radius to be adjusted
 	// Spawn Level 1 type enemy: slow with contact damage
-	next_fish_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.eatables.components.size() <= MAX_NUM_FISH && next_fish_spawn < 0.f) {
-		next_fish_spawn = (FISH_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (FISH_SPAWN_DELAY_MS / 2);
-		vec2 fish_pos;
+	next_contact_slow_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (next_contact_slow_spawn < 0.f) {
+		next_contact_slow_spawn = (CONTACT_SLOW_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_SLOW_SPAWN_DELAY_MS / 2);
+		vec2 contact_slow_pos;
 		float distance_to_player;
+		float index;
 		do {
-			//fish_pos = { 50.0f + uniform_dist(rng) * (window_width_px - 100.f), 50.f + uniform_dist(rng) * (window_height_px - 100.f) };
-			int i;
-			int j;
-			do {
-				i = static_cast<int>(uniform_dist(rng) * map1[0].size());
-				j = static_cast<int>(uniform_dist(rng) * map1.size());
-			} while (map1[j][i] != 1);
-			int tile_size = 100;
-			fish_pos = { (640 - (25 * 100)) + (i * tile_size) + (tile_size / 2), (640 - (44 * 100)) + (j * tile_size) + (tile_size / 2) };
-			distance_to_player = sqrt(pow(fish_pos.x - player_pos.x, 2) + pow(fish_pos.y - player_pos.y, 2));
-		} while (distance_to_player < 500.f);
-		Entity fish = createFish(renderer, fish_pos);
-		registry.motions.get(fish).velocity = { 2.5f, 2.5f };
+			index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
+			contact_slow_pos = { (640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2) };
+			distance_to_player = sqrt(pow(contact_slow_pos.x - player_pos.x, 2) + pow(contact_slow_pos.y - player_pos.y, 2));
+		} while (distance_to_player < 300.f);
+
+		createContactSlow(renderer, contact_slow_pos);
+		tile_vec.push_back(spawnable_tiles[index]);
 	}
 
 	// Spawn Level 2 type enemy: fast with contact damage
-	next_eel_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.deadlys.components.size() <= MAX_NUM_EELS && next_eel_spawn < 0.f) {
-		// reset timer
-		next_eel_spawn = (EEL_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (EEL_SPAWN_DELAY_MS / 2);
-		vec2 eel_pos;
+	next_contact_fast_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (next_contact_fast_spawn < 0.f) {
+		next_contact_fast_spawn = (CONTACT_FAST_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_FAST_SPAWN_DELAY_MS / 2);
+		vec2 contact_fast_pos;
 		float distance_to_player;
+		float index;
 		do {
-			int i;
-			int j;
-			do {
-				i = static_cast<int>(uniform_dist(rng) * map1[0].size());
-				j = static_cast<int>(uniform_dist(rng) * map1.size());
-			} while (map1[j][i] != 1);
-			int tile_size = 100;
-			eel_pos = { (640 - (25 * 100)) + (i * tile_size) + (tile_size / 2), (640 - (44 * 100)) + (j * tile_size) + (tile_size / 2) };
-			distance_to_player = sqrt(pow(eel_pos.x - player_pos.x, 2) + pow(eel_pos.y - player_pos.y, 2));
-		} while (distance_to_player < 500.f);
-		Entity eel = createEel(renderer, eel_pos);
-		registry.motions.get(eel).velocity = { 5.f, 5.f };
+			index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
+			contact_fast_pos = { (640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2) };
+			distance_to_player = sqrt(pow(contact_fast_pos.x - player_pos.x, 2) + pow(contact_fast_pos.y - player_pos.y, 2));
+		} while (distance_to_player < 300.f);
+
+		createContactFast(renderer, contact_fast_pos);
+		tile_vec.push_back(spawnable_tiles[index]);
 	}
 
 	// Spawn Level 3 type enemy: slow ranged enemy
 	next_ranged_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.ranged.components.size() <= MAX_NUM_RANGED_ENEMY && next_ranged_spawn < 0.f) {
-		// reset timer
+	if (next_ranged_spawn < 0.f) {
 		next_ranged_spawn = (RANGED_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_SPAWN_DELAY_MS / 2);
-		vec2 ranged_enemy_pos;
+		vec2 ranged_pos;
 		float distance_to_player;
+		float index;
 		do {
-			int i;
-			int j;
-			do {
-				i = static_cast<int>(uniform_dist(rng) * map1[0].size());
-				j = static_cast<int>(uniform_dist(rng) * map1.size());
-			} while (map1[j][i] != 1);
-			int tile_size = 100;
-			ranged_enemy_pos = { (640 - (25 * 100)) + (i * tile_size) + (tile_size / 2), (640 - (44 * 100)) + (j * tile_size) + (tile_size / 2) };
-			distance_to_player = sqrt(pow(ranged_enemy_pos.x - player_pos.x, 2) + pow(ranged_enemy_pos.y - player_pos.y, 2));
-		} while (distance_to_player < 500.f);
-		Entity ranged_enemy = createRangedEnemy(renderer, ranged_enemy_pos);
-		registry.motions.get(ranged_enemy).velocity = { 1.f, 1.f };
+			index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
+			ranged_pos = { (640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2) };
+			distance_to_player = sqrt(pow(ranged_pos.x - player_pos.x, 2) + pow(ranged_pos.y - player_pos.y, 2));
+		} while (distance_to_player < 300.f);
+
+		createRangedEnemy(renderer, ranged_pos);
+		tile_vec.push_back(spawnable_tiles[index]);
 	}
-	*/
 
 	// Spawn projectiles for ranged enemies
 	for (auto &ranged : registry.ranged.entities)
@@ -590,7 +574,7 @@ void WorldSystem::restart_game()
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
-	// create a slime patches
+	// create a slime patches and create spawnable tiles vector
 	for (int i = 0; i < map1.size(); i++)
 	{
 		for (int j = 0; j < map1[0].size(); j++)
@@ -602,6 +586,10 @@ void WorldSystem::restart_game()
 			{
 				createSlimePatch(renderer, world_pos);
 				// tile_vec.push_back(vec2(i, j));
+			}
+			// create vector of spawnable tiles
+			else if (map1[i][j] != 0) {
+				spawnable_tiles.push_back(vec2(i, j));
 			}
 		}
 	}
@@ -864,7 +852,7 @@ void WorldSystem::handle_collisions()
 				{
 					float roll = uniform_dist(rng);
 
-					if (roll <= deadly.drop_chance)
+					if (roll <= deadly.drop_chance && deadly.enemy_type != ENEMY_TYPES::PROJECTILE)
 					{
 						createExperience(renderer, enemy_motion.position, deadly.experience);
 					}
