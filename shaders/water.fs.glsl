@@ -99,6 +99,24 @@ void main()
 				}
 			}
 		}
+
+		// Stamina Bar
+		if ((fragPos.x >= -0.96) && (fragPos.x <= -0.52)) {
+			if ((fragPos.y >= 0.65) && (fragPos.y <= 0.735)) {
+				if ((fragPos.x <= -0.94) && (fragPos.y >= 0.72)) {
+					color = color;
+				} else if ((fragPos.x <= -0.95) && (fragPos.y >=0.71)) {
+					color = color;
+				} else if ((fragPos.x >= -0.54) && (fragPos.y >= 0.72)) {
+					color = color;
+				} else if ((fragPos.x >= -0.55) && (fragPos.y >= 0.71)) {
+					color = color;
+				}
+				else {
+					color = in_color;
+				}
+			}
+		}
 	}
 	
 }
