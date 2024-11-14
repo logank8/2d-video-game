@@ -653,7 +653,7 @@ vec2 norm(vec2 vec)
 }
 
 // Compute collisions between entities
-void WorldSystem::handle_collisions()
+void WorldSystem::handle_collisions(float step_seconds)
 {
 	// Loop over all collisions detected by the physics system
 	auto &collisionsRegistry = registry.collisions;
@@ -832,14 +832,85 @@ void WorldSystem::handle_collisions()
 				Player &player = registry.players.get(my_player);
 				Deadly &deadly = registry.deadlys.get(entity_other);
 
+				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - damage.damage);
+
 				vec2 diff = enemy_motion.position - pmotion.position;
 
-				if (debugging.in_debug_mode)
+				if (deadly.enemy_type != ENEMY_TYPES::PROJECTILE && deadly_health.hit_points > 0)
 				{
-					enemy_motion.position += diff * player.knockback_strength;
-				}
+					vec2 kockback_pos = enemy_motion.position + (diff * player.knockback_strength);
+					int grid_x = static_cast<int>((kockback_pos.x - (640 - (25 * TILE_SIZE))) / TILE_SIZE);
+					int grid_y = static_cast<int>((kockback_pos.y - (640 - (44 * TILE_SIZE))) / TILE_SIZE);
+					int adjust_x = 0;
+					int adjust_y = 0;
+					if (diff.x < 0 && diff.y < 0) {
+						if (abs(diff.x) < 50 && abs(diff.y) < 50) {
+							adjust_x -= 1;
+							adjust_y -= 1;
+						}
+						else {
+							if (abs(diff.x) > 50) {
+								adjust_x -= 1;
+							}
+							if (abs(diff.y) > 50) {
+								adjust_y -= 1;
+							}
+						}
+					} else if (diff.x > 0 && diff.y < 0) {
+						if (abs(diff.x) < 50 && abs(diff.y) < 50) {
+							adjust_x += 1;
+							adjust_y -= 1;
+						}
+						else {
+							if (abs(diff.x) > 50) {
+								adjust_x += 1;
+							}
+							if (abs(diff.y) > 50) {
+								adjust_y -= 1;
+							}
+						}
+					}
+					else if (diff.x > 0 && diff.y > 0) {
+						if (abs(diff.x) < 50 && abs(diff.y) < 50) {
+							adjust_x += 1;
+							adjust_y += 1;
+						}
+						else {
+							if (abs(diff.x) > 50) {
+								adjust_x += 1;
+							}
+							if (abs(diff.y) > 50) {
+								adjust_y += 1;
+							}
+						}
+					}
+					else if (diff.x < 0 && diff.y > 0) {
+						if (abs(diff.x) < 50 && abs(diff.y) < 50) {
+							adjust_x -= 1;
+							adjust_y += 1;
+						}
+						else {
+							if (abs(diff.x) > 50) {
+								adjust_x -= 1;
+							}
+							if (abs(diff.y) > 50) {
+								adjust_y += 1;
+							}
+						}
+					}
 
-				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - damage.damage);
+					vec2 adjust = adjust_knockback_coordinates(grid_x, grid_y, adjust_x, adjust_y);
+
+					if (!(adjust_x == 0 && adjust_y == 0) && registry.motions.has(entity_other)) {
+						vec2 grid_kockback_pos = { (640 - (25 * 100)) + ((grid_x + adjust.x) * TILE_SIZE), (640 - (44 * 100)) + ((grid_y + adjust.y) * TILE_SIZE) };
+						enemy_motion.position = grid_kockback_pos;
+						physics.update_enemy_movement(entity_other, step_seconds);
+						if (registry.pathTimers.has(entity_other)) {
+							registry.pathTimers.get(entity_other).timer = -1.f;
+						}
+						
+					}
+				}
 
 				if (registry.lightUps.has(entity_other))
 				{
@@ -873,6 +944,19 @@ void WorldSystem::handle_collisions()
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
+}
+
+vec2 WorldSystem::adjust_knockback_coordinates(int grid_x, int grid_y, int adjust_x, int adjust_y) {
+	if (map1[grid_y + adjust_y][grid_x + adjust_x] != 0) {
+		return vec2(adjust_x, adjust_y);
+	}
+	if (map1[grid_y + adjust_y][grid_x] != 0) {
+		return vec2(0, adjust_y);
+	}
+	if (map1[grid_y][grid_x + adjust_x] != 0) {
+		return vec2(adjust_x, 0);
+	}
+	return vec2(0, 0);
 }
 
 // Should the game be over ?

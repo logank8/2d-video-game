@@ -411,7 +411,7 @@ std::vector<vec2> find_path(const Motion &enemy, const Motion &player)
 //--------------------
 //  1. Calculate path for enemy based on tilemap coordinates
 //  2. Move enemy based on screen coordinates and prevent path recalculation to ensure enemy reaches the centre of the tile (or else bad things happen)
-void update_enemy_movement(Entity enemy, float step_seconds)
+void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
 {
     const float PATH_UPDATE_TIME = 0.5f;
 
@@ -424,6 +424,8 @@ void update_enemy_movement(Entity enemy, float step_seconds)
         registry.pathTimers.emplace(enemy, PathTimer{0.f});
     }
     PathTimer &timer = registry.pathTimers.get(enemy);
+    bool knocked_back = (timer.timer == -1.f);
+ 
     timer.timer += step_seconds;
 
     const float GRID_OFFSET_X = (640 - (25 * TILE_SIZE)) - TILE_SIZE / 2;
@@ -439,11 +441,20 @@ void update_enemy_movement(Entity enemy, float step_seconds)
     // Recalculate path if all below are true:
     // - update time has elapsed
     // - enemy entity is at the centre of the tile in screen xy coordinates
-    // - the enemy has line of sight of the palyer
-    if ((!registry.paths.has(enemy) || timer.timer >= PATH_UPDATE_TIME) &&
+    // - the enemy has line of sight of the player
+    // - OR of enemy was knocked back recently
+    if (((!registry.paths.has(enemy) || timer.timer >= PATH_UPDATE_TIME) &&
         (grid_x == raw_x && grid_y == raw_y) &&
-        phsyics.has_los(enemy_motion.position, player_motion.position))
+        phsyics.has_los(enemy_motion.position, player_motion.position)) || knocked_back)
     {
+        // adjust pathfinding coordinates if knocked back recently
+        if ((grid_x != raw_x || grid_y != raw_y)) {
+            int adjusted_x = static_cast<int>((enemy_motion.position.x - (640 - (25 * TILE_SIZE))) / TILE_SIZE);
+            int adjusted_y = static_cast<int>((enemy_motion.position.y - (640 - (44 * TILE_SIZE))) / TILE_SIZE);
+            enemy_motion.position = { (640 - (25 * 100)) + (adjusted_x * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (adjusted_y * TILE_SIZE) + (TILE_SIZE / 2) };
+            timer.timer = 0.f;
+
+        }
 
         std::vector<vec2> new_path = find_path(motion, player_motion);
 
@@ -591,9 +602,13 @@ void PhysicsSystem::step(float elapsed_ms)
             // Handle contact damage enemies
             if (registry.deadlys.has(entity))
             {
+                //Motion& player_motion = registry.motions.get(registry.players.entities[0]);
                 if (registry.deadlys.get(entity).enemy_type != ENEMY_TYPES::PROJECTILE)
                 {
-
+                    
+                    //float angle = atan2(motion.position.y - player_motion.position.y, motion.position.x - player_motion.position.x);
+                    //motion.position.x -= cos(angle) * motion.velocity.x * step_seconds;
+                    //motion.position.y -= sin(angle) * motion.velocity.y * step_seconds;
                     // A* pathfinding
                     update_enemy_movement(entity, step_seconds);
                 }

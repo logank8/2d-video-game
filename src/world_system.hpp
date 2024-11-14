@@ -34,7 +34,7 @@ public:
 	bool step(float elapsed_ms);
 
 	// Check for collisions
-	void handle_collisions();
+	void handle_collisions(float step_seconds);
 
 	// Should the game be over ?
 	bool is_over() const;
@@ -51,11 +51,14 @@ private:
 	// restart level
 	void restart_game();
 
+	vec2 adjust_knockback_coordinates(int grid_x, int grid_y, int adjust_x, int adjust_y);
+
 	// OpenGL window handle
 	GLFWwindow *window;
 
 	// Number of fish eaten by the salmon, displayed in the window title
 	unsigned int points;
+
 
 	// Game state
 	RenderSystem *renderer;
