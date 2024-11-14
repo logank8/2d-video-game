@@ -1024,6 +1024,7 @@ void WorldSystem::handle_collisions() {
 					d.state = ENEMY_STATE::DEAD;
 					DeathTimer& death = registry.deathTimers.emplace(entity_other);
 					death.counter_ms = 550.4f;
+					//death.counter_ms = 5000.f;
 					std::cout << "enemy dying" << std::endl;
 				}
 

@@ -231,10 +231,10 @@ Entity createSlowEnemy(RenderSystem* renderer, vec2 position)
 		SPRITE_ASSET_ID::SKELETON,
 		run_f_vec
 	};
-	std::vector<int> die_vec = {36, 37, 38, 39};
+	std::vector<int> die_vec = {36, 37, 38, 39, 39};
 	Animation die = {
 			"slowenemy_die",
-			10,
+			7,
 			SPRITE_ASSET_ID::PLAYER,
 			die_vec
 		};
@@ -299,9 +299,18 @@ Entity createFastEnemy(RenderSystem* renderer, vec2 position)
 		run_f_vec
 	};
 
+	std::vector<int> die_vec = {1, 2, 3, 4, 4};
+	Animation die = {
+		"fastenemy_die",
+		7,
+		SPRITE_ASSET_ID::SLIME,
+		die_vec
+	};
+
 	auto& animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;
 	animSet.animations[run_f.name] = run_f;
+	animSet.animations[die.name] = die;
 	animSet.current_animation = idle_f.name;
 
 	return entity;
@@ -357,17 +366,18 @@ Entity createRangedEnemy(RenderSystem* renderer, vec2 position)
 		run_f_vec
 	};
 
-	// std::vector<int> die_vec = {54, 55, 56};
-	// Animation die = {
-	// 		"player_die",
-	// 		15,
-	// 		SPRITE_ASSET_ID::PLAYER,
-	// 		die_vec
-	// 	};
+	std::vector<int> die_vec = {32, 33, 34, 35, 36};
+	Animation die = {
+			"rangedenemy_die",
+	 		7,
+	 		SPRITE_ASSET_ID::RANGED_ENEMY,
+	 		die_vec
+	 	};
 
 	auto& animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;
 	animSet.animations[run_f.name] = run_f;
+	animSet.animations[die.name] = die;
 	animSet.current_animation = idle_f.name;
 
 	return entity;
