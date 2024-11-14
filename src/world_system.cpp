@@ -400,9 +400,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// restart the game once the death timer expired
 		if (counter.counter_ms < 0) {
 			registry.deathTimers.remove(entity);
-			screen.darken_screen_factor = 0;
-			restart_game();
-			return true;
+			if (registry.players.has(entity)) {
+				screen.darken_screen_factor = 0;
+				restart_game();
+				return true;
+			}
+			if (registry.deadlys.has(entity)) {
+				AnimationSet animSet_enemy = registry.animationSets.get(entity);
+				Animation anim = animSet_enemy.animations[animSet_enemy.current_animation];
+				registry.remove_all_components_of(entity);
+			}
+			
 		}
 	}
 
@@ -563,6 +571,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					d.state = ENEMY_STATE::IDLE;
 				}
 				break;
+			case ENEMY_STATE::DEAD:
+				registry.motions.get(enemy).velocity = vec2(0,0);
+				break;
 			default:
 				break;
 		}
@@ -665,6 +676,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				break;
 			case ENEMY_STATE::RUN:
 				animSet_enemy.current_animation = enemy_name + "enemy_run_f";
+				break;
+			case ENEMY_STATE::DEAD:
+			// seems fine
+			// TODO: make it so enemies cannot shoot/inflict damage when dying
+				if (animSet_enemy.current_animation != enemy_name + "enemy_die") {
+					animSet_enemy.current_animation = enemy_name + "enemy_die";
+					animSet_enemy.current_frame = 0;
+				}
 				break;
 			default:
 				animSet_enemy.current_animation = enemy_name + "enemy_idle_f";
@@ -860,9 +879,8 @@ void WorldSystem::handle_collisions() {
 					registry.remove_all_components_of(entity_other);
 				}
 				if (!registry.deathTimers.has(entity) && player_hp <= 0.f) {
-					// Scream, reset timer, and make the salmon sink
 					registry.deathTimers.emplace(entity);
-					Mix_PlayChannel(-1, salmon_dead_sound, 0);
+					//Mix_PlayChannel(-1, salmon_dead_sound, 0);
 
 					// Control what happens when the player dies here
 					Motion& motion = registry.motions.get(my_player);
@@ -991,7 +1009,6 @@ void WorldSystem::handle_collisions() {
 					motion.position += diff * player.knockback_strength;
 				}
 
-				createSmoke(renderer, motion.position);
 
 				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - damage.damage);
 				if (registry.lightUps.has(entity_other)) {
@@ -1002,10 +1019,12 @@ void WorldSystem::handle_collisions() {
 
 				std::cout << "entity " << entity_other << " hitpoints: " << deadly_health.hit_points << std::endl;
 
-				if (deadly_health.hit_points <= 0.0f) {
-					createSmoke(renderer, registry.motions.get(entity_other).position);
-					registry.remove_all_components_of(entity_other);
-					std::cout << "entity " << entity_other << " died" << std::endl;
+				if (deadly_health.hit_points <= 0.0f && (!registry.deathTimers.has(entity_other))) {
+					Deadly& d = registry.deadlys.get(entity_other);
+					d.state = ENEMY_STATE::DEAD;
+					DeathTimer& death = registry.deathTimers.emplace(entity_other);
+					death.counter_ms = 550.4f;
+					std::cout << "enemy dying" << std::endl;
 				}
 
 				registry.playerAttacks.get(entity).has_hit = true;
