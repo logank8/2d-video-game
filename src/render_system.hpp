@@ -30,7 +30,8 @@ class RenderSystem {
 	// Associated id with .obj path
 	const std::vector < std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths =
 	{
-		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SALMON, mesh_path("slime_patch.obj"))
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SALMON, mesh_path("slime_patch.obj")),
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SMOKE, mesh_path("smoke.obj"))
 		  // specify meshes of other assets here
 	};
 
@@ -73,7 +74,8 @@ class RenderSystem {
 		shader_path("textured"),
 		shader_path("water"),
 		shader_path("font"),
-		shader_path("dash")
+		shader_path("dash"),
+		shader_path("smoke")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -82,6 +84,11 @@ class RenderSystem {
 	std::map<char, Character> m_ftCharacters;
 	GLuint m_font_vao;
 	GLuint m_font_vbo;
+
+	GLuint smoke_vao;
+	GLuint smoke_vbo;
+	glm::vec2 smoke_translations[100];
+
 	GLuint vao;
 	GLuint vbo;
 	FT_Face face;
@@ -101,6 +108,8 @@ public:
 	void getUVCoordinates(SPRITE_ASSET_ID sid, int spriteIndex, float& u0, float& v0, float& u1, float& v1);
 
 	void initializeGlTextures();
+
+	void initSmoke();
 
 	void initializeGlEffects();
 

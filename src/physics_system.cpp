@@ -579,7 +579,10 @@ void PhysicsSystem::step(float elapsed_ms)
 				if (registry.deadlys.get(entity).enemy_type != ENEMY_TYPES::PROJECTILE) {
 
                     //A* pathfinding
-                    update_enemy_movement(entity, step_seconds);
+                    if (!registry.deathTimers.has(entity)) {
+                        update_enemy_movement(entity, step_seconds);
+                    }
+                    
 
 				}
 				else {

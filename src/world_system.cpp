@@ -400,9 +400,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// restart the game once the death timer expired
 		if (counter.counter_ms < 0) {
 			registry.deathTimers.remove(entity);
-			screen.darken_screen_factor = 0;
-			restart_game();
-			return true;
+			if (registry.players.has(entity)) {
+				screen.darken_screen_factor = 0;
+				restart_game();
+				return true;
+			}
+			if (registry.deadlys.has(entity)) {
+				AnimationSet animSet_enemy = registry.animationSets.get(entity);
+				Animation anim = animSet_enemy.animations[animSet_enemy.current_animation];
+				createSmoke(renderer, registry.motions.get(entity).position);
+				registry.remove_all_components_of(entity);
+			}
+			
 		}
 	}
 

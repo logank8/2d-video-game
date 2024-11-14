@@ -161,6 +161,42 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
 							  sizeof(ColoredVertex), (void *)sizeof(vec3));
 		gl_has_errors();
+	} else if (render_request.used_effect == EFFECT_ASSET_ID::SMOKE) {
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		GLint in_color_loc = glGetAttribLocation(program, "in_color");
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+							  sizeof(ColoredVertex), (void *)0);
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_color_loc);
+		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
+							  sizeof(ColoredVertex), (void *)sizeof(vec3));
+		gl_has_errors();
+
+		glm::vec2 translations[100];
+		int index = 0;
+		float offset = 0.1f;
+
+		for(int y = -10; y < 10; y += 2) {
+			for (int x = -10; x < 10; x += 2) {
+				glm::vec2 translation;
+				translation.x = (float) x / 10.0f + offset;
+				translation.y = (float) y / 10.0f + offset;
+				translations[index++] = translation;
+			}
+		}
+
+		for (unsigned int i = 0; i < 100; i++) {
+			std::string name = "offsets[" + std::to_string(i) + "]"; 
+			GLint offsets_uloc = glGetAttribLocation(program, name.c_str());
+			glUniform2f(offsets_uloc, translations[i].x, translations[i].y);
+		}
+		gl_has_errors();
+
+		
 	} else {
 		assert(false && "Type of render request not supported");
 	}
@@ -197,7 +233,15 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float *)&projection);
 	gl_has_errors();
 	// Drawing of num_indices/3 triangles specified in the index buffer
-	glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
+	if (render_request.used_effect != EFFECT_ASSET_ID::SMOKE) {
+		glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
+	} else {
+		glBindVertexArray(smoke_vao);
+		gl_has_errors();
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100); 
+        glBindVertexArray(vao); 
+		
+	}
 	gl_has_errors();
 }
 
@@ -305,7 +349,16 @@ void RenderSystem::drawScreenSpaceObject(Entity entity) {
     GLuint projection_loc = glGetUniformLocation(program, "projection");
     glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*)&screen_projection); 
 
-	glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
+	if (render_request.used_effect != EFFECT_ASSET_ID::SMOKE) {
+		glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
+	} else {
+		glBindVertexArray(smoke_vao);	
+		glBindBuffer(GL_ARRAY_BUFFER, smoke_vbo);
+		
+		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100);  
+
+		glBindVertexArray(vao);
+	}
 	gl_has_errors();
 }
 

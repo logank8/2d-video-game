@@ -231,11 +231,11 @@ Entity createSlowEnemy(RenderSystem* renderer, vec2 position)
 		SPRITE_ASSET_ID::SKELETON,
 		run_f_vec
 	};
-	std::vector<int> die_vec = {36, 37, 38, 39};
+	std::vector<int> die_vec = {36, 37, 38, 39, 39, 39, 39};
 	Animation die = {
 			"slowenemy_die",
-			10,
-			SPRITE_ASSET_ID::PLAYER,
+			7,
+			SPRITE_ASSET_ID::SKELETON,
 			die_vec
 		};
 
@@ -299,9 +299,18 @@ Entity createFastEnemy(RenderSystem* renderer, vec2 position)
 		run_f_vec
 	};
 
+	std::vector<int> die_vec = {0, 1, 22, 23, 24};
+	Animation die = {
+		"fastenemy_die",
+		7,
+		SPRITE_ASSET_ID::SLIME,
+		run_f_vec
+	};
+
 	auto& animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;
 	animSet.animations[run_f.name] = run_f;
+	animSet.animations[die.name] = die;
 	animSet.current_animation = idle_f.name;
 
 	return entity;
@@ -357,17 +366,18 @@ Entity createRangedEnemy(RenderSystem* renderer, vec2 position)
 		run_f_vec
 	};
 
-	// std::vector<int> die_vec = {54, 55, 56};
-	// Animation die = {
-	// 		"player_die",
-	// 		15,
-	// 		SPRITE_ASSET_ID::PLAYER,
-	// 		die_vec
-	// 	};
+	std::vector<int> die_vec = {32, 33, 34, 35, 36};
+	Animation die = {
+			"rangedenemy_die",
+	 		7,
+	 		SPRITE_ASSET_ID::RANGED_ENEMY,
+	 		die_vec
+	 	};
 
 	auto& animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;
 	animSet.animations[run_f.name] = run_f;
+	animSet.animations[die.name] = die;
 	animSet.current_animation = idle_f.name;
 
 	return entity;
@@ -684,10 +694,27 @@ Entity createBuff(RenderSystem* renderer, vec2 pos, BUFF_TYPE type) {
 	return entity;
 }
 
-void createSmoke(RenderSystem* renderer, vec2 pos) {
-	for (int i = 0; i < 20; i++) {
-		createEffect(renderer, pos, 500, EFFECT_TYPE::SMOKE);
-	}
+Entity createSmoke(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SALMON);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	registry.renderRequests.insert(
+		entity, {
+			TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
+			EFFECT_ASSET_ID::SMOKE,
+			GEOMETRY_BUFFER_ID::SMOKE
+		});
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = pos;
+	motion.scale = {50.f,50.f};
+
+	return entity;
 }
 
 
@@ -715,15 +742,6 @@ Entity createEffect(RenderSystem* renderer, vec2 pos, float lifespan_ms, EFFECT_
 	std::uniform_real_distribution<> distrib(0, 1);
 
 	switch (type) {
-		case (EFFECT_TYPE::SMOKE):
-			// change velocity stuff so it's in a circle around
-			
-			motion.velocity = {pow(-1, rand() % 2) * distrib(gen), (pow(-1, rand() % 2)) * (distrib(gen))};
-			motion.velocity *= 6.f * distrib(gen);
-			
-			motion.scale = vec2(15, 15);
-			texture = TEXTURE_ASSET_ID::SMOKE_PARTICLE;
-			break;
 		case EFFECT_TYPE::DASH:
 			texture = TEXTURE_ASSET_ID::DASH;
 			effect = EFFECT_ASSET_ID::DASH;

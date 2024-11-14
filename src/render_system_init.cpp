@@ -68,10 +68,68 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	initializeGlGeometryBuffers();
 	initializeSpriteSheets();
 	fontInit(PROJECT_SOURCE_DIR + std::string("data/fonts/Kenney_Pixel.ttf"), 74);
+	initSmoke();
 
 	return true;
 }
 
+void RenderSystem::initSmoke() {
+	int index = 0;
+    float offset = 0.1f;
+    for (int y = -10; y < 10; y += 2)
+    {
+        for (int x = -10; x < 10; x += 2)
+        {
+            glm::vec2 translation;
+            translation.x = (float)x / 10.0f + offset;
+            translation.y = (float)y / 10.0f + offset;
+            smoke_translations[index++] = translation;
+        }
+    }
+
+	// store instance data in array buffer
+    unsigned int instanceVBO;
+    glGenBuffers(1, &instanceVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 100, &smoke_translations[0], GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	float smokeVertices[] = {
+        // positions     // colors
+        -0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
+         0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
+        -0.05f, -0.05f,  0.0f, 0.0f, 1.0f,
+
+        -0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
+         0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
+         0.05f,  0.05f,  0.0f, 1.0f, 1.0f
+    };
+
+	glGenVertexArrays(1, &smoke_vao);
+    glGenBuffers(1, &smoke_vbo);
+	gl_has_errors();
+
+    glBindVertexArray(smoke_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, smoke_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(smokeVertices), smokeVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+
+    // also set instance data
+    glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO); // this attribute comes from a different vertex buffer
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	glVertexAttribDivisor(2, 1); // tell OpenGL this is an instanced vertex attribute.
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
+	glBindVertexArray(vao);
+	gl_has_errors();
+    
+}
+ 
 
 bool RenderSystem::fontInit(const std::string& font_filename, unsigned int font_default_size) {
 	// enable blending or you will just get solid boxes instead of text

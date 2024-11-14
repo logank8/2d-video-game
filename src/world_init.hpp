@@ -72,7 +72,7 @@ Entity createSlimePatch(RenderSystem* renderer, vec2 pos);
 
 Entity createBuff(RenderSystem* renderer, vec2 pos, BUFF_TYPE type);
 
-void createSmoke(RenderSystem* renderer, vec2 pos);
+Entity createSmoke(RenderSystem* renderer, vec2 pos);
 
 Entity createEffect(RenderSystem* renderer, vec2 pos, float lifespan_ms, EFFECT_TYPE type);
 
