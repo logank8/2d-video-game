@@ -7,14 +7,15 @@
 #include "common.hpp"
 #include "components.hpp"
 #include "tiny_ecs.hpp"
-#include <map>	
+#include <map>
 // fonts
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
-class RenderSystem {
+class RenderSystem
+{
 	/**
 	 * The following arrays store the assets the game will use. They are loaded
 	 * at initialization and are assumed to not be modified by the render loop.
@@ -28,10 +29,10 @@ class RenderSystem {
 
 	// Make sure these paths remain in sync with the associated enumerators.
 	// Associated id with .obj path
-	const std::vector < std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths =
-	{
-		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SALMON, mesh_path("slime_patch.obj"))
-		  // specify meshes of other assets here
+	const std::vector<std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths =
+		{
+			std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SALMON, mesh_path("slime_patch.obj"))
+			// specify meshes of other assets here
 	};
 
 	// Make sure these paths remain in sync with the associated enumerators.
@@ -61,7 +62,8 @@ class RenderSystem {
 			textures_path("heart.png"),
 			textures_path("smoke_particle.png"),
 			textures_path("dash.png"),
-			textures_path("stamina_regen.png")
+			textures_path("stamina_regen.png"),
+			textures_path("coins.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -88,8 +90,8 @@ class RenderSystem {
 
 public:
 	// Initialize the window
-	bool init(GLFWwindow* window);
-	bool fontInit(const std::string& font_filename, unsigned int font_default_size);
+	bool init(GLFWwindow *window);
+	bool fontInit(const std::string &font_filename, unsigned int font_default_size);
 
 	template <class T>
 	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
@@ -98,14 +100,14 @@ public:
 
 	void initializeSpriteSheets();
 
-	void getUVCoordinates(SPRITE_ASSET_ID sid, int spriteIndex, float& u0, float& v0, float& u1, float& v1);
+	void getUVCoordinates(SPRITE_ASSET_ID sid, int spriteIndex, float &u0, float &v0, float &u1, float &v1);
 
 	void initializeGlTextures();
 
 	void initializeGlEffects();
 
 	void initializeGlMeshes();
-	Mesh& getMesh(GEOMETRY_BUFFER_ID id) { return meshes[(int)id]; };
+	Mesh &getMesh(GEOMETRY_BUFFER_ID id) { return meshes[(int)id]; };
 
 	void initializeGlGeometryBuffers();
 	// Initialize the screen texture used as intermediate render target
@@ -124,14 +126,13 @@ public:
 
 private:
 	// Internal drawing functions for each entity type
-	void drawTexturedMesh(Entity entity, const mat3& projection);
+	void drawTexturedMesh(Entity entity, const mat3 &projection);
 	void drawScreenSpaceObject(Entity entity);
 	void drawToScreen();
 	void renderText();
 
-
 	// Window handle
-	GLFWwindow* window;
+	GLFWwindow *window;
 
 	// Screen texture handles
 	GLuint frame_buffer;
@@ -142,4 +143,4 @@ private:
 };
 
 bool loadEffectFromFile(
-	const std::string& vs_path, const std::string& fs_path, GLuint& out_program);
+	const std::string &vs_path, const std::string &fs_path, GLuint &out_program);

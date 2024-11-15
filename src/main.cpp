@@ -51,7 +51,7 @@ int main()
 			physics.step(elapsed_ms, world.get_current_map());
 			animations.step(elapsed_ms);
 		}
-		world.handle_collisions();
+		world.handle_collisions(elapsed_ms);
 
 		renderer.draw();
 	}

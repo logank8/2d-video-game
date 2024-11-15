@@ -6,23 +6,25 @@
 #include <cassert>
 #include <sstream>
 #include <iostream>
-#include <fstream> 
+#include <fstream>
 #include <string>
 
 #include "physics_system.hpp"
 #include "animation_system.hpp"
+#include "player_controller.hpp"
 
 // Game configuration
-const size_t MAX_NUM_EELS = 5;
-const size_t MAX_NUM_FISH = 2;
-const size_t EEL_SPAWN_DELAY_MS = 2000 * 3;
-const size_t FISH_SPAWN_DELAY_MS = 5000 * 3;
-const size_t MAX_NUM_RANGED_ENEMY = 1;
+//const size_t MAX_NUM_CONTACT_SLOW = 2;
+//const size_t MAX_NUM_CONTACT_FAST = 5;
+const size_t CONTACT_SLOW_SPAWN_DELAY_MS = 5000 * 3;
+const size_t CONTACT_FAST_SPAWN_DELAY_MS = 2000 * 3;
+//const size_t MAX_NUM_RANGED_ENEMY = 1;
 const size_t RANGED_ENEMY_SPAWN_DELAY_MS = 5000 * 3;
 const size_t RANGED_ENEMY_PROJECTILE_DELAY_MS = 3000;
 
 const int TILE_SIZE = 100;
 std::vector<vec2> tile_vec;
+std::vector<vec2> spawnable_tiles;
 const int LIGHT_FLICKER_RATE = 2000 * 10;
 const int FPS_COUNTER_MS = 1000;
 
@@ -33,19 +35,18 @@ bool display_fps = false;
 
 bool is_tutorial_on = false;
 
-PhysicsSystem phsyics;
+PhysicsSystem physics;
 
 // create the underwater world
 WorldSystem::WorldSystem()
-	: points(0)
-	, next_eel_spawn(0.f)
-	, next_fish_spawn(0.f)
-	, next_ranged_spawn(0.f) {
+	: points(0), next_contact_fast_spawn(0.f), next_contact_slow_spawn(0.f), next_ranged_spawn(0.f)
+{
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 }
 
-WorldSystem::~WorldSystem() {
+WorldSystem::~WorldSystem()
+{
 
 	// destroy music components
 	if (background_music != nullptr)
@@ -65,19 +66,23 @@ WorldSystem::~WorldSystem() {
 }
 
 // Debugging
-namespace {
-	void glfw_err_cb(int error, const char *desc) {
+namespace
+{
+	void glfw_err_cb(int error, const char *desc)
+	{
 		fprintf(stderr, "%d: %s", error, desc);
 	}
 }
 
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
-GLFWwindow* WorldSystem::create_window() {
+GLFWwindow *WorldSystem::create_window()
+{
 	///////////////////////////////////////
 	// Initialize GLFW
 	glfwSetErrorCallback(glfw_err_cb);
-	if (!glfwInit()) {
+	if (!glfwInit())
+	{
 		fprintf(stderr, "Failed to initialize GLFW");
 		return nullptr;
 	}
@@ -97,7 +102,8 @@ GLFWwindow* WorldSystem::create_window() {
 
 	// Create the main window (for rendering, keyboard, and mouse input)
 	window = glfwCreateWindow(window_width_px, window_height_px, "Salmon Game Assignment", nullptr, nullptr);
-	if (window == nullptr) {
+	if (window == nullptr)
+	{
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
 	}
@@ -106,20 +112,25 @@ GLFWwindow* WorldSystem::create_window() {
 	// Input is handled using GLFW, for more info see
 	// http://www.glfw.org/docs/latest/input_guide.html
 	glfwSetWindowUserPointer(window, this);
-	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
-	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
-	auto mouse_button_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_button( _0, _1, _2); };
+	auto key_redirect = [](GLFWwindow *wnd, int _0, int _1, int _2, int _3)
+	{ ((WorldSystem *)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
+	auto cursor_pos_redirect = [](GLFWwindow *wnd, double _0, double _1)
+	{ ((WorldSystem *)glfwGetWindowUserPointer(wnd))->on_mouse_move({_0, _1}); };
+	auto mouse_button_redirect = [](GLFWwindow *wnd, int _0, int _1, int _2)
+	{ ((WorldSystem *)glfwGetWindowUserPointer(wnd))->on_mouse_button(_0, _1, _2); };
 	glfwSetKeyCallback(window, key_redirect);
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
 	glfwSetMouseButtonCallback(window, mouse_button_redirect);
 
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
-	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+	if (SDL_Init(SDL_INIT_AUDIO) < 0)
+	{
 		fprintf(stderr, "Failed to initialize SDL Audio");
 		return nullptr;
 	}
-	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
+	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1)
+	{
 		fprintf(stderr, "Failed to open audio device");
 		return nullptr;
 	}
@@ -128,18 +139,20 @@ GLFWwindow* WorldSystem::create_window() {
 	salmon_dead_sound = Mix_LoadWAV(audio_path("death_sound.wav").c_str());
 	salmon_eat_sound = Mix_LoadWAV(audio_path("eat_sound.wav").c_str());
 
-	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr) {
+	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr)
+	{
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
-			audio_path("music.wav").c_str(),
-			audio_path("death_sound.wav").c_str(),
-			audio_path("eat_sound.wav").c_str());
+				audio_path("music.wav").c_str(),
+				audio_path("death_sound.wav").c_str(),
+				audio_path("eat_sound.wav").c_str());
 		return nullptr;
 	}
 
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg) {
+void WorldSystem::init(RenderSystem *renderer_arg)
+{
 	this->renderer = renderer_arg;
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
@@ -152,17 +165,21 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	restart_game();
 }
 
-vec2 snapToClosestAxis(vec2 direction) {
-	vec2 normalized = glm::normalize(direction);
-
-	float absX = std::abs(normalized.x);
-	float absY = std::abs(normalized.y);
-
-    if (absX >= absY) {
-        return vec2(normalized.x > 0 ? 1 : -1, 0);
-    } else {
-        return vec2(0, normalized.y > 0 ? 1 : -1);
-    }
+// Create an HP bar for an enemy
+void createHPBar(Entity enemy)
+{
+	// Check to avoid errors since collisions occur after world step
+	if (registry.healths.has(enemy) && registry.deadlys.get(enemy).enemy_type != ENEMY_TYPES::PROJECTILE)
+	{
+		float &hp = registry.healths.get(enemy).hit_points;
+		Motion &enemy_motion = registry.motions.get(enemy);
+		// Shift centre of line to left as the hp bar decreases
+		Entity hp_bar = createLine({enemy_motion.position.x - ((100.f) * (1 - (hp / 200.f))) / 2,
+									enemy_motion.position.y - enemy_motion.scale.y * 0.75f},
+								   {(100.f) * hp / 200.f, 15.f});
+		vec3 &color = registry.colors.emplace(hp_bar);
+		color = vec3(0.f, 5.f, 0.f);
+	}
 }
 
 void WorldSystem::mapSwitch(int map) {
@@ -192,7 +209,8 @@ std::string toString(PLAYER_STATE status) {
 
 
 // Update our game world
-bool WorldSystem::step(float elapsed_ms_since_last_update) {
+bool WorldSystem::step(float elapsed_ms_since_last_update)
+{
 	// Updating window title with points
 	std::stringstream title_ss;
 	title_ss << "Points: " << points;
@@ -203,50 +221,56 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
-	auto& motions_registry = registry.motions;
+	auto &motions_registry = registry.motions;
 
 	vec2 player_pos = motions_registry.get(my_player).position;
 	vec2 world_origin = vec2(-1860, -3760);
 
-	if (display_fps) {
+	if (display_fps)
+	{
 		fps_counter_ms -= elapsed_ms_since_last_update;
-		if (fps_counter_ms <= 0.f) {
+		if (fps_counter_ms <= 0.f)
+		{
 			fps = (int)(1000 / elapsed_ms_since_last_update);
 			fps_counter_ms = FPS_COUNTER_MS;
 		}
-		createText({ 1000.f, 650.f }, 1.f, "FPS: " + std::to_string(fps), glm::vec3(1.0f, 0.f, 0.f));
+		createText({1000.f, 650.f}, 1.f, "FPS: " + std::to_string(fps), glm::vec3(1.0f, 0.f, 0.f));
 	}
-	
-	for (int i = (int) motions_registry.components.size()-1; i>=0; --i) {
-		Motion& motion = motions_registry.components[i];
+
+	for (int i = (int)motions_registry.components.size() - 1; i >= 0; --i)
+	{
+		Motion &motion = motions_registry.components[i];
 		Entity entity = motions_registry.entities[i];
 
-		if (registry.solidObjs.has(entity)) {
-			if ((abs(player_pos.x - motion.position.x) > 800) || (abs(player_pos.y - motion.position.y) > 800)) {
+		if (registry.solidObjs.has(entity))
+		{
+			if ((abs(player_pos.x - motion.position.x) > 800) || (abs(player_pos.y - motion.position.y) > 800))
+			{
 				vec2 obj_pos = motion.position;
-				vec2 obj_pos_map = vec2((int) ((obj_pos.x - world_origin.x) - ((int) abs(obj_pos.x - world_origin.x) % TILE_SIZE)) / TILE_SIZE, (int) ((obj_pos.y - world_origin.y) - ((int) abs(obj_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
-				
-				if (std::find(tile_vec.begin(), tile_vec.end(), vec2(obj_pos_map.x, obj_pos_map.y)) != tile_vec.end()) {
+				vec2 obj_pos_map = vec2((int)((obj_pos.x - world_origin.x) - ((int)abs(obj_pos.x - world_origin.x) % TILE_SIZE)) / TILE_SIZE, (int)((obj_pos.y - world_origin.y) - ((int)abs(obj_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
+
+				if (std::find(tile_vec.begin(), tile_vec.end(), vec2(obj_pos_map.x, obj_pos_map.y)) != tile_vec.end())
+				{
 					tile_vec.erase(std::find(tile_vec.begin(), tile_vec.end(), vec2(obj_pos_map.x, obj_pos_map.y)));
 					registry.remove_all_components_of(entity);
 				}
 			}
 		}
 	}
-	
-	
 
 	/*** UPDATING MAP ***/
 	// given player position in world coords, convert to map:
 	// origin: [-1860, -3760]
-	// current screen pos + origin 
+	// current screen pos + origin
 	//  minus modulo tilesize and divide by tilesize
-	vec2 player_pos_map = vec2((int) ((player_pos.x - world_origin.x) - ((int) (player_pos.x - world_origin.x) % TILE_SIZE)) / 100, (int) ((player_pos.y - world_origin.y) - ((int) (player_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
-	
-	for (int i = player_pos_map.x - 8; i <= player_pos_map.x + 8; i++) {
-		for (int j = player_pos_map.y - 8; j <= player_pos_map.y + 8; j++) {
-			vec2 world_pos = {(640 - (25*100)) + (i * TILE_SIZE) + (TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (TILE_SIZE/2)};
-			
+	vec2 player_pos_map = vec2((int)((player_pos.x - world_origin.x) - ((int)(player_pos.x - world_origin.x) % TILE_SIZE)) / 100, (int)((player_pos.y - world_origin.y) - ((int)(player_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
+
+	for (int i = player_pos_map.x - 8; i <= player_pos_map.x + 8; i++)
+	{
+		for (int j = player_pos_map.y - 8; j <= player_pos_map.y + 8; j++)
+		{
+			vec2 world_pos = {(640 - (25 * 100)) + (i * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (j * TILE_SIZE) + (TILE_SIZE / 2)};
+
 			// deciding on wall sprites
 			// if it is only adjacent to one wall sprite - use 3-sided thingy and rotate accordingly
 			// if it is adjacent to two walls - if on same axis use parallel sided wall and rotate accordingly
@@ -254,14 +278,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			// if it is adjacent to three walls - use single side wall and rotate accordingly
 			// if it is adjacent to all four walls - default sprite
 
-			if ((i < 0) || (j < 0) || (i >= current_map[0].size()) || j >= current_map.size()) {
-				if ((std::find(tile_vec.begin(), tile_vec.end(), vec2(i, j)) == tile_vec.end())) {
+			if ((i < 0) || (j < 0) || (i >= map1[0].size()) || j >= map1.size())
+			{
+				if ((std::find(tile_vec.begin(), tile_vec.end(), vec2(i, j)) == tile_vec.end()))
+				{
 					createWalls(renderer, world_pos, false);
 					tile_vec.push_back(vec2(i, j));
 				}
 				continue;
-			} 
-			if (std::find(tile_vec.begin(), tile_vec.end(), vec2(i, j)) != tile_vec.end()) {
+			}
+			if (std::find(tile_vec.begin(), tile_vec.end(), vec2(i, j)) != tile_vec.end())
+			{
 				continue;
 			}
 			// continue on if tiles/objects have already been processed
@@ -300,7 +327,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			- 1 contact based fast
 			- 2 contact based slow
 
-			level 2: 
+			level 2:
 			- 1 contact based slow 1 contact based fast
 			- 2 contact based fast
 			- 2 contact based slow 1 ranged
@@ -313,50 +340,52 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			*/
 			if (current_map[j][i] == 3) {
 				int encounter = rand() % 3;
-				if (encounter == 0) {
-					createSlowEnemy(renderer, world_pos);
-				} else if (encounter == 1) {
+				if (encounter == 0)
+				{
+					createContactSlow(renderer, world_pos);
+				}
+				else if (encounter == 1)
+				{
 
-					createFastEnemy(renderer, world_pos);
-				} else {
+					createContactFast(renderer, world_pos);
+				}
+				else
+				{
 
-					createSlowEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createSlowEnemy(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+					createContactSlow(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createContactSlow(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
 			if (current_map[j][i] == 4) {
 				int encounter = rand() % 3;
-				if (encounter == 0) {
+				if (encounter == 0)
+				{
 
-					createSlowEnemy(renderer, vec2(world_pos.x, world_pos.y - TILE_SIZE));
-					createFastEnemy(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
-				} else if (encounter == 1) {
+					createContactSlow(renderer, vec2(world_pos.x, world_pos.y - TILE_SIZE));
+					createContactFast(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+				}
+				else if (encounter == 1)
+				{
 
-					createFastEnemy(renderer, vec2(world_pos.x, world_pos.y - TILE_SIZE));
-					createFastEnemy(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
-				} else {
+					createContactFast(renderer, vec2(world_pos.x, world_pos.y - TILE_SIZE));
+					createContactFast(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+				}
+				else
+				{
 					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y + TILE_SIZE));
-					createSlowEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createSlowEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
+					createContactSlow(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createContactSlow(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
 			if (current_map[j][i] == 5) {
 				int encounter = rand() % 3;
-				if (encounter == 0) {
-					createFastEnemy(renderer, vec2(world_pos.x, world_pos.y));
+				if (encounter == 0)
+				{
+					createContactFast(renderer, vec2(world_pos.x, world_pos.y));
 					createRangedEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
 					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
-				} else if (encounter == 1) {
-					createSlowEnemy(renderer, vec2(world_pos.x, world_pos.y));
-					createFastEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createFastEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
-				} else {
-					createRangedEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createFastEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createSlowEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
-					createSlowEnemy(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
@@ -364,39 +393,100 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (current_map[j][i] == 6) {
 				BUFF_TYPE type = static_cast<BUFF_TYPE>((int) (rand() % 3));
 				createBuff(renderer, world_pos, type);
+				else if (encounter == 1)
+				{
+					createContactSlow(renderer, vec2(world_pos.x, world_pos.y));
+					createContactFast(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createContactFast(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
+				}
+				else
+				{
+					createRangedEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createContactFast(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
+					createContactSlow(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
+					createContactSlow(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+				}
 				tile_vec.push_back(vec2(i, j));
 			}
 		}
 	}
 
+	// create hp bars for enemies
+	for (auto &enemy : registry.deadlys.entities)
+	{
+		createHPBar(enemy);
+	}
+
+	//TODO: spawn frequencies and spawn radius to be adjusted
+	// Spawn Level 1 type enemy: slow with contact damage
+	next_contact_slow_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (next_contact_slow_spawn < 0.f) {
+		next_contact_slow_spawn = (CONTACT_SLOW_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_SLOW_SPAWN_DELAY_MS / 2);
+		vec2 contact_slow_pos;
+		float distance_to_player;
+		float index;
+		do {
+			index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
+			contact_slow_pos = { (640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2) };
+			distance_to_player = sqrt(pow(contact_slow_pos.x - player_pos.x, 2) + pow(contact_slow_pos.y - player_pos.y, 2));
+		} while (distance_to_player < 300.f);
+
+		createContactSlow(renderer, contact_slow_pos);
+		tile_vec.push_back(spawnable_tiles[index]);
+	}
+
+	// Spawn Level 2 type enemy: fast with contact damage
+	next_contact_fast_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (next_contact_fast_spawn < 0.f) {
+		next_contact_fast_spawn = (CONTACT_FAST_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_FAST_SPAWN_DELAY_MS / 2);
+		vec2 contact_fast_pos;
+		float distance_to_player;
+		float index;
+		do {
+			index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
+			contact_fast_pos = { (640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2) };
+			distance_to_player = sqrt(pow(contact_fast_pos.x - player_pos.x, 2) + pow(contact_fast_pos.y - player_pos.y, 2));
+		} while (distance_to_player < 300.f);
+
+		createContactFast(renderer, contact_fast_pos);
+		tile_vec.push_back(spawnable_tiles[index]);
+	}
+
+	// Spawn Level 3 type enemy: slow ranged enemy
+	next_ranged_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (next_ranged_spawn < 0.f) {
+		next_ranged_spawn = (RANGED_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_SPAWN_DELAY_MS / 2);
+		vec2 ranged_pos;
+		float distance_to_player;
+		float index;
+		do {
+			index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
+			ranged_pos = { (640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2) };
+			distance_to_player = sqrt(pow(ranged_pos.x - player_pos.x, 2) + pow(ranged_pos.y - player_pos.y, 2));
+		} while (distance_to_player < 300.f);
+
+		createRangedEnemy(renderer, ranged_pos);
+		tile_vec.push_back(spawnable_tiles[index]);
+	}
 
 	// Spawn projectiles for ranged enemies
-	for (auto& ranged : registry.ranged.entities) {
-		//Don't shoot if there's no los
-		if (phsyics.has_los(registry.motions.get(ranged).position, player_pos)) {
-			float& projectile_delay = registry.ranged.get(ranged).projectile_delay;
+	for (auto &ranged : registry.ranged.entities)
+	{
+		// Don't shoot if there's no los
+		if (physics.has_los(registry.motions.get(ranged).position, player_pos))
+		{
+			float &projectile_delay = registry.ranged.get(ranged).projectile_delay;
 			projectile_delay -= elapsed_ms_since_last_update * current_speed;
-			if (projectile_delay < 0.f) {
+			if (projectile_delay < 0.f)
+			{
 				// reset timer
 				projectile_delay = (RANGED_ENEMY_PROJECTILE_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_PROJECTILE_DELAY_MS / 2);
 				Entity projectile = createRangedProjectile(renderer, registry.motions.get(ranged).position);
-				Motion& projectile_motion = registry.motions.get(projectile);
-				Motion& player_motion = registry.motions.get(my_player);
+				Motion &projectile_motion = registry.motions.get(projectile);
+				Motion &player_motion = registry.motions.get(my_player);
 				projectile_motion.angle = atan2(projectile_motion.position.y - player_motion.position.y, projectile_motion.position.x - player_motion.position.x);
-				projectile_motion.velocity = { 200.f, 200.f };
+				projectile_motion.velocity = {200.f, 200.f};
 			}
-		}
-	}
-		
-	
-	// Check if player is invulnerable
-	Player& player = registry.players.get(my_player);
-	if (player.invulnerable) {
-		player.invulnerable_duration_ms -= elapsed_ms_since_last_update;
-		if (player.invulnerable_duration_ms < 0.f) {
-			// std::cout << "Invuln ended" << std::endl;
-			player.invulnerable = false;
-			player.invulnerable_duration_ms = 1000.f;
 		}
 	}
 
@@ -405,16 +495,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	ScreenState &screen = registry.screenStates.components[0];
 
 	float min_counter_ms = 3000.f;
-	for (Entity entity : registry.deathTimers.entities) {
+	for (Entity entity : registry.deathTimers.entities)
+	{
 		// progress timer
-		DeathTimer& counter = registry.deathTimers.get(entity);
+		DeathTimer &counter = registry.deathTimers.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
-		if(counter.counter_ms < min_counter_ms){
+		if (counter.counter_ms < min_counter_ms)
+		{
 			min_counter_ms = counter.counter_ms;
 		}
 
 		// restart the game once the death timer expired
-		if (counter.counter_ms < 0) {
+		if (counter.counter_ms < 0)
+		{
 			registry.deathTimers.remove(entity);
 			if (registry.players.has(entity)) {
 				screen.darken_screen_factor = 0;
@@ -474,50 +567,45 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// }
 
-
 	// reduce window brightness if the salmon is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
-
-	//Lights flickering
-	// if salmon is not dying - let lights effect on screen
-	if (!registry.deathTimers.has(my_player)) {
+	// Lights flickering
+	//  if salmon is not dying - let lights effect on screen
+	if (!registry.deathTimers.has(my_player))
+	{
 		lightflicker_counter_ms += elapsed_ms_since_last_update;
-		if (lightflicker_counter_ms >= LIGHT_FLICKER_RATE) {
+		if (lightflicker_counter_ms >= LIGHT_FLICKER_RATE)
+		{
 			screen.darken_screen_factor = 0.4;
 			lightflicker_counter_ms = 0;
-		} else if (lightflicker_counter_ms < 400) {
-			if ((lightflicker_counter_ms - (lightflicker_counter_ms % 10)) % 20 < 10) {
+		}
+		else if (lightflicker_counter_ms < 400)
+		{
+			if ((lightflicker_counter_ms - (lightflicker_counter_ms % 10)) % 20 < 10)
+			{
 				screen.darken_screen_factor = 0;
-			} else {
+			}
+			else
+			{
 				screen.darken_screen_factor = 0.4;
 			}
-		} else {
+		}
+		else
+		{
 			screen.darken_screen_factor = 0;
 		}
 	}
 
-		
-	auto& attackRegistry = registry.playerAttacks;
-	for (Entity entity : attackRegistry.entities) {
-		auto& attack = attackRegistry.get(entity);
-
-		attack.duration_ms -= elapsed_ms_since_last_update;
-		if (attack.duration_ms < 0.0f || attack.has_hit) {
-			registry.remove_all_components_of(entity);
-		}
-	}
-
-
-	if (debugging.in_debug_mode == true) {
-		for (Motion& motion : motions_registry.components) {
+	if (debugging.in_debug_mode == true)
+	{
+		for (Motion &motion : motions_registry.components)
+		{
 			createLine(motion.position, motion.scale);
 		}
-		
 	}
 
-	Motion& pmotion = registry.motions.get(my_player);
-	AnimationSet& animSet_player = registry.animationSets.get(my_player);
+	player_controller.step(elapsed_ms_since_last_update);
 
 	if (registry.deathTimers.has(my_player)) {
 		player.state = PLAYER_STATE::DEAD;
@@ -758,16 +846,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	for (Entity entity : registry.lightUps.entities) {
 		LightUp& counter = registry.lightUps.get(entity);
 		counter.duration_ms -= elapsed_ms_since_last_update;
-		if (counter.duration_ms < 0) {
+		if (counter.duration_ms < 0)
+		{
 			registry.lightUps.remove(entity);
-		}		
+		}
 	}
 
 	return true;
 }
 
 // Reset the world state to its initial state
-void WorldSystem::restart_game() {
+void WorldSystem::restart_game()
+{
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 	printf("Restarting\n");
@@ -784,27 +874,34 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
-
-	// create a slime patches
-	for (int i = 0; i < current_map.size(); i++) {
-		for (int j = 0; j < current_map[0].size(); j++) {
-			vec2 world_pos = {(640 - (25*100)) + (j * TILE_SIZE) + (TILE_SIZE/2), (640 - (44*100)) + (i * TILE_SIZE) + (TILE_SIZE/2)};
+	// create a slime patches and create spawnable tiles vector
+	for (int i = 0; i < map1.size(); i++)
+	{
+		for (int j = 0; j < map1[0].size(); j++)
+		{
+			vec2 world_pos = {(640 - (25 * 100)) + (j * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (i * TILE_SIZE) + (TILE_SIZE / 2)};
 
 			// create slime patches on ground
-			if (current_map[i][j] == 7) {
+			if (map1[i][j] == 7)
+			{
 				createSlimePatch(renderer, world_pos);
 				// tile_vec.push_back(vec2(i, j));
+			}
+			// create vector of spawnable tiles
+			else if (map1[i][j] != 0) {
+				spawnable_tiles.push_back(vec2(i, j));
 			}
 		}
 	}
 
 	// create a new Player
-	my_player = createPlayer(renderer, { window_width_px/2, window_height_px - 200 });
+	my_player = createPlayer(renderer, {window_width_px / 2, window_height_px - 200});
 	registry.colors.insert(my_player, {1, 0.8f, 0.8f});
+	player_controller.set_player_reference(&my_player);
+	player_controller.set_renderer(renderer);
 
 	lightflicker_counter_ms = 1000;
 	tile_vec.clear();
-
 
 	// player pos: [25, 44]
 	// player pos on screen: [640, 640]
@@ -816,22 +913,25 @@ void WorldSystem::restart_game() {
 	// screen bounds will always be [ceil(640 / 100), ceil(720/100)]
 	// generously rounding it up to [8, 10]
 	vec2 playerpos_world = vec2(640, 640);
-	for (int i = playerPos_init.x - 8; i <= playerPos_init.x + 8; i++) {
-		for (int j = playerPos_init.y - 8; j <= playerPos_init.y + 8; j++) {
-			if ((i < 0) || (j < 0) || (i >= current_map[0].size()) || j >= current_map.size()) {
-				createWalls(renderer, {(640 - (25*100)) + (i * TILE_SIZE) + (sign(i) * TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (sign(j) * TILE_SIZE/2)}, false);
+	for (int i = playerPos_init.x - 8; i <= playerPos_init.x + 8; i++)
+	{
+		for (int j = playerPos_init.y - 8; j <= playerPos_init.y + 8; j++)
+		{
+			if ((i < 0) || (j < 0) || (i >= map1[0].size()) || j >= map1.size())
+			{
+				createWalls(renderer, {(640 - (25 * 100)) + (i * TILE_SIZE) + (sign(i) * TILE_SIZE / 2), (640 - (44 * 100)) + (j * TILE_SIZE) + (sign(j) * TILE_SIZE / 2)}, false);
 				tile_vec.push_back(vec2(i, j));
-			} else if (current_map[j][i] == 0) {
-				createWalls(renderer, {(640 - (25*100)) + (i * TILE_SIZE) + (TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (TILE_SIZE/2)}, false);
+			}
+			else if (map1[j][i] == 0)
+			{
+				createWalls(renderer, {(640 - (25 * 100)) + (i * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (j * TILE_SIZE) + (TILE_SIZE / 2)}, false);
 				tile_vec.push_back(vec2(i, j));
 			}
 		}
 	}
-	
-	
 
 	// create health bar
-	vec2 hp_bar_pos = { -0.75, 0.85f };
+	vec2 hp_bar_pos = {-0.75, 0.85f};
 	hp_bar = createHPBar(renderer, hp_bar_pos);
 	//createHPBarEmpty(renderer, hp_bar_pos);
 	
@@ -841,57 +941,67 @@ void WorldSystem::restart_game() {
 }
 
 // utility functions for dash mvmnt implementation
-vec2 lerp(vec2 start, vec2 end, float t) {
-	return start * (1-t) + end*t;
+vec2 lerp(vec2 start, vec2 end, float t)
+{
+	return start * (1 - t) + end * t;
 }
 
-float distance(vec2 coord1, vec2 coord2) {	
+float distance(vec2 coord1, vec2 coord2)
+{
 	return sqrt(powf(coord2.x - coord1.x, 2.f) + powf(coord2.y - coord1.y, 2.f));
 }
 
-vec2 norm(vec2 vec) {
+vec2 norm(vec2 vec)
+{
 	return (vec / (vec.x + vec.y));
 }
 
 // Compute collisions between entities
-void WorldSystem::handle_collisions() {
+void WorldSystem::handle_collisions(float step_seconds)
+{
 	// Loop over all collisions detected by the physics system
-	auto& collisionsRegistry = registry.collisions;
+	auto &collisionsRegistry = registry.collisions;
 	bool unstick_player = true;
-	for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
+	for (uint i = 0; i < collisionsRegistry.components.size(); i++)
+	{
 		// The entity and its collider
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other;
 
-		if (registry.players.has(entity)) {
-			//Player& player = registry.players.get(entity);
+		if (registry.players.has(entity))
+		{
+			// Player& player = registry.players.get(entity);
 
 			// Checking Player - Deadly collisions
-			if (registry.deadlys.has(entity_other)) {
-				float& player_hp = registry.healths.get(entity).hit_points;
-				Player& player = registry.players.get(entity);
-				if (!player.invulnerable) {
+			if (registry.deadlys.has(entity_other))
+			{
+				float &player_hp = registry.healths.get(entity).hit_points;
+				Player &player = registry.players.get(entity);
+				if (!player.invulnerable)
+				{
 					// player takes damage
 					player_hp -= registry.damages.get(entity_other).damage;
 					// avoid negative hp values for hp bar
 					player_hp = max(0.f, player_hp);
 					// modify hp bar
 					// std::cout << "Player hp: " << player_hp << "\n";
-					if (player_hp <= 200 && player_hp >= 0) {
+					if (player_hp <= 200 && player_hp >= 0)
+					{
 						// Motion& motion = registry.motions.get(hp_bar);
 						// motion.scale.x = HPBAR_BB_WIDTH * (player_hp / 100);
-						RenderRequest& hp_bar_render = registry.renderRequests.get(hp_bar);
-						if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_0) {
+						RenderRequest &hp_bar_render = registry.renderRequests.get(hp_bar);
+						if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_0)
+						{
 							hp_bar_render.used_texture = static_cast<TEXTURE_ASSET_ID>(static_cast<int>(hp_bar_render.used_texture) - 1);
 						}
-						
-						
+
 						// motion.position.x += HPBAR_BB_WIDTH * (player_hp / 400);
 					}
 					player.invulnerable = true;
 					player.invulnerable_duration_ms = 1000.f;
 				}
-				if (registry.deadlys.get(entity_other).enemy_type == ENEMY_TYPES::PROJECTILE) {
+				if (registry.deadlys.get(entity_other).enemy_type == ENEMY_TYPES::PROJECTILE)
+				{
 					registry.remove_all_components_of(entity_other);
 				}
 				if (!registry.deathTimers.has(entity) && player_hp <= 0.f) {
@@ -899,34 +1009,35 @@ void WorldSystem::handle_collisions() {
 					//Mix_PlayChannel(-1, salmon_dead_sound, 0);
 
 					// Control what happens when the player dies here
-					Motion& motion = registry.motions.get(my_player);
+					Motion &motion = registry.motions.get(my_player);
 					motion.velocity[0] = 0.0f;
 					motion.velocity[1] = 0.0f;
 				}
 			}
 			// Checking Player - Eatable collisions
-			else if (registry.eatables.has(entity_other)) {
-				if (!registry.deathTimers.has(entity)) {
+			else if (registry.eatables.has(entity_other))
+			{
+				if (!registry.deathTimers.has(entity))
+				{
 					// chew, count points, and set the LightUp timer
 					registry.remove_all_components_of(entity_other);
 					Mix_PlayChannel(-1, salmon_eat_sound, 0);
 					++points;
-
 				}
 			}
 			// Checking player collision with solid object
-			if (registry.solidObjs.has(entity_other) || registry.walls.has(entity_other)) {
-				Motion& motion_moving = registry.motions.get(entity);
-				Motion& motion_solid = registry.motions.get(entity_other);
+			if (registry.solidObjs.has(entity_other) || registry.walls.has(entity_other))
+			{
+				Motion &motion_moving = registry.motions.get(entity);
+				Motion &motion_solid = registry.motions.get(entity_other);
 
 				// Temp solution to prevent player from sticking to solid objects - may not work if solid object is really long or tall
-				
-				
+
 				float x_diff = motion_moving.position.x - motion_solid.position.x;
 				float y_diff = motion_moving.position.y - motion_solid.position.y;
-				
 
-				if (x_diff < 0 && abs(x_diff) > abs(y_diff) && motion_moving.velocity.x > 0) {
+				if (x_diff < 0 && abs(x_diff) > abs(y_diff) && motion_moving.velocity.x > 0)
+				{
 					motion_moving.velocity.x = 0.f;
 					motion_moving.position.x = registry.players.get(entity).last_pos.x;
 				}
@@ -945,8 +1056,6 @@ void WorldSystem::handle_collisions() {
 					motion_moving.velocity.y = 0.f;
 					motion_moving.position.y = registry.players.get(entity).last_pos.y;
 				}
-				
-				
 
 				/*
 				float left_1 = motion_moving.position.x - (abs(motion_moving.scale.x) / 2);
@@ -970,7 +1079,7 @@ void WorldSystem::handle_collisions() {
 
 
 				if (abs(x_diff) > abs(y_diff)) {
-					
+
 					if (((left_1 <= right_2) && (left_1 >= left_2))) {
 						// player bounding box left bound overlaps with object box
 						//motion_moving.velocity.x = 0.f;
@@ -983,7 +1092,7 @@ void WorldSystem::handle_collisions() {
 						motion_moving.position.x -= (right_1 - left_2) + 1;
 					}
 				} else {
-					
+
 
 					if ((top_1 >= bottom_2) && (top_1 <= top_2)) {
 						// player bounding box top bound overlaps with object box
@@ -999,41 +1108,128 @@ void WorldSystem::handle_collisions() {
 
 				}
 				*/
-				
-				
 			}
-			if (registry.stickies.has(entity_other)) {
-				Motion&  player_motion = registry.motions.get(my_player);
+			if (registry.stickies.has(entity_other))
+			{
+				Motion &player_motion = registry.motions.get(my_player);
 				player_motion.speed = 120.f;
 				unstick_player = false;
 			}
-		} else if (registry.deadlys.has(entity)) {
-			if (registry.solidObjs.has(entity_other) && registry.projectiles.has(entity)) {
+		}
+		else if (registry.deadlys.has(entity))
+		{
+			if (registry.solidObjs.has(entity_other) && registry.projectiles.has(entity))
+			{
 				registry.remove_all_components_of(entity);
 			}
-		} else if (registry.playerAttacks.has(entity)) {
-			if (registry.deadlys.has(entity_other) && registry.healths.has(entity_other) && registry.motions.has(entity_other)) {
-				Health& deadly_health = registry.healths.get(entity_other);
-				Damage& damage = registry.damages.get(entity);
-				Motion& motion = registry.motions.get(entity_other);
-				Motion& pmotion = registry.motions.get(my_player);
-				Player& player = registry.players.get(my_player);
-
-				vec2 diff = motion.position - pmotion.position;
-
-				if (debugging.in_debug_mode) {
-					motion.position += diff * player.knockback_strength;
-				}
+		}
+		else if (registry.playerAttacks.has(entity))
+		{
+			if (registry.deadlys.has(entity_other) && registry.healths.has(entity_other) && registry.motions.has(entity_other))
+			{
+				Health &deadly_health = registry.healths.get(entity_other);
+				Damage &damage = registry.damages.get(entity);
+				Motion &enemy_motion = registry.motions.get(entity_other);
+				Motion &pmotion = registry.motions.get(my_player);
+				Player &player = registry.players.get(my_player);
+				Deadly &deadly = registry.deadlys.get(entity_other);
 
 
 				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - damage.damage);
-				if (registry.lightUps.has(entity_other)) {
+
+				vec2 diff = enemy_motion.position - pmotion.position;
+
+				if (deadly.enemy_type != ENEMY_TYPES::PROJECTILE && deadly_health.hit_points > 0)
+				{
+					vec2 kockback_pos = enemy_motion.position + (diff * player.knockback_strength);
+					int grid_x = static_cast<int>((kockback_pos.x - (640 - (25 * TILE_SIZE))) / TILE_SIZE);
+					int grid_y = static_cast<int>((kockback_pos.y - (640 - (44 * TILE_SIZE))) / TILE_SIZE);
+					int adjust_x = 0;
+					int adjust_y = 0;
+					if (diff.x < 0 && diff.y < 0) {
+						if (abs(diff.x) < 50 && abs(diff.y) < 50) {
+							adjust_x -= 1;
+							adjust_y -= 1;
+						}
+						else {
+							if (abs(diff.x) > 50) {
+								adjust_x -= 1;
+							}
+							if (abs(diff.y) > 50) {
+								adjust_y -= 1;
+							}
+						}
+					} else if (diff.x > 0 && diff.y < 0) {
+						if (abs(diff.x) < 50 && abs(diff.y) < 50) {
+							adjust_x += 1;
+							adjust_y -= 1;
+						}
+						else {
+							if (abs(diff.x) > 50) {
+								adjust_x += 1;
+							}
+							if (abs(diff.y) > 50) {
+								adjust_y -= 1;
+							}
+						}
+					}
+					else if (diff.x > 0 && diff.y > 0) {
+						if (abs(diff.x) < 50 && abs(diff.y) < 50) {
+							adjust_x += 1;
+							adjust_y += 1;
+						}
+						else {
+							if (abs(diff.x) > 50) {
+								adjust_x += 1;
+							}
+							if (abs(diff.y) > 50) {
+								adjust_y += 1;
+							}
+						}
+					}
+					else if (diff.x < 0 && diff.y > 0) {
+						if (abs(diff.x) < 50 && abs(diff.y) < 50) {
+							adjust_x -= 1;
+							adjust_y += 1;
+						}
+						else {
+							if (abs(diff.x) > 50) {
+								adjust_x -= 1;
+							}
+							if (abs(diff.y) > 50) {
+								adjust_y += 1;
+							}
+						}
+					}
+
+					vec2 adjust = adjust_knockback_coordinates(grid_x, grid_y, adjust_x, adjust_y);
+
+					if (!(adjust_x == 0 && adjust_y == 0) && registry.motions.has(entity_other)) {
+						vec2 grid_kockback_pos = { (640 - (25 * 100)) + ((grid_x + adjust.x) * TILE_SIZE), (640 - (44 * 100)) + ((grid_y + adjust.y) * TILE_SIZE) };
+						enemy_motion.position = grid_kockback_pos;
+						physics.update_enemy_movement(entity_other, step_seconds);
+						if (registry.pathTimers.has(entity_other)) {
+							registry.pathTimers.get(entity_other).timer = -1.f;
+						}
+						
+					}
+				}
+
+				if (registry.lightUps.has(entity_other))
+				{
 					registry.lightUps.remove(entity_other);
 				}
 
 				registry.lightUps.emplace(entity_other);
 
-				std::cout << "entity " << entity_other << " hitpoints: " << deadly_health.hit_points << std::endl;
+				if (deadly_health.hit_points <= 0.0f)
+				{
+					float roll = uniform_dist(rng);
+
+					if (roll <= deadly.drop_chance && deadly.enemy_type != ENEMY_TYPES::PROJECTILE)
+					{
+						createExperience(renderer, enemy_motion.position, deadly.experience);
+					}
 
 				if (deadly_health.hit_points <= 0.0f && (!registry.deathTimers.has(entity_other))) {
 					Deadly& d = registry.deadlys.get(entity_other);
@@ -1048,8 +1244,9 @@ void WorldSystem::handle_collisions() {
 		}
 	}
 
-	if (unstick_player) {
-		Motion&  player_motion = registry.motions.get(my_player);
+	if (unstick_player)
+	{
+		Motion &player_motion = registry.motions.get(my_player);
 		player_motion.speed = 300.f;
 	}
 
@@ -1057,17 +1254,33 @@ void WorldSystem::handle_collisions() {
 	registry.collisions.clear();
 }
 
+vec2 WorldSystem::adjust_knockback_coordinates(int grid_x, int grid_y, int adjust_x, int adjust_y) {
+	if (map1[grid_y + adjust_y][grid_x + adjust_x] != 0) {
+		return vec2(adjust_x, adjust_y);
+	}
+	if (map1[grid_y + adjust_y][grid_x] != 0) {
+		return vec2(0, adjust_y);
+	}
+	if (map1[grid_y][grid_x + adjust_x] != 0) {
+		return vec2(adjust_x, 0);
+	}
+	return vec2(0, 0);
+}
+
 // Should the game be over ?
-bool WorldSystem::is_over() const {
+bool WorldSystem::is_over() const
+{
 	return bool(glfwWindowShouldClose(window));
 }
 
 // Helper function to read a file line by line
-std::vector<std::string> read_file(std::string filepath) {
+std::vector<std::string> read_file(std::string filepath)
+{
 	std::ifstream ReadFile(filepath);
 	std::string text;
-	std::vector <std::string> lines;
-	while (std::getline(ReadFile, text)) {
+	std::vector<std::string> lines;
+	while (std::getline(ReadFile, text))
+	{
 		lines.push_back(text);
 	}
 	ReadFile.close();
@@ -1075,38 +1288,47 @@ std::vector<std::string> read_file(std::string filepath) {
 }
 
 // On key callback
-void WorldSystem::on_key(int key, int, int action, int mod) {
+void WorldSystem::on_key(int key, int, int action, int mod)
+{
 	// Resetting game
-	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
+	if (action == GLFW_RELEASE && key == GLFW_KEY_R)
+	{
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
 
 		restart_game();
 	}
 
-	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
+	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE)
+	{
 		is_paused = !is_paused;
-		ScreenState& screen = registry.screenStates.components[0];
-		if (is_paused) {
+		ScreenState &screen = registry.screenStates.components[0];
+		if (is_paused)
+		{
 			screen.darken_screen_factor = 0.9;
 			screen.paused = true;
 		}
-		else {
+		else
+		{
 			screen.darken_screen_factor = 0;
 			screen.paused = false;
 		}
 		std::cout << is_paused << std::endl;
 	}
 
-	if (action == GLFW_RELEASE && key == GLFW_KEY_F) {
+	if (action == GLFW_RELEASE && key == GLFW_KEY_F)
+	{
 		display_fps = !display_fps;
 	}
 
 	// Debugging
-	if (key == GLFW_KEY_P) {
+	if (key == GLFW_KEY_P)
+	{
 		if (action == GLFW_RELEASE)
 			debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
+
+	// player key stuff starts here
 
 
 	// Player controller
@@ -1204,11 +1426,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// 			if (dashtarget.x > window_width_px - 100.f) {
 	// 				dashtarget.x = window_width_px - 100.f;
 	// 			}
-				
+
 	// 			Dash new_dash = {dashtarget, registry.motions.get(my_player).position - (registry.motions.get(my_player).position + vec2(0, 5)), 1000};
 
 	// 			registry.dashing.insert(my_player, new_dash);
-	// 		} 
+	// 		}
 	// 	}
 	// }
 
@@ -1221,37 +1443,43 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// }
 
 	// Control the current speed with `<` `>`
-	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
+	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA)
+	{
 		current_speed -= 0.1f;
 		printf("Current speed = %f\n", current_speed);
 	}
-	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_PERIOD) {
+	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_PERIOD)
+	{
 		current_speed += 0.1f;
 		printf("Current speed = %f\n", current_speed);
 	}
 	current_speed = fmax(0.f, current_speed);
 
 	// Tutorial
-	if (action == GLFW_RELEASE && key == GLFW_KEY_T) {
-		ScreenState& screen = registry.screenStates.components[0];
+	if (action == GLFW_RELEASE && key == GLFW_KEY_T)
+	{
+		ScreenState &screen = registry.screenStates.components[0];
 		// if the game is already paused then this shouldn't work
-		if (!is_paused) {
+		if (!is_paused)
+		{
 			is_paused = true;
 			is_tutorial_on = true;
 			screen.darken_screen_factor = 0.9;
 			float tutorial_header_x = window_width_px / 2 - 120;
 			float tutorial_header_y = 620;
 			glm::vec3 white = glm::vec3(1.f, 1.f, 1.f);
-			createText({ tutorial_header_x, tutorial_header_y }, 1.0, "TUTORIAL", white);
+			createText({tutorial_header_x, tutorial_header_y}, 1.0, "TUTORIAL", white);
 			std::vector<std::string> lines = read_file(PROJECT_SOURCE_DIR + std::string("data/tutorial/tutorial.txt"));
 			float y_spacer = 80.f;
-			for (std::string line : lines) {
+			for (std::string line : lines)
+			{
 				// Render each line
-				createText({ tutorial_header_x - 400.f, tutorial_header_y - y_spacer }, 0.6f, line, white);
+				createText({tutorial_header_x - 400.f, tutorial_header_y - y_spacer}, 0.6f, line, white);
 				y_spacer += 70.f;
 			}
 		}
-		else if (is_tutorial_on) {
+		else if (is_tutorial_on)
+		{
 			is_paused = false;
 			is_tutorial_on = false;
 			screen.darken_screen_factor = 0.0;
@@ -1259,29 +1487,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 }
 
-void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	// Update player attack direction
-	vec2 screen_center = vec2(window_width_px / 2.0f, window_height_px / 2.0f);
-	vec2 direction = mouse_position - screen_center;
-	direction = normalize(direction);
-
-	Player& player = registry.players.get(my_player);
-	player.attack_direction = snapToClosestAxis(direction);
+void WorldSystem::on_mouse_move(vec2 mouse_position)
+{
+	player_controller.on_mouse_move(mouse_position);
 }
 
-void WorldSystem::on_mouse_button(int button, int action, int mods) {
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		Player& player = registry.players.get(my_player);
-
-		if (player.is_attacking == false) {
-			vec2 player_pos = registry.motions.get(my_player).position;
-			vec2 attack_direction = player.attack_direction;
-
-			createBasicAttackHitbox(renderer, player_pos + (attack_direction * vec2(75, 75)), my_player);
-			player.last_direction = attack_direction;
-			player.is_attacking = true;
-		}
-	}
+void WorldSystem::on_mouse_button(int button, int action, int mods)
+{
+	player_controller.on_mouse_button(button, action, mods);
 }
 
 // TODO: update to work with multiple maps
