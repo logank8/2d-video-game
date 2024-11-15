@@ -9,7 +9,7 @@
 class PhysicsSystem
 {
 public:
-	void step(float elapsed_ms);
+	void step(float elapsed_ms, std::vector<std::vector<int>> current_map);
 	bool has_los(const vec2& start, const vec2& end);
 
 	PhysicsSystem()

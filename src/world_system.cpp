@@ -145,6 +145,8 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
 	fps_counter_ms = FPS_COUNTER_MS;
+	
+	current_map = map1;
 
 	// Set all states to default
 	restart_game();
@@ -161,6 +163,20 @@ vec2 snapToClosestAxis(vec2 direction) {
     } else {
         return vec2(0, normalized.y > 0 ? 1 : -1);
     }
+}
+
+void WorldSystem::mapSwitch(int map) {
+	switch (map) {
+		case 1:
+			current_map = map1;
+			break;
+		case 2:
+			current_map = map2;
+			break;
+		default:
+			current_map = map1;
+	}
+	restart_game();
 }
 
 
@@ -238,7 +254,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			// if it is adjacent to three walls - use single side wall and rotate accordingly
 			// if it is adjacent to all four walls - default sprite
 
-			if ((i < 0) || (j < 0) || (i >= map1[0].size()) || j >= map1.size()) {
+			if ((i < 0) || (j < 0) || (i >= current_map[0].size()) || j >= current_map.size()) {
 				if ((std::find(tile_vec.begin(), tile_vec.end(), vec2(i, j)) == tile_vec.end())) {
 					createWalls(renderer, world_pos, false);
 					tile_vec.push_back(vec2(i, j));
@@ -250,21 +266,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			// continue on if tiles/objects have already been processed
 
-			if (map1[j][i] == 0) {
+			if (current_map[j][i] == 0) {
 				createWalls(renderer, world_pos, false);
 				tile_vec.push_back(vec2(i, j));
 			}
 
 			// furniture spawning
-			if (map1[j][i] == 2) {
-				if (map1[j - 1][i] == 1 && map1[j][i-1] == 1) {
+			if (current_map[j][i] == 2) {
+				if (current_map[j - 1][i] == 1 && current_map[j][i-1] == 1) {
 					// add 2 while loops here to find furniture size
 					int horiz_idx = 1;
 					int vert_idx = 1;
-					while (map1[j + vert_idx][i] == 2) {
+					while (current_map[j + vert_idx][i] == 2) {
 						vert_idx += 1;
 					}
-					while (map1[j][i + horiz_idx] == 2) {
+					while (current_map[j][i + horiz_idx] == 2) {
 						horiz_idx += 1;
 					}
 					
@@ -295,7 +311,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			- 1 ranged 1 contact based fast 2 contact based slow
 
 			*/
-			if (map1[j][i] == 3) {
+			if (current_map[j][i] == 3) {
 				int encounter = rand() % 3;
 				if (encounter == 0) {
 					createSlowEnemy(renderer, world_pos);
@@ -309,7 +325,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
-			if (map1[j][i] == 4) {
+			if (current_map[j][i] == 4) {
 				int encounter = rand() % 3;
 				if (encounter == 0) {
 
@@ -326,7 +342,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
-			if (map1[j][i] == 5) {
+			if (current_map[j][i] == 5) {
 				int encounter = rand() % 3;
 				if (encounter == 0) {
 					createFastEnemy(renderer, vec2(world_pos.x, world_pos.y));
@@ -345,7 +361,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				tile_vec.push_back(vec2(i, j));
 			}
 
-			if (map1[j][i] == 6) {
+			if (current_map[j][i] == 6) {
 				BUFF_TYPE type = static_cast<BUFF_TYPE>((int) (rand() % 3));
 				createBuff(renderer, world_pos, type);
 				tile_vec.push_back(vec2(i, j));
@@ -406,9 +422,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				return true;
 			}
 			if (registry.deadlys.has(entity)) {
-				AnimationSet animSet_enemy = registry.animationSets.get(entity);
-				Animation anim = animSet_enemy.animations[animSet_enemy.current_animation];
+				if (registry.animationSets.has(entity)) {
+					AnimationSet animSet_enemy = registry.animationSets.get(entity);
+					Animation anim = animSet_enemy.animations[animSet_enemy.current_animation];
+				}
 				registry.remove_all_components_of(entity);
+				enemies_killed++;
+				if (enemies_killed >= enemy_kill_goal) {
+					mapSwitch(2);
+				}
 			}
 			
 		}
@@ -702,7 +724,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		// Player able to dash again
 		if (player.curr_dash_cooldown_ms < 0.f) {
-			std::cout << "dash up" << std::endl;
 			player.curr_dash_cooldown_ms = player.dash_cooldown_ms;
 			registry.motions.get(my_player).speed = 300.f;
 			player.is_dash_up = true;
@@ -710,7 +731,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		// Player done dashing
 		} else if (player.curr_dash_cooldown_ms < 2900.f) {
-			std::cout << "dash cooling down" << std::endl;
 			registry.motions.get(my_player).speed = 300.f;
 			registry.lightUps.remove(my_player);
 			
@@ -718,7 +738,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		
 		// Player dashing
 		} else {
-			std::cout << "dash still going " << player.curr_dash_cooldown_ms << std::endl;
 			registry.motions.get(my_player).speed = 2000.f;
 			if (!registry.lightUps.has(my_player)) {
 				registry.lightUps.emplace(my_player);
@@ -727,14 +746,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				int bound = 2900 + (i * 20);
 				if (player.curr_dash_cooldown_ms < bound && player.curr_dash_cooldown_ms + elapsed_ms_since_last_update > bound) {
 					// TODO: modify this a little bit to make dash shadows fully even
+					// TODO: make it so player is invulnerable during dash
+					// TODO: make direction uneditable during dash
 					vec2 effectPos = registry.motions.get(my_player).position;
 					createEffect(renderer, effectPos, 500, EFFECT_TYPE::DASH);
 				}
 			}
-			
 		}
-
-		
 	}
 
 	for (Entity entity : registry.lightUps.entities) {
@@ -768,12 +786,12 @@ void WorldSystem::restart_game() {
 
 
 	// create a slime patches
-	for (int i = 0; i < map1.size(); i++) {
-		for (int j = 0; j < map1[0].size(); j++) {
+	for (int i = 0; i < current_map.size(); i++) {
+		for (int j = 0; j < current_map[0].size(); j++) {
 			vec2 world_pos = {(640 - (25*100)) + (j * TILE_SIZE) + (TILE_SIZE/2), (640 - (44*100)) + (i * TILE_SIZE) + (TILE_SIZE/2)};
 
 			// create slime patches on ground
-			if (map1[i][j] == 7) {
+			if (current_map[i][j] == 7) {
 				createSlimePatch(renderer, world_pos);
 				// tile_vec.push_back(vec2(i, j));
 			}
@@ -794,18 +812,16 @@ void WorldSystem::restart_game() {
 	// origin: [-560 + 50, -1472 + 50]
 	// to spawn at [0, 0] -> [-536, -1448]
 
-	
-	
 	vec2 playerPos_init = vec2(25, 44);
 	// screen bounds will always be [ceil(640 / 100), ceil(720/100)]
 	// generously rounding it up to [8, 10]
 	vec2 playerpos_world = vec2(640, 640);
 	for (int i = playerPos_init.x - 8; i <= playerPos_init.x + 8; i++) {
 		for (int j = playerPos_init.y - 8; j <= playerPos_init.y + 8; j++) {
-			if ((i < 0) || (j < 0) || (i >= map1[0].size()) || j >= map1.size()) {
+			if ((i < 0) || (j < 0) || (i >= current_map[0].size()) || j >= current_map.size()) {
 				createWalls(renderer, {(640 - (25*100)) + (i * TILE_SIZE) + (sign(i) * TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (sign(j) * TILE_SIZE/2)}, false);
 				tile_vec.push_back(vec2(i, j));
-			} else if (map1[j][i] == 0) {
+			} else if (current_map[j][i] == 0) {
 				createWalls(renderer, {(640 - (25*100)) + (i * TILE_SIZE) + (TILE_SIZE/2), (640 - (44*100)) + (j * TILE_SIZE) + (TILE_SIZE/2)}, false);
 				tile_vec.push_back(vec2(i, j));
 			}
@@ -1270,5 +1286,5 @@ void WorldSystem::on_mouse_button(int button, int action, int mods) {
 
 // TODO: update to work with multiple maps
 std::vector<std::vector<int>> WorldSystem::get_current_map() {
-	return map1;
+	return current_map;
 }

@@ -5,7 +5,7 @@
 
 WorldSystem world;
 PhysicsSystem physics;
-std::vector<std::vector<int>> map = world.get_current_map();
+std::vector<std::vector<int>> map;
 const float TILE_SIZE = 100.0f;
 
 #include <iostream>
@@ -475,8 +475,9 @@ void update_enemy_movement(Entity enemy, float step_seconds) {
 }
 			
 
-void PhysicsSystem::step(float elapsed_ms)
+void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current_map)
 {
+    map = current_map;
 	// Check for collisions between all moving entities
     ComponentContainer<Motion> &motion_container = registry.motions;
 	for(uint i = 0; i<motion_container.components.size(); i++)
