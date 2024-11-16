@@ -546,7 +546,7 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = {0.f, 0.f};
-	motion.scale = vec2({TILE_PX_SIZE * 3, TILE_PX_SIZE * 3});
+	motion.scale = vec2({PLANT_BB_WIDTH, PLANT_BB_HEIGHT});
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::FURNITURE;
 
@@ -577,7 +577,6 @@ Entity createSlimePatch(RenderSystem *renderer, vec2 pos)
 	motion.scale = mesh.original_size * 400.f;
 	motion.scale.y *= -1;
 
-	// create an empty component for the furniture as a solid object
 	registry.stickies.emplace(entity);
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
@@ -601,7 +600,6 @@ Entity createExperience(RenderSystem *renderer, vec2 pos, int experience)
 	motion.velocity = {0.f, 0.f};
 	motion.scale = vec2({TILE_PX_SIZE * (75 / TILE_PX_SIZE), TILE_PX_SIZE * (75 / TILE_PX_SIZE)});
 
-	// create an empty component for the furniture as a solid object
 	registry.collectibles.emplace(entity);
 	auto &experienceComponent = registry.experiences.emplace(entity);
 	experienceComponent.experience = experience;

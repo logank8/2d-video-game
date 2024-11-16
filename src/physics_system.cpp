@@ -174,28 +174,24 @@ bool is_walkable(const vec2 &pos, vec2 dir)
         {TILE_SIZE, TILE_SIZE}, {-TILE_SIZE, TILE_SIZE}, {TILE_SIZE, -TILE_SIZE}, {-TILE_SIZE, -TILE_SIZE}};
 
     // Check for clipping through walls when moving diagonally
-    if (dir == diagonals[0])
-    { // Moving top-right
-        if (map[grid_y][grid_x - 1] == 0 || map[grid_y - 1][grid_x] == 0)
-            return false;
+    if (dir == diagonals[0]) {  // Moving top-right
+        if (map[grid_y][grid_x - 1] == 0 || map[grid_y - 1][grid_x] == 0) return false;
+        if (map[grid_y][grid_x - 1] == 2 || map[grid_y - 1][grid_x] == 2) return false;
     }
-    else if (dir == diagonals[1])
-    { // Moving top-left
-        if (map[grid_y][grid_x + 1] == 0 || map[grid_y - 1][grid_x] == 0)
-            return false;
+    else if (dir == diagonals[1]) {  // Moving top-left
+        if (map[grid_y][grid_x + 1] == 0 || map[grid_y - 1][grid_x] == 0) return false;
+        if (map[grid_y][grid_x + 1] == 2 || map[grid_y - 1][grid_x] == 2) return false;
     }
-    else if (dir == diagonals[2])
-    { // Moving bottom-right
-        if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x - 1] == 0)
-            return false;
+    else if (dir == diagonals[2]) {  // Moving bottom-right
+        if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x - 1] == 0) return false;
+        if (map[grid_y + 1][grid_x] == 2 || map[grid_y][grid_x - 1] == 2) return false;
     }
-    else if (dir == diagonals[3])
-    { // Moving bottom-left
-        if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x + 1] == 0)
-            return false;
+    else if (dir == diagonals[3]) {  // Moving bottom-left
+        if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x + 1] == 0) return false;
+        if (map[grid_y + 1][grid_x] == 2 || map[grid_y][grid_x + 1] == 2) return false;
     }
 
-    return map[grid_y][grid_x] != 0;
+    return map[grid_y][grid_x] != 0 && map[grid_y][grid_x] != 2;
 }
 
 // Checking for line of sight using Bresenham's algorithm
@@ -233,7 +229,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == 0)
+            if (map[y][x] == 0 || map[y][x] == 2)
             {
                 return false;
             }
@@ -257,7 +253,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == 0)
+            if (map[y][x] == 0 || map[y][x] == 2)
             {
                 return false;
             }
@@ -276,7 +272,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
     {
         return false;
     }
-    return map[y][x] != 0;
+    return map[y][x] != 0 && map[y][x] != 2;
 }
 
 // Find A* path for enemy

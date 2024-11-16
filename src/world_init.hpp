@@ -20,6 +20,9 @@ const float EEL_BB_HEIGHT = 0.6f * 70.f; // 870
 const float RANGED_BB_WIDTH = 0.6 * 130.f;
 const float RANGED_BB_HEIGHT = 0.6 * 90.f;
 
+const float PLANT_BB_HEIGHT = 72.f;
+const float PLANT_BB_WIDTH = 60.f;
+
 const float HPBAR_BB_WIDTH = 0.46f;
 const float HPBAR_BB_HEIGHT = 0.20f;
 
