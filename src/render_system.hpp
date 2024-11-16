@@ -37,26 +37,32 @@ class RenderSystem
 
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, texture_count> texture_paths = {
-		textures_path("Slime.png"),
-		textures_path("Skeleton.png"),
-		textures_path("adventurer.png"),
-		textures_path("mini_golem.png"),
-		textures_path("bubble_closed.png"), // ranged projectile
-		textures_path("health_bar.png"),
-		textures_path("hp_bar/hp_bar_0.png"),	 // empty
-		textures_path("hp_bar/hp_bar_1.png"),	 // 1
-		textures_path("hp_bar/hp_bar_2.png"),	 // 2
-		textures_path("hp_bar/hp_bar_3.png"),	 // 3
-		textures_path("hp_bar/hp_bar_4.png"),	 // 4
-		textures_path("hp_bar/hp_bar_5.png"),	 // 5
-		textures_path("hp_bar/hp_bar_6.png"),	 // 6
-		textures_path("hp_bar/hp_bar_7.png"),	 // 7
-		textures_path("hp_bar/hp_bar_full.png"), // full
-		textures_path("table.png"),
-		textures_path("wall.png"),
-		textures_path("side_wall.png"),
-		textures_path("player.png"),
-		textures_path("coins.png")};
+			textures_path("Slime.png"),
+			textures_path("Skeleton.png"),
+			textures_path("adventurer.png"),
+			textures_path("mini_golem.png"),
+			textures_path("bubble_closed.png"), // ranged projectile
+			textures_path("health_bar.png"),
+			textures_path("hp_bar/hp_bar_0.png"), // empty
+			textures_path("hp_bar/hp_bar_1.png"), // 1
+			textures_path("hp_bar/hp_bar_2.png"), // 2
+			textures_path("hp_bar/hp_bar_3.png"), // 3
+			textures_path("hp_bar/hp_bar_4.png"), // 4
+			textures_path("hp_bar/hp_bar_5.png"), // 5
+			textures_path("hp_bar/hp_bar_6.png"), // 6
+			textures_path("hp_bar/hp_bar_7.png"), // 7
+			textures_path("hp_bar/hp_bar_full.png"), // full
+			textures_path("plant.png"),
+			textures_path("long_table.png"),
+			textures_path("wall.png"),
+			textures_path("side_wall.png"),
+			textures_path("player.png"),
+			textures_path("heart.png"),
+			textures_path("smoke_particle.png"),
+			textures_path("dash.png"),
+			textures_path("stamina_regen.png"),
+			textures_path("coins.png")
+	};
 
 	std::array<GLuint, effect_count> effects;
 	// Make sure these paths remain in sync with the associated enumerators.
@@ -66,7 +72,9 @@ class RenderSystem
 		shader_path("salmon"),
 		shader_path("textured"),
 		shader_path("water"),
-		shader_path("font")};
+		shader_path("font"),
+		shader_path("dash")
+	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;

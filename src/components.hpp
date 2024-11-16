@@ -13,6 +13,25 @@ enum class PLAYER_STATE
 	DEAD = DASH + 1
 };
 
+enum class ENEMY_STATE {
+	IDLE = 0,
+	RUN = IDLE + 1,
+	ATTACK = RUN + 1,
+	DEAD = ATTACK + 1
+};
+
+enum class BUFF_TYPE {
+	HEALTH = 0,
+	SPEED = HEALTH + 1,
+	ATTACK = SPEED + 1
+};
+
+enum class EFFECT_TYPE {
+	HEART = 0,
+	SMOKE = HEART + 1,
+	DASH = SMOKE + 1
+};
+
 // Player component
 struct Player
 {
@@ -26,8 +45,8 @@ struct Player
 	// For dashing and after taking damage;
 	bool invulnerable = false;
 	float invulnerable_duration_ms = 2000.f;
-	vec2 last_pos = {0, 0};
-	float dash_cooldown_ms = 1000.f;
+	vec2 last_pos = { 0, 0 };
+	float dash_cooldown_ms = 3000.f;
 	float curr_dash_cooldown_ms = dash_cooldown_ms;
 	bool is_dash_up = true;
 
@@ -64,6 +83,16 @@ struct Deadly
 	float movement_timer = 0.f;
 	float drop_chance = 1.0f;
 	int experience = 5;
+	ENEMY_STATE state = ENEMY_STATE::IDLE;
+};
+
+struct Effect
+{
+	float ms_passed = 0.f;
+	float lifespan_ms = 1000.f;
+	float width_init;
+	float height_init;
+	EFFECT_TYPE type;
 };
 
 struct Ranged
@@ -150,9 +179,9 @@ struct Motion
 {
 	vec2 position = {0, 0};
 	float angle = 0;
-	vec2 velocity = {0, 0};
-	vec2 scale = {10, 10};
-	float speed = 300.0f; // To control player speed
+	vec2 velocity = { 0, 0 };
+	vec2 scale = { 10, 10 };
+	float speed = 30.0f; // To control player speed
 };
 
 // Stucture to store collision information
@@ -175,6 +204,7 @@ extern Debug debugging;
 struct ScreenState
 {
 	float darken_screen_factor = -1;
+	bool paused = false;
 };
 
 struct UserInterface
@@ -282,11 +312,16 @@ enum class TEXTURE_ASSET_ID
 	HP_BAR_6 = HP_BAR_5 + 1,
 	HP_BAR_7 = HP_BAR_6 + 1,
 	HP_BAR_FULL = HP_BAR_7 + 1,
-	FURNITURE = HP_BAR_FULL + 1,
+	PLANT = HP_BAR_FULL + 1,
+	FURNITURE = PLANT + 1,
 	WALL = FURNITURE + 1,
 	SIDE_WALL = WALL + 1,
 	PLAYERS = SIDE_WALL + 1,
-	COINS = PLAYERS + 1,
+	HEART = PLAYERS + 1,
+	SMOKE_PARTICLE = HEART + 1,
+	DASH = SMOKE_PARTICLE + 1,
+	STAMINA_BAR = DASH + 1,
+	COINS = STAMINA_BAR + 1,
 	TEXTURE_COUNT = COINS + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
@@ -297,7 +332,10 @@ enum class SPRITE_ASSET_ID
 	SKELETON = PLAYER + 1,
 	SLIME = SKELETON + 1,
 	RANGED_ENEMY = SLIME + 1,
-	COIN = RANGED_ENEMY + 1,
+	GREY_CAT = RANGED_ENEMY + 1,
+	ORANGE_CAT = GREY_CAT + 1,
+	STAMINA_BAR = ORANGE_CAT + 1,
+	COIN = STAMINA_BAR + 1,
 	SPRITE_COUNT = COIN + 1,
 };
 const int sprite_count = (int)SPRITE_ASSET_ID::SPRITE_COUNT;
@@ -310,7 +348,8 @@ enum class EFFECT_ASSET_ID
 	TEXTURED = SALMON + 1,
 	WATER = TEXTURED + 1,
 	FONT = WATER + 1,
-	EFFECT_COUNT = FONT + 1
+	DASH = FONT + 1,
+	EFFECT_COUNT = DASH + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

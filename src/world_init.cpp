@@ -1,7 +1,10 @@
 #include "world_init.hpp"
 #include "tiny_ecs_registry.hpp"
 
-Entity createPlayer(RenderSystem *renderer, vec2 pos)
+#include <iostream>
+#include <random>
+
+Entity createPlayer(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
 	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -188,11 +191,42 @@ Entity createContactSlow(RenderSystem *renderer, vec2 position)
 	registry.damages.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
-		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
-		 SPRITE_ASSET_ID::SKELETON,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE,
-		 1});
+		{
+			TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			SPRITE_ASSET_ID::SKELETON,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			1
+		});
+
+	std::vector<int> idle_f_vec = {0, 1, 2, 3, 4, 5};
+	Animation idle_f = {
+		"slowenemy_idle_f",
+		15,
+		SPRITE_ASSET_ID::SKELETON,
+		idle_f_vec
+	};
+
+	std::vector<int> run_f_vec = {18, 19, 20, 21, 22, 23};
+	Animation run_f = {
+		"slowenemy_run_f",
+		10,
+		SPRITE_ASSET_ID::SKELETON,
+		run_f_vec
+	};
+	std::vector<int> die_vec = {36, 37, 38, 39, 39};
+	Animation die = {
+			"slowenemy_die",
+			7,
+			SPRITE_ASSET_ID::PLAYER,
+			die_vec
+		};
+
+	auto& animSet = registry.animationSets.emplace(entity);
+	animSet.animations[idle_f.name] = idle_f;
+	animSet.animations[run_f.name] = run_f;
+	animSet.animations[die.name] = die;
+	animSet.current_animation = idle_f.name;
 
 	return entity;
 }
@@ -223,11 +257,43 @@ Entity createContactFast(RenderSystem *renderer, vec2 position)
 	damage.damage = 25.0;
 	registry.renderRequests.insert(
 		entity,
-		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
-		 SPRITE_ASSET_ID::SLIME,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE,
-		 1});
+		{
+			TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			SPRITE_ASSET_ID::SLIME,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			1
+		});
+
+	std::vector<int> idle_f_vec = {0, 1};
+	Animation idle_f = {
+		"fastenemy_idle_f",
+		2, 
+		SPRITE_ASSET_ID::SLIME,
+		idle_f_vec
+	};
+
+	std::vector<int> run_f_vec = {10, 11, 12, 13, 14};
+	Animation run_f = {
+		"fastenemy_run_f",
+		8,
+		SPRITE_ASSET_ID::SLIME,
+		run_f_vec
+	};
+
+	std::vector<int> die_vec = {1, 2, 3, 4, 4};
+	Animation die = {
+		"fastenemy_die",
+		7,
+		SPRITE_ASSET_ID::SLIME,
+		die_vec
+	};
+
+	auto& animSet = registry.animationSets.emplace(entity);
+	animSet.animations[idle_f.name] = idle_f;
+	animSet.animations[run_f.name] = run_f;
+	animSet.animations[die.name] = die;
+	animSet.current_animation = idle_f.name;
 
 	return entity;
 }
@@ -258,11 +324,43 @@ Entity createRangedEnemy(RenderSystem *renderer, vec2 position)
 	registry.ranged.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
-		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
-		 SPRITE_ASSET_ID::RANGED_ENEMY,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE,
-		 0});
+		{
+			TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			SPRITE_ASSET_ID::RANGED_ENEMY,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			0
+		});
+
+	std::vector<int> idle_f_vec = {0, 1, 2, 3, 4};
+	Animation idle_f = {
+		"rangedenemy_idle_f",
+		12, 
+		SPRITE_ASSET_ID::RANGED_ENEMY,
+		idle_f_vec
+	};
+
+	std::vector<int> run_f_vec = {8, 9, 10, 11, 12, 13, 14, 15};
+	Animation run_f = {
+		"rangedenemy_run_f",
+		10,
+		SPRITE_ASSET_ID::RANGED_ENEMY,
+		run_f_vec
+	};
+
+	std::vector<int> die_vec = {32, 33, 34, 35, 36};
+	Animation die = {
+			"rangedenemy_die",
+	 		7,
+	 		SPRITE_ASSET_ID::RANGED_ENEMY,
+	 		die_vec
+	 	};
+
+	auto& animSet = registry.animationSets.emplace(entity);
+	animSet.animations[idle_f.name] = idle_f;
+	animSet.animations[run_f.name] = run_f;
+	animSet.animations[die.name] = die;
+	animSet.current_animation = idle_f.name;
 
 	return entity;
 }
@@ -450,6 +548,10 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos)
 	motion.velocity = {0.f, 0.f};
 	motion.scale = vec2({TILE_PX_SIZE * 3, TILE_PX_SIZE * 3});
 
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::FURNITURE;
+
+	
+
 	// create an empty component for the furniture as a solid object
 	registry.solidObjs.emplace(entity);
 	registry.renderRequests.insert(
@@ -529,4 +631,133 @@ Entity createExperience(RenderSystem *renderer, vec2 pos, int experience)
 	animSet.current_animation = idle.name;
 
 	return entity;
+}
+
+void createSmoke(RenderSystem* renderer, vec2 pos) {
+	for (int i = 0; i < 20; i++) {
+		createEffect(renderer, pos, 500, EFFECT_TYPE::SMOKE);
+	}
+}
+
+
+// plan for effects - used for particles, heart popups, whatever:
+// give lifespan
+// i guess probably hardcode fps relative to lifespan ? so it gets smaller until it dies
+// what if we had no sprite animation and just edited scale ? 
+Entity createEffect(RenderSystem* renderer, vec2 pos, float lifespan_ms, EFFECT_TYPE type) {
+	auto entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.scale = vec2({ 60, 60});
+
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::HEART;
+	EFFECT_ASSET_ID effect = EFFECT_ASSET_ID::TEXTURED;
+
+	std::random_device rd; 
+    std::mt19937 gen(rd());
+	std::uniform_real_distribution<> distrib(0, 1);
+
+	switch (type) {
+		case (EFFECT_TYPE::SMOKE):
+			// change velocity stuff so it's in a circle around
+			
+			motion.velocity = {pow(-1, rand() % 2) * distrib(gen), (pow(-1, rand() % 2)) * (distrib(gen))};
+			motion.velocity *= 6.f * distrib(gen);
+			
+			motion.scale = vec2(15, 15);
+			texture = TEXTURE_ASSET_ID::SMOKE_PARTICLE;
+			break;
+		case EFFECT_TYPE::DASH:
+			texture = TEXTURE_ASSET_ID::DASH;
+			effect = EFFECT_ASSET_ID::DASH;
+			motion.scale = vec2(0.85 * PLAYER_BB_WIDTH, 0.85 * PLAYER_BB_HEIGHT);
+		default:
+			break;
+	}
+
+	registry.effects.insert(entity, {
+		0.f,
+		lifespan_ms,
+		motion.scale.x,
+		motion.scale.y,
+		type
+	});
+	registry.renderRequests.insert(
+		entity, {
+			texture,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE
+		}
+	);
+
+	return entity;
+}
+
+Entity createStaminaBar(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	auto& ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = pos;
+	ui.scale = vec2({ HPBAR_BB_WIDTH, -HPBAR_BB_HEIGHT });
+
+	registry.renderRequests.insert(
+		entity,
+		{
+			TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			SPRITE_ASSET_ID::STAMINA_BAR,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			14
+		});
+
+	// 3 states: 
+	// regenerating (0-14) - might need to adjust amounts for time
+	// full (14)
+	// dashing (14, 11, 12, 13, 0) - might need to adjust amounts for time
+
+	std::vector<int> full_vec = {14};
+	Animation full = {
+		"staminabar_full",
+		15, 
+		SPRITE_ASSET_ID::STAMINA_BAR,
+		full_vec
+	};
+
+	std::vector<int> regen_vec = {0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10,  11, 12, 13, 14};
+	Animation regen = {
+		"staminabar_regen",
+		8, 
+		SPRITE_ASSET_ID::STAMINA_BAR,
+		regen_vec
+	};
+
+	std::vector<int> depleting_vec = {14, 11, 12, 13, 13, 13, 13, 13, 0};
+	Animation depleting = {
+		"staminabar_depleting",
+		15, 
+		SPRITE_ASSET_ID::STAMINA_BAR,
+		depleting_vec
+	};
+
+
+	auto& animSet = registry.animationSets.emplace(entity);
+	animSet.animations[full.name] = full;
+	animSet.animations[regen.name] = regen;
+	animSet.animations[depleting.name] = depleting;
+	animSet.current_animation = full.name;
+
+	return entity;
+
 }

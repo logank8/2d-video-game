@@ -5,7 +5,7 @@
 
 WorldSystem world;
 PhysicsSystem phsyics;
-std::vector<std::vector<int>> map = world.get_current_map();
+std::vector<std::vector<int>> map;
 const float TILE_SIZE = 100.0f;
 
 #include <iostream>
@@ -535,9 +535,10 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
     }
 }
 
-void PhysicsSystem::step(float elapsed_ms)
+void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current_map)
 {
-    // Check for collisions between all moving entities
+    map = current_map;
+	// Check for collisions between all moving entities
     ComponentContainer<Motion> &motion_container = registry.motions;
     for (uint i = 0; i < motion_container.components.size(); i++)
     {
@@ -561,12 +562,17 @@ void PhysicsSystem::step(float elapsed_ms)
                     if (is_colliding)
                         std::cout << "player slowed down (mesh collision)" << std::endl;
                 }
-                else if (registry.stickies.has(entity_j) && registry.players.has(entity_i))
-                {
-                    is_colliding = mesh_collides(entity_j, motion_j, motion_i);
-                    if (is_colliding)
-                        std::cout << "player slowed down (mesh collision)" << std::endl;
+                
+                // touching health buffs
+                /*
+                if (registry.buffs.has(entity_i) && registry.players.has(entity_j)) {
+                    Buff& hb = registry.buffs.get(entity_i);
+                    hb.touching = true;
+                } else if (registry.buffs.has(entity_j) && registry.players.has(entity_i)) {
+                    Buff& hb = registry.buffs.get(entity_j);
+                    hb.touching = true;
                 }
+                */
 
                 if (is_colliding)
                 {
@@ -581,42 +587,75 @@ void PhysicsSystem::step(float elapsed_ms)
                 if (registry.players.has(entity_i))
                     registry.players.get(entity_i).last_pos = motion_i.position;
             }
+		}
+	}
+
+    // Modify health buffs that are not touching player
+    /*
+    const Motion& player_motion = registry.motions.get(registry.players.entities[0]);
+    for (Entity e : registry.buffs.entities) {
+        Buff& hb = registry.buffs.get(e);
+        if (hb.touching) {
+            if (!collides(registry.motions.get(e),player_motion)) {
+                hb.touching = false;
+            }
         }
     }
+    */
 
-    // Move fish based on how much time has passed, this is to (partially) avoid
-    // having entities move at different speed based on the machine.
-    auto &motion_registry = registry.motions;
-    for (uint i = 0; i < motion_registry.size(); i++)
-    {
-        Motion &motion = motion_registry.components[i];
-        Entity entity = motion_registry.entities[i];
-        float step_seconds = elapsed_ms / 1000.f;
-        if (registry.players.has(entity))
-        {
-            motion.position[0] += motion.velocity[0] * step_seconds;
-            motion.position[1] += motion.velocity[1] * step_seconds;
+    // Effect movement
+    for (Entity e : registry.effects.entities) {
+        Effect& effect = registry.effects.get(e);
+        Motion& effect_motion = registry.motions.get(e);
+        
+        effect_motion.scale =  {((effect.lifespan_ms - effect.ms_passed) / effect.lifespan_ms) * effect.width_init, ((effect.lifespan_ms - effect.ms_passed) / effect.lifespan_ms) * effect.height_init};
+        effect.ms_passed += elapsed_ms;
+        if (effect.type == EFFECT_TYPE::SMOKE) {
+            effect_motion.velocity *= 0.7;
+            //if (effect.ms_passed >= (0.5 * effect.lifespan_ms)) {
+            //    effect_motion.velocity.y = 0;
+            //}
         }
-        else
-        {
-            // Handle contact damage enemies
-            if (registry.deadlys.has(entity))
-            {
-                //Motion& player_motion = registry.motions.get(registry.players.entities[0]);
-                if (registry.deadlys.get(entity).enemy_type != ENEMY_TYPES::PROJECTILE)
-                {
+        if (effect.type == EFFECT_TYPE::DASH) {
+            effect_motion.scale = {effect.width_init, effect.height_init};
+        }
+
+        effect_motion.position.x += effect_motion.velocity.x * elapsed_ms;
+        effect_motion.position.y += effect_motion.velocity.y * elapsed_ms;
+    }
+    
+	// Move fish based on how much time has passed, this is to (partially) avoid
+	// having entities move at different speed based on the machine.
+	auto& motion_registry = registry.motions;
+	for(uint i = 0; i< motion_registry.size(); i++)
+	{
+		Motion& motion = motion_registry.components[i];
+		Entity entity = motion_registry.entities[i];
+		float step_seconds = elapsed_ms / 1000.f;
+    if (registry.players.has(entity)) {
+        // Updating speed to make sure most recent value is applied to motion
+        if (distance({0, 0}, motion.velocity) != 0) {
+            motion.velocity = (1 / distance({0, 0}, motion.velocity)) * motion.velocity;
+        }
+        motion.velocity = motion.speed * motion.velocity;
+        
+		motion.position[0] += motion.velocity[0] * step_seconds;
+		motion.position[1] += motion.velocity[1] * step_seconds;
+    } else {
+			//Handle contact damage enemies
+			if (registry.deadlys.has(entity)) {
+				if (registry.deadlys.get(entity).enemy_type != ENEMY_TYPES::PROJECTILE) {
+
+                    //A* pathfinding
+                    if (!registry.deathTimers.has(entity)) {
+                        update_enemy_movement(entity, step_seconds);
+                    }
                     
-                    //float angle = atan2(motion.position.y - player_motion.position.y, motion.position.x - player_motion.position.x);
-                    //motion.position.x -= cos(angle) * motion.velocity.x * step_seconds;
-                    //motion.position.y -= sin(angle) * motion.velocity.y * step_seconds;
-                    // A* pathfinding
-                    update_enemy_movement(entity, step_seconds);
-                }
-                else
-                {
-                    motion.position.x -= cos(motion.angle) * motion.velocity.x * step_seconds;
-                    motion.position.y -= sin(motion.angle) * motion.velocity.y * step_seconds;
-                }
+                } else
+                    {
+                        motion.position.x -= cos(motion.angle) * motion.velocity.x * step_seconds;
+                        motion.position.y -= sin(motion.angle) * motion.velocity.y * step_seconds;
+                    }
             }
         }
     }
