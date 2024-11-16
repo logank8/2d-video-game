@@ -555,7 +555,7 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos)
 	// create an empty component for the furniture as a solid object
 	registry.solidObjs.emplace(entity);
 	registry.renderRequests.insert(
-		entity, {TEXTURE_ASSET_ID::FURNITURE,
+		entity, {TEXTURE_ASSET_ID::PLANT,
 				 SPRITE_ASSET_ID::SPRITE_COUNT,
 				 EFFECT_ASSET_ID::TEXTURED,
 				 GEOMETRY_BUFFER_ID::SPRITE});

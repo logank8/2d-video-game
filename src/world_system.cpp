@@ -1129,7 +1129,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	Player& player = registry.players.get(my_player);
 
 	if (key == GLFW_KEY_SPACE) {
-		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player) && player.is_dash_up) {
+		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player) && (!is_paused) && player.is_dash_up) {
 			pmotion.speed = 5500.f;
 			player.is_dash_up = false;
 			registry.lightUps.emplace(my_player);
