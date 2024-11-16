@@ -548,20 +548,9 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos)
 	motion.velocity = {0.f, 0.f};
 	motion.scale = vec2({TILE_PX_SIZE * 3, TILE_PX_SIZE * 3});
 
-	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::PLANT;
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::FURNITURE;
 
-	switch ((int) size.x) {
-		case 3:
-			if (size.y == 2) {
-				std::cout << "table" << std::endl;
-				// need to fix the scaling on this
-				texture = TEXTURE_ASSET_ID::TABLE;
-				motion.scale = vec2(150, 100);
-			}
-			break;
-		default:
-			break;
-	}
+	
 
 	// create an empty component for the furniture as a solid object
 	registry.solidObjs.emplace(entity);

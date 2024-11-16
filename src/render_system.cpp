@@ -37,9 +37,11 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		}
 	}
 
+	/*
 	if (registry.buffs.has(entity)) {
 		transform.scale(vec2(2, 2));
 	}
+	*/
 
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest &render_request = registry.renderRequests.get(entity);

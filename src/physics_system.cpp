@@ -564,6 +564,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                 }
                 
                 // touching health buffs
+                /*
                 if (registry.buffs.has(entity_i) && registry.players.has(entity_j)) {
                     Buff& hb = registry.buffs.get(entity_i);
                     hb.touching = true;
@@ -571,6 +572,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                     Buff& hb = registry.buffs.get(entity_j);
                     hb.touching = true;
                 }
+                */
 
                 if (is_colliding)
                 {
@@ -589,6 +591,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
 	}
 
     // Modify health buffs that are not touching player
+    /*
     const Motion& player_motion = registry.motions.get(registry.players.entities[0]);
     for (Entity e : registry.buffs.entities) {
         Buff& hb = registry.buffs.get(e);
@@ -598,6 +601,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
             }
         }
     }
+    */
 
     // Effect movement
     for (Entity e : registry.effects.entities) {
@@ -646,11 +650,15 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                     if (!registry.deathTimers.has(entity)) {
                         update_enemy_movement(entity, step_seconds);
                     }
-                    else
+                    
+                } else
                     {
                         motion.position.x -= cos(motion.angle) * motion.velocity.x * step_seconds;
                         motion.position.y -= sin(motion.angle) * motion.velocity.y * step_seconds;
                     }
+            }
+        }
+    }
 
     for (Entity entity : registry.blockedTimers.entities)
     {

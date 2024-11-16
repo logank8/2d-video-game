@@ -83,6 +83,7 @@ struct Deadly
 	float movement_timer = 0.f;
 	float drop_chance = 1.0f;
 	int experience = 5;
+	ENEMY_STATE state = ENEMY_STATE::IDLE;
 };
 
 struct Effect
@@ -312,13 +313,11 @@ enum class TEXTURE_ASSET_ID
 	HP_BAR_7 = HP_BAR_6 + 1,
 	HP_BAR_FULL = HP_BAR_7 + 1,
 	PLANT = HP_BAR_FULL + 1,
-	TABLE = PLANT + 1,
-	WALL = TABLE + 1,
+	FURNITURE = PLANT + 1,
+	WALL = FURNITURE + 1,
 	SIDE_WALL = WALL + 1,
 	PLAYERS = SIDE_WALL + 1,
-	GREY_CAT = PLAYERS + 1,
-	ORANGE_CAT = GREY_CAT + 1,
-	HEART = ORANGE_CAT + 1,
+	HEART = PLAYERS + 1,
 	SMOKE_PARTICLE = HEART + 1,
 	DASH = SMOKE_PARTICLE + 1,
 	STAMINA_BAR = DASH + 1,

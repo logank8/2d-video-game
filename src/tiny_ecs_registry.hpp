@@ -41,8 +41,9 @@ public:
 	ComponentContainer<Text> texts;
 	ComponentContainer<PlayerAttack> playerAttacks;
 	ComponentContainer<LightUp> lightUps;
-	ComponentContainer<Buff> buffs;
+	ComponentContainer<Experience> experiences;
 	ComponentContainer<Effect> effects;
+	ComponentContainer<Collectible> collectibles;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -78,7 +79,6 @@ public:
 		registry_list.push_back(&texts);
 		registry_list.push_back(&playerAttacks);
 		registry_list.push_back(&lightUps);
-		registry_list.push_back(&buffs);
 		registry_list.push_back(&effects);
 		registry_list.push_back(&collectibles);
 		registry_list.push_back(&experiences);
