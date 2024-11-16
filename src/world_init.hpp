@@ -74,3 +74,5 @@ Entity createEffect(RenderSystem* renderer, vec2 pos, float lifespan_ms, EFFECT_
 Entity createStaminaBar(RenderSystem* renderer, vec2 pos);
 // a experience
 Entity createExperience(RenderSystem *renderer, vec2 pos, int experience);
+
+Entity createSwarm(RenderSystem* renderer, vec2 pos, float separation, float alignment, float cohesion);

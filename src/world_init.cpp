@@ -759,3 +759,50 @@ Entity createStaminaBar(RenderSystem* renderer, vec2 pos) {
 	return entity;
 
 }
+
+Entity createSwarm(RenderSystem* renderer, vec2 pos, float separation, float alignment, float cohesion) {
+	/** create leader of swarm **/
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.enemy_type = ENEMY_TYPES::SWARM;
+	Health& health = registry.healths.emplace(entity);
+	health.hit_points = 50.f;
+	health.max_hp = 50.f;
+	registry.damages.emplace(entity);
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.scale = vec2({30, 30});
+
+	registry.renderRequests.insert(
+			entity, 
+			{TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			 SPRITE_ASSET_ID::BEETLE,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE,
+			 1});
+
+	std::vector<int> idle_vec = {0, 1};
+	Animation idle = {
+		"swarmenemy_idle_f",
+		10, 
+		SPRITE_ASSET_ID::BEETLE,
+		idle_vec
+	};
+
+	auto& animSet = registry.animationSets.emplace(entity);
+
+	animSet.animations[idle.name] = idle;
+	animSet.current_animation = idle.name;
+
+	return entity;
+}

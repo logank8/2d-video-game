@@ -159,7 +159,7 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 	fprintf(stderr, "Loaded music\n");
 	fps_counter_ms = FPS_COUNTER_MS;
 	
-	current_map = map1;
+	current_map = map2;
 
 	// Set all states to default
 	restart_game();
@@ -175,11 +175,12 @@ void createHPBar(Entity enemy)
 	if (registry.healths.has(enemy) && registry.deadlys.get(enemy).enemy_type != ENEMY_TYPES::PROJECTILE)
 	{
 		float &hp = registry.healths.get(enemy).hit_points;
+		float &max_hp = registry.healths.get(enemy).max_hp;
 		Motion &enemy_motion = registry.motions.get(enemy);
 		// Shift centre of line to left as the hp bar decreases
-		Entity hp_bar = createLine({enemy_motion.position.x - ((100.f) * (1 - (hp / 200.f))) / 2,
+		Entity hp_bar = createLine({enemy_motion.position.x - ((100.f) * (1 - (hp / max_hp))) / 2,
 									enemy_motion.position.y - enemy_motion.scale.y * 0.75f},
-								   {(100.f) * hp / 200.f, 15.f});
+								   {(100.f) * hp / max_hp, 15.f});
 		vec3 &color = registry.colors.emplace(hp_bar);
 		color = vec3(0.f, 5.f, 0.f);
 	}
@@ -382,7 +383,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				tile_vec.push_back(vec2(i, j));
 			}
 			
-				
+			if (current_map[j][i] == 8) {
+				createSwarm(renderer, world_pos, 0.2, 0.2, 0.2);
+				tile_vec.push_back(vec2(i, j));
+			}
 			
 		}
 	}
@@ -495,11 +499,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					AnimationSet animSet_enemy = registry.animationSets.get(entity);
 					Animation anim = animSet_enemy.animations[animSet_enemy.current_animation];
 				}
+
+				float roll = uniform_dist(rng);
+				Deadly& deadly = registry.deadlys.get(entity);
+				Motion& enemy_motion = registry.motions.get(entity);
+
+				if (roll <= deadly.drop_chance && deadly.enemy_type != ENEMY_TYPES::PROJECTILE)
+				{
+					createExperience(renderer, enemy_motion.position, deadly.experience);
+				}
 				registry.remove_all_components_of(entity);
 				enemies_killed++;
 				if (enemies_killed >= enemy_kill_goal) {
 					mapSwitch(2);
 				}
+				
 			}
 			
 		}
@@ -607,6 +621,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				break;
 			case ENEMY_TYPES::CONTACT_DMG_2:
 				enemy_name = "fast";
+				break;
+			case ENEMY_TYPES::SWARM:
+				enemy_name = "swarm";
 				break;
 			default:
 				break;
@@ -725,7 +742,6 @@ void WorldSystem::restart_game()
 	// create health bar
 	vec2 hp_bar_pos = {-0.75, 0.85f};
 	hp_bar = createHPBar(renderer, hp_bar_pos);
-	//createHPBarEmpty(renderer, hp_bar_pos);
 	
 	vec2 stamina_bar_pos = { -0.74f, 0.7f };
 	stamina_bar = createStaminaBar(renderer, stamina_bar_pos);
@@ -1011,18 +1027,9 @@ void WorldSystem::handle_collisions(float step_seconds)
 				{
 					registry.lightUps.remove(entity_other);
 				}
-
 				registry.lightUps.emplace(entity_other);
 
-				if (deadly_health.hit_points <= 0.0f)
-				{
-					float roll = uniform_dist(rng);
-
-					if (roll <= deadly.drop_chance && deadly.enemy_type != ENEMY_TYPES::PROJECTILE)
-					{
-						createExperience(renderer, enemy_motion.position, deadly.experience);
-					}
-
+				
 				if (deadly_health.hit_points <= 0.0f && (!registry.deathTimers.has(entity_other))) {
 					Deadly& d = registry.deadlys.get(entity_other);
 					d.state = ENEMY_STATE::DEAD;
@@ -1041,8 +1048,8 @@ void WorldSystem::handle_collisions(float step_seconds)
 		Motion &player_motion = registry.motions.get(my_player);
 		player_motion.speed = 300.f;
 	}
-	}
-
+	
+	
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
 }

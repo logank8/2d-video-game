@@ -67,7 +67,8 @@ enum class ENEMY_TYPES
 	CONTACT_DMG = 0,
 	CONTACT_DMG_2 = CONTACT_DMG + 1,
 	RANGED = CONTACT_DMG_2 + 1,
-	PROJECTILE = RANGED + 1
+	PROJECTILE = RANGED + 1,
+	SWARM = PROJECTILE + 1
 };
 
 struct PlayerAttack
@@ -166,6 +167,7 @@ struct Damage
 struct Health
 {
 	float hit_points = 200.f;
+	float max_hp = 200.f;
 };
 
 // light up damage effect
@@ -322,7 +324,8 @@ enum class TEXTURE_ASSET_ID
 	DASH = SMOKE_PARTICLE + 1,
 	STAMINA_BAR = DASH + 1,
 	COINS = STAMINA_BAR + 1,
-	TEXTURE_COUNT = COINS + 1
+	BEETLE = COINS + 1,
+	TEXTURE_COUNT = BEETLE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -336,7 +339,8 @@ enum class SPRITE_ASSET_ID
 	ORANGE_CAT = GREY_CAT + 1,
 	STAMINA_BAR = ORANGE_CAT + 1,
 	COIN = STAMINA_BAR + 1,
-	SPRITE_COUNT = COIN + 1,
+	BEETLE = COIN + 1,
+	SPRITE_COUNT = BEETLE + 1,
 };
 const int sprite_count = (int)SPRITE_ASSET_ID::SPRITE_COUNT;
 
