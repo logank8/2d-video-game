@@ -547,33 +547,38 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos, int type)
 	motion.angle = 0.f;
 	motion.velocity = {0.f, 0.f};
 
+	TEXTURE_ASSET_ID texture;
 	if (type == 2) {
 		motion.scale = vec2({PLANT_BB_WIDTH, PLANT_BB_HEIGHT});
+		texture = TEXTURE_ASSET_ID::PLANT;
 	} else if (type == 9) {
 		motion.scale = vec2({COAT_RACK_BB_WIDTH, COAT_RACK_BB_HEIGHT});
 		motion.position.y += 50.f;
-	}
-
-	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::FURNITURE;
-
-	
+		texture = TEXTURE_ASSET_ID::COAT_RACK;
+	} else if (type == 10) {
+		motion.scale = vec2({LONG_TABLE_BB_WIDTH, LONG_TABLE_BB_HEIGHT});
+		texture = TEXTURE_ASSET_ID::FURNITURE;
+	} else if (type == 11) {
+		motion.scale = vec2({CHAIR_FRONT_BB_WIDTH, CHAIR_FRONT_BB_HEIGHT});
+		texture = TEXTURE_ASSET_ID::CHAIR_FRONT;
+	} else if (type == 12) {
+		motion.scale = vec2({CHAIR_BACK_BB_WIDTH, CHAIR_BACK_BB_HEIGHT});
+		texture = TEXTURE_ASSET_ID::CHAIR_BACK;
+	} else if (type == 13) {
+		motion.scale = vec2({CHAIR_SIDE_BB_WIDTH, CHAIR_SIDE_BB_HEIGHT});
+		texture = TEXTURE_ASSET_ID::CHAIR_SIDE;
+	} else if (type == 14) {
+		motion.scale = vec2({-CHAIR_SIDE_BB_WIDTH, CHAIR_SIDE_BB_HEIGHT});
+		texture = TEXTURE_ASSET_ID::CHAIR_SIDE;
+	}	
 
 	// create an empty component for the furniture as a solid object
 	registry.solidObjs.emplace(entity);
-	if (type == 2) {
-		registry.renderRequests.insert(
-			entity, {TEXTURE_ASSET_ID::PLANT,
-					SPRITE_ASSET_ID::SPRITE_COUNT,
-					EFFECT_ASSET_ID::TEXTURED,
-					GEOMETRY_BUFFER_ID::SPRITE});
-	} else if (type == 9) {
-		registry.renderRequests.insert(
-			entity, {TEXTURE_ASSET_ID::COAT_RACK,
-					SPRITE_ASSET_ID::SPRITE_COUNT,
-					EFFECT_ASSET_ID::TEXTURED,
-					GEOMETRY_BUFFER_ID::SPRITE});
-	}
-	
+	registry.renderRequests.insert(
+		entity, {texture,
+				SPRITE_ASSET_ID::SPRITE_COUNT,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE});	
 
 	return entity;
 }
