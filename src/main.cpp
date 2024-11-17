@@ -46,10 +46,22 @@ int main()
 		float elapsed_ms =
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
-		if (!world.is_paused) {
+		if (!WorldSystem::is_paused) {
 			world.step(elapsed_ms);
 			physics.step(elapsed_ms);
 			animations.step(elapsed_ms);
+		}
+		else {
+			// Darken screen if game is paused
+			ScreenState& screen = registry.screenStates.components[0];
+			if (WorldSystem::is_paused)
+			{
+				screen.darken_screen_factor = 0.9;
+			}
+			else
+			{
+				screen.darken_screen_factor = 0;
+			}
 		}
 		world.handle_collisions(elapsed_ms);
 

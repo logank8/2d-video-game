@@ -32,10 +32,22 @@ int lightflicker_counter_ms;
 int fps_counter_ms;
 int fps = 0;
 bool display_fps = false;
+bool WorldSystem::is_paused = false;
 
 bool is_tutorial_on = false;
 
 PhysicsSystem physics;
+
+void windowMinimizedCallback(GLFWwindow* window, int iconified) {
+	if (iconified)
+		WorldSystem::is_paused = true;
+}
+
+void windowFocusCallback(GLFWwindow* window, int focused) {
+	if (!focused) {
+		WorldSystem::is_paused = true;
+	}
+}
 
 // create the underwater world
 WorldSystem::WorldSystem()
@@ -43,6 +55,7 @@ WorldSystem::WorldSystem()
 {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
+	
 }
 
 WorldSystem::~WorldSystem()
@@ -107,6 +120,13 @@ GLFWwindow *WorldSystem::create_window()
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
 	}
+
+	// Minimized callback
+	glfwSetWindowIconifyCallback(window, windowMinimizedCallback);
+
+	// Not in focus callback
+	glfwSetWindowFocusCallback(window, windowFocusCallback);
+
 
 	// Setting callbacks to member functions (that's why the redirect is needed)
 	// Input is handled using GLFW, for more info see
@@ -187,6 +207,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	std::stringstream title_ss;
 	title_ss << "Points: " << points;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
+
+
 
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
@@ -443,6 +465,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	assert(registry.screenStates.components.size() <= 1);
 	ScreenState &screen = registry.screenStates.components[0];
 
+
 	float min_counter_ms = 3000.f;
 	for (Entity entity : registry.deathTimers.entities)
 	{
@@ -564,7 +587,7 @@ void WorldSystem::restart_game()
 
 	// Reset the game speed
 	current_speed = 1.f;
-	is_paused = false;
+	WorldSystem::is_paused = false;
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all fish, eels, ... but that would be more cumbersome
@@ -993,22 +1016,44 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE)
 	{
-		is_paused = !is_paused;
+		WorldSystem::is_paused = !WorldSystem::is_paused;
 		ScreenState &screen = registry.screenStates.components[0];
-		if (is_paused)
-		{
-			screen.darken_screen_factor = 0.9;
-		}
-		else
-		{
-			screen.darken_screen_factor = 0;
-		}
-		std::cout << is_paused << std::endl;
 	}
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_F)
 	{
 		display_fps = !display_fps;
+	}
+
+	// Tutorial
+	if (action == GLFW_RELEASE && key == GLFW_KEY_T)
+	{
+		ScreenState& screen = registry.screenStates.components[0];
+		// if the game is already paused then this shouldn't work
+		if (!WorldSystem::is_paused)
+		{
+			WorldSystem::is_paused = true;
+			is_tutorial_on = true;
+			screen.darken_screen_factor = 0.9;
+			float tutorial_header_x = window_width_px / 2 - 120;
+			float tutorial_header_y = 620;
+			glm::vec3 white = glm::vec3(1.f, 1.f, 1.f);
+			createText({ tutorial_header_x, tutorial_header_y }, 1.0, "TUTORIAL", white);
+			std::vector<std::string> lines = read_file(PROJECT_SOURCE_DIR + std::string("data/tutorial/tutorial.txt"));
+			float y_spacer = 80.f;
+			for (std::string line : lines)
+			{
+				// Render each line
+				createText({ tutorial_header_x - 400.f, tutorial_header_y - y_spacer }, 0.6f, line, white);
+				y_spacer += 70.f;
+			}
+		}
+		else if (is_tutorial_on)
+		{
+			WorldSystem::is_paused = false;
+			is_tutorial_on = false;
+			screen.darken_screen_factor = 0.0;
+		}
 	}
 
 	// Debugging
@@ -1018,7 +1063,9 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
 
-	player_controller.on_key(key, 0, action, mod);
+	// This only works if game isn't paused
+	if (!WorldSystem::is_paused)
+		player_controller.on_key(key, 0, action, mod);
 
 	// if (key == GLFW_KEY_SPACE) {
 	// 	if (action == GLFW_PRESS && !registry.deathTimers.has(my_player)) {
@@ -1056,37 +1103,6 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		printf("Current speed = %f\n", current_speed);
 	}
 	current_speed = fmax(0.f, current_speed);
-
-	// Tutorial
-	if (action == GLFW_RELEASE && key == GLFW_KEY_T)
-	{
-		ScreenState &screen = registry.screenStates.components[0];
-		// if the game is already paused then this shouldn't work
-		if (!is_paused)
-		{
-			is_paused = true;
-			is_tutorial_on = true;
-			screen.darken_screen_factor = 0.9;
-			float tutorial_header_x = window_width_px / 2 - 120;
-			float tutorial_header_y = 620;
-			glm::vec3 white = glm::vec3(1.f, 1.f, 1.f);
-			createText({tutorial_header_x, tutorial_header_y}, 1.0, "TUTORIAL", white);
-			std::vector<std::string> lines = read_file(PROJECT_SOURCE_DIR + std::string("data/tutorial/tutorial.txt"));
-			float y_spacer = 80.f;
-			for (std::string line : lines)
-			{
-				// Render each line
-				createText({tutorial_header_x - 400.f, tutorial_header_y - y_spacer}, 0.6f, line, white);
-				y_spacer += 70.f;
-			}
-		}
-		else if (is_tutorial_on)
-		{
-			is_paused = false;
-			is_tutorial_on = false;
-			screen.darken_screen_factor = 0.0;
-		}
-	}
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position)
