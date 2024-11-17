@@ -717,6 +717,23 @@ Entity createSmoke(RenderSystem* renderer, vec2 pos) {
 	return entity;
 }
 
+	registry.renderRequests.insert(
+		entity, {
+			TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
+			EFFECT_ASSET_ID::SMOKE,
+			GEOMETRY_BUFFER_ID::DEBUG_LINE
+		});
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = pos;
+	motion.scale = {50.f,50.f};
+
+	return entity;
+}
 
 // plan for effects - used for particles, heart popups, whatever:
 // give lifespan

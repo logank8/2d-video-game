@@ -547,6 +547,11 @@ void RenderSystem::draw()
 		
 		if (registry.texts.has(entity))
 			continue;
+
+		if (registry.renderRequests.get(entity).used_effect == EFFECT_ASSET_ID::SMOKE) {
+			drawSmoke();
+			continue;
+		}
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
 		drawTexturedMesh(entity, projection_2D);

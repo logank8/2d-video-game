@@ -406,9 +406,44 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				return true;
 			}
 			if (registry.deadlys.has(entity)) {
-				AnimationSet animSet_enemy = registry.animationSets.get(entity);
-				Animation anim = animSet_enemy.animations[animSet_enemy.current_animation];
-				createSmoke(renderer, registry.motions.get(entity).position);
+				if (registry.animationSets.has(entity)) {
+					AnimationSet animSet_enemy = registry.animationSets.get(entity);
+					Animation anim = animSet_enemy.animations[animSet_enemy.current_animation];
+				}
+
+				float roll = uniform_dist(rng);
+				Deadly& deadly = registry.deadlys.get(entity);
+				Motion& enemy_motion = registry.motions.get(entity);
+
+				if (roll <= deadly.drop_chance && deadly.enemy_type != ENEMY_TYPES::PROJECTILE)
+				{
+					createExperience(renderer, enemy_motion.position, deadly.experience);
+				}
+				createSmoke(renderer, enemy_motion.position);
+
+				// replace dead leader with new swarm member
+				if (registry.swarms.has(entity)) {
+					if (registry.swarms.get(entity).leader_id == entity) {
+						for (int i = 0; i < registry.swarms.entities.size(); i++) {
+							Entity e = registry.swarms.entities[i];
+							SwarmMember& s = registry.swarms.get(e);
+							if (s.leader_id == entity && e != entity) {
+								s.leader_id = e;
+								for (int j = 0; j < registry.swarms.components.size(); j++) {
+									SwarmMember& swarm = registry.swarms.components[j];
+									if (swarm.leader_id == entity) {
+										swarm.leader_id = e;
+									}
+								}
+								// erase later - for debugging
+								registry.motions.get(e).velocity = vec2(1, 1);
+								registry.motions.get(e).speed = 150.f;
+								break;
+							}
+						}
+					}
+				}
+
 				registry.remove_all_components_of(entity);
 			}
 			

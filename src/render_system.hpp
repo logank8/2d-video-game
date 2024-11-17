@@ -93,6 +93,10 @@ class RenderSystem {
 	GLuint vbo;
 	FT_Face face;
 
+	unsigned int instanceVBO;
+	GLuint quadVAO;
+	GLuint quadVBO;
+
 public:
 	// Initialize the window
 	bool init(GLFWwindow* window);
@@ -137,6 +141,9 @@ private:
 	void drawScreenSpaceObject(Entity entity);
 	void drawToScreen();
 	void renderText();
+	void drawSmoke();
+
+	
 
 
 	// Window handle
