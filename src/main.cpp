@@ -48,7 +48,7 @@ int main()
 		t = now;
 		if (!WorldSystem::is_paused) {
 			world.step(elapsed_ms);
-			physics.step(elapsed_ms);
+			physics.step(elapsed_ms, world.get_current_map());
 			animations.step(elapsed_ms);
 		}
 		else {

@@ -252,17 +252,6 @@ void PlayerController::step(float elapsed_ms_since_last_update)
         pmotion.scale.x = std::abs(pmotion.scale.x);
     }
 
-    // handle dash cooldown
-    if (!player.is_dash_up)
-    {
-        player.curr_dash_cooldown_ms -= elapsed_ms_since_last_update;
-
-        if (player.curr_dash_cooldown_ms < 0.f)
-        {
-            player.curr_dash_cooldown_ms = player.dash_cooldown_ms;
-            player.is_dash_up = true;
-        }
-    }
 
     // Check if player is invulnerable
     if (player.invulnerable)
@@ -314,12 +303,12 @@ void PlayerController::step(float elapsed_ms_since_last_update)
     }
 }
 
-void PlayerController::on_key(int key, int, int action, int mod)
+void PlayerController::on_key(int key, int action, int mod)
 {
     Motion &pmotion = registry.motions.get(*my_player);
     Player &player = registry.players.get(*my_player);
 
-    if (!registry.deathTimers.has(*my_player))
+    if (!registry.deathTimers.has(*my_player) && (player.is_dash_up || (!player.is_dash_up && (player.curr_dash_cooldown_ms < 2900.f))))
     {
         if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D)
         {
@@ -374,14 +363,6 @@ void PlayerController::on_key(int key, int, int action, int mod)
         }
     }
 
-    if (key == GLFW_KEY_SPACE)
-    {
-        if (action == GLFW_PRESS && !registry.deathTimers.has(*my_player) && player.is_dash_up)
-        {
-            pmotion.speed = 10000.f;
-            player.is_dash_up = false;
-        }
-    }
 }
 
 void PlayerController::on_mouse_move(vec2 mouse_position)

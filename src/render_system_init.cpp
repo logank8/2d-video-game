@@ -87,6 +87,8 @@ bool RenderSystem::fontInit(const std::string &font_filename, unsigned int font_
 	glUseProgram(m_font_shader_program);
 	int w, h;
 	glfwGetFramebufferSize(window, &w, &h);
+	w = 1280;
+	h = 720;
 	glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(w), 0.0f, static_cast<float>(h));
 	GLint project_location = glGetUniformLocation(m_font_shader_program, "projection");
 	assert(project_location > -1);
@@ -212,7 +214,9 @@ void RenderSystem::initializeSpriteSheets()
 	sprite_sheets[SPRITE_ASSET_ID::SKELETON] = {TEXTURE_ASSET_ID::SKELETON, 10, 6, 64, 64};
 	sprite_sheets[SPRITE_ASSET_ID::SLIME] = {TEXTURE_ASSET_ID::SLIME, 5, 5, 64, 64};
 	sprite_sheets[SPRITE_ASSET_ID::RANGED_ENEMY] = {TEXTURE_ASSET_ID::RANGED_ENEMY, 5, 8, 64, 64};
+	sprite_sheets[SPRITE_ASSET_ID::STAMINA_BAR] = {TEXTURE_ASSET_ID::STAMINA_BAR, 15, 1, 64, 16};
 	sprite_sheets[SPRITE_ASSET_ID::COIN] = {TEXTURE_ASSET_ID::COINS, 1, 10, 16, 16};
+	sprite_sheets[SPRITE_ASSET_ID::BEETLE] = {TEXTURE_ASSET_ID::BEETLE, 1, 2, 8, 8};
 }
 
 void RenderSystem::initializeGlEffects()

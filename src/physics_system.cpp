@@ -5,8 +5,10 @@
 
 WorldSystem world;
 PhysicsSystem phsyics;
-std::vector<std::vector<int>> map = world.get_current_map();
+std::vector<std::vector<int>> map;
 const float TILE_SIZE = 100.0f;
+const float GRID_OFFSET_X = (640 - (25 * TILE_SIZE));
+const float GRID_OFFSET_Y = (640 - (44 * TILE_SIZE));
 
 #include <iostream>
 
@@ -174,28 +176,24 @@ bool is_walkable(const vec2 &pos, vec2 dir)
         {TILE_SIZE, TILE_SIZE}, {-TILE_SIZE, TILE_SIZE}, {TILE_SIZE, -TILE_SIZE}, {-TILE_SIZE, -TILE_SIZE}};
 
     // Check for clipping through walls when moving diagonally
-    if (dir == diagonals[0])
-    { // Moving top-right
-        if (map[grid_y][grid_x - 1] == 0 || map[grid_y - 1][grid_x] == 0)
-            return false;
+    if (dir == diagonals[0]) {  // Moving top-right
+        if (map[grid_y][grid_x - 1] == 0 || map[grid_y - 1][grid_x] == 0) return false;
+        if (map[grid_y][grid_x - 1] == 2 || map[grid_y - 1][grid_x] == 2) return false;
     }
-    else if (dir == diagonals[1])
-    { // Moving top-left
-        if (map[grid_y][grid_x + 1] == 0 || map[grid_y - 1][grid_x] == 0)
-            return false;
+    else if (dir == diagonals[1]) {  // Moving top-left
+        if (map[grid_y][grid_x + 1] == 0 || map[grid_y - 1][grid_x] == 0) return false;
+        if (map[grid_y][grid_x + 1] == 2 || map[grid_y - 1][grid_x] == 2) return false;
     }
-    else if (dir == diagonals[2])
-    { // Moving bottom-right
-        if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x - 1] == 0)
-            return false;
+    else if (dir == diagonals[2]) {  // Moving bottom-right
+        if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x - 1] == 0) return false;
+        if (map[grid_y + 1][grid_x] == 2 || map[grid_y][grid_x - 1] == 2) return false;
     }
-    else if (dir == diagonals[3])
-    { // Moving bottom-left
-        if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x + 1] == 0)
-            return false;
+    else if (dir == diagonals[3]) {  // Moving bottom-left
+        if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x + 1] == 0) return false;
+        if (map[grid_y + 1][grid_x] == 2 || map[grid_y][grid_x + 1] == 2) return false;
     }
 
-    return map[grid_y][grid_x] != 0;
+    return map[grid_y][grid_x] != 0 && map[grid_y][grid_x] != 2;
 }
 
 // Checking for line of sight using Bresenham's algorithm
@@ -233,7 +231,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == 0)
+            if (map[y][x] == 0 || map[y][x] == 2)
             {
                 return false;
             }
@@ -257,7 +255,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == 0)
+            if (map[y][x] == 0 || map[y][x] == 2)
             {
                 return false;
             }
@@ -276,7 +274,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
     {
         return false;
     }
-    return map[y][x] != 0;
+    return map[y][x] != 0 && map[y][x] != 2;
 }
 
 // Find A* path for enemy
@@ -284,8 +282,6 @@ std::vector<vec2> find_path(const Motion &enemy, const Motion &player)
 {
     vec2 start = enemy.position;
 
-    const float GRID_OFFSET_X = (640 - (25 * TILE_SIZE));
-    const float GRID_OFFSET_Y = (640 - (44 * TILE_SIZE));
 
     // Convert to grid coordinates
     int grid_x = static_cast<int>((player.position.x - GRID_OFFSET_X) / TILE_SIZE);
@@ -405,6 +401,129 @@ std::vector<vec2> find_path(const Motion &enemy, const Motion &player)
     for (auto node : closed_list)
         delete node;
     return std::vector<vec2>();
+}
+
+void PhysicsSystem::update_swarm_movement(Entity swarm_member, float step_seconds) {
+    int leader_id = registry.swarms.get(swarm_member).leader_id;
+    const Motion& player_motion = registry.motions.get(registry.players.entities[0]);
+    Motion& entity_motion = registry.motions.get(swarm_member);
+
+    SwarmMember& swarm = registry.swarms.get(swarm_member);
+
+    // if leader -> chase player
+    if (entity_motion.velocity == vec2(0,0)) {
+        entity_motion.velocity = normalize(player_motion.position - entity_motion.position);
+    } else {
+        entity_motion.velocity = entity_motion.speed * entity_motion.velocity;
+
+        vec2 chase_velocity = player_motion.position - entity_motion.position;
+
+        // edit current velocity by separation, alignment, and cohesion
+        // not super efficient rn - maybe optimize later idk
+        // TODO: make boids strongly biased towards leader direction
+        
+        // separation
+        float close_x = 0;
+        float close_y = 0;
+        for (Entity e : registry.swarms.entities) {
+            if (e == swarm_member) {
+                continue;
+            }
+            if (registry.swarms.get(e).leader_id != leader_id) {
+                continue;
+            }
+            Motion& m = registry.motions.get(e);
+
+            if (distance(m.position, entity_motion.position) >= 20) {
+                continue;
+            }
+
+
+            // cumulative closeness calculation
+            close_x += entity_motion.position.x - m.position.x;
+            close_y += entity_motion.position.y - m.position.y;
+        }
+
+        entity_motion.velocity.x += close_x * swarm.separation_factor;
+        entity_motion.velocity.y += close_y * swarm.separation_factor;
+
+        // alignment
+        float x_velocity_avg = 0;
+        float y_velocity_avg = 0;
+        int neighbors = 0;
+
+        for (Entity e : registry.swarms.entities) {
+            if (e == swarm_member) {
+                continue;
+            }
+            if (registry.swarms.get(e).leader_id != leader_id) {
+                continue;
+            }
+
+            Motion& m = registry.motions.get(e);
+
+            if (distance(m.position, entity_motion.position) >= 30) {
+                continue;
+            }
+
+            x_velocity_avg += m.speed * m.velocity.x;
+            y_velocity_avg += m.speed * m.velocity.y;
+            neighbors++;
+        }
+
+        if (neighbors > 0) {
+            x_velocity_avg = x_velocity_avg / neighbors;
+            y_velocity_avg = y_velocity_avg / neighbors;
+        }
+
+        entity_motion.velocity.x += (x_velocity_avg - entity_motion.velocity.x) * swarm.alignment_factor;
+        entity_motion.velocity.y += (y_velocity_avg - entity_motion.velocity.y) * swarm.alignment_factor;
+
+        // cohesion
+        float x_pos_avg = 0;
+        float y_pos_avg = 0;
+        neighbors = 0;
+
+        for (Entity e : registry.swarms.entities) {
+            if (e == swarm_member) {
+                continue;
+            }
+            if (registry.swarms.get(e).leader_id != leader_id) {
+                continue;
+            }
+
+            Motion& m = registry.motions.get(e);
+
+            x_pos_avg += m.position.x;
+            y_pos_avg += m.position.y;
+            neighbors++;
+        }
+
+        if (neighbors > 0) {
+            x_pos_avg = x_pos_avg / neighbors;
+            y_pos_avg = y_pos_avg / neighbors;
+        }
+
+        entity_motion.velocity.x += (x_pos_avg - entity_motion.position.x) * swarm.cohesion_factor;
+        entity_motion.velocity.y += (y_pos_avg - entity_motion.position.y) * swarm.cohesion_factor;
+
+        // boids biased towards chasing direction
+        float leader_bias = 0.2f;
+        float speed = distance({0, 0}, entity_motion.velocity);
+        entity_motion.velocity = (1.f - leader_bias) * entity_motion.velocity + (leader_bias * chase_velocity); 
+
+
+        
+        entity_motion.speed = max(swarm.min_speed, min(swarm.max_speed, speed));
+
+        entity_motion.velocity = normalize(entity_motion.velocity);
+    }
+    vec2 prevpos = entity_motion.position;
+    entity_motion.position = (entity_motion.speed * entity_motion.velocity * step_seconds) + entity_motion.position;
+    int grid_x = static_cast<int>((entity_motion.position.x - GRID_OFFSET_X) / TILE_SIZE);
+    int grid_y = static_cast<int>((entity_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE);
+
+    // TODO: need collision correction
 }
 
 // A* pathfinding code
@@ -535,9 +654,10 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
     }
 }
 
-void PhysicsSystem::step(float elapsed_ms)
+void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current_map)
 {
-    // Check for collisions between all moving entities
+    map = current_map;
+	// Check for collisions between all moving entities
     ComponentContainer<Motion> &motion_container = registry.motions;
     for (uint i = 0; i < motion_container.components.size(); i++)
     {
@@ -558,15 +678,8 @@ void PhysicsSystem::step(float elapsed_ms)
                 if (registry.stickies.has(entity_i) && registry.players.has(entity_j))
                 {
                     is_colliding = mesh_collides(entity_i, motion_i, motion_j);
-                    if (is_colliding)
-                        std::cout << "player slowed down (mesh collision)" << std::endl;
                 }
-                else if (registry.stickies.has(entity_j) && registry.players.has(entity_i))
-                {
-                    is_colliding = mesh_collides(entity_j, motion_j, motion_i);
-                    if (is_colliding)
-                        std::cout << "player slowed down (mesh collision)" << std::endl;
-                }
+                
 
                 if (is_colliding)
                 {
@@ -581,42 +694,82 @@ void PhysicsSystem::step(float elapsed_ms)
                 if (registry.players.has(entity_i))
                     registry.players.get(entity_i).last_pos = motion_i.position;
             }
+		}
+	}
+
+    // Modify health buffs that are not touching player
+    /*
+    const Motion& player_motion = registry.motions.get(registry.players.entities[0]);
+    for (Entity e : registry.buffs.entities) {
+        Buff& hb = registry.buffs.get(e);
+        if (hb.touching) {
+            if (!collides(registry.motions.get(e),player_motion)) {
+                hb.touching = false;
+            }
         }
     }
+    */
 
-    // Move fish based on how much time has passed, this is to (partially) avoid
-    // having entities move at different speed based on the machine.
-    auto &motion_registry = registry.motions;
-    for (uint i = 0; i < motion_registry.size(); i++)
-    {
-        Motion &motion = motion_registry.components[i];
-        Entity entity = motion_registry.entities[i];
-        float step_seconds = elapsed_ms / 1000.f;
-        if (registry.players.has(entity))
-        {
-            motion.position[0] += motion.velocity[0] * step_seconds;
-            motion.position[1] += motion.velocity[1] * step_seconds;
+    // Effect movement
+    for (Entity e : registry.effects.entities) {
+        Effect& effect = registry.effects.get(e);
+        Motion& effect_motion = registry.motions.get(e);
+        
+        effect_motion.scale =  {((effect.lifespan_ms - effect.ms_passed) / effect.lifespan_ms) * effect.width_init, ((effect.lifespan_ms - effect.ms_passed) / effect.lifespan_ms) * effect.height_init};
+        effect.ms_passed += elapsed_ms;
+        if (effect.type == EFFECT_TYPE::SMOKE) {
+            effect_motion.velocity *= 0.7;
+            //if (effect.ms_passed >= (0.5 * effect.lifespan_ms)) {
+            //    effect_motion.velocity.y = 0;
+            //}
         }
-        else
-        {
-            // Handle contact damage enemies
-            if (registry.deadlys.has(entity))
-            {
-                //Motion& player_motion = registry.motions.get(registry.players.entities[0]);
-                if (registry.deadlys.get(entity).enemy_type != ENEMY_TYPES::PROJECTILE)
-                {
+        if (effect.type == EFFECT_TYPE::DASH) {
+            effect_motion.scale = {effect.width_init, effect.height_init};
+        }
+
+        effect_motion.position.x += effect_motion.velocity.x * elapsed_ms;
+        effect_motion.position.y += effect_motion.velocity.y * elapsed_ms;
+    }
+    
+	// Move fish based on how much time has passed, this is to (partially) avoid
+	// having entities move at different speed based on the machine.
+	auto& motion_registry = registry.motions;
+	for(uint i = 0; i< motion_registry.size(); i++)
+	{
+		Motion& motion = motion_registry.components[i];
+		Entity entity = motion_registry.entities[i];
+		float step_seconds = elapsed_ms / 1000.f;
+    if (registry.players.has(entity)) {
+        // Updating speed to make sure most recent value is applied to motion
+        if (distance({0, 0}, motion.velocity) != 0) {
+            motion.velocity = (1 / distance({0, 0}, motion.velocity)) * motion.velocity;
+        }
+        motion.velocity = motion.speed * motion.velocity;
+        
+		motion.position[0] += motion.velocity[0] * step_seconds;
+		motion.position[1] += motion.velocity[1] * step_seconds;
+    } else {
+			//Handle contact damage enemies
+			if (registry.deadlys.has(entity)) {
+				if (registry.deadlys.get(entity).enemy_type != ENEMY_TYPES::PROJECTILE) {
                     
-                    //float angle = atan2(motion.position.y - player_motion.position.y, motion.position.x - player_motion.position.x);
-                    //motion.position.x -= cos(angle) * motion.velocity.x * step_seconds;
-                    //motion.position.y -= sin(angle) * motion.velocity.y * step_seconds;
-                    // A* pathfinding
-                    update_enemy_movement(entity, step_seconds);
-                }
-                else
-                {
-                    motion.position.x -= cos(motion.angle) * motion.velocity.x * step_seconds;
-                    motion.position.y -= sin(motion.angle) * motion.velocity.y * step_seconds;
-                }
+
+                    //A* pathfinding
+                    if (!registry.deathTimers.has(entity)) {
+                        if (registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::SWARM) {
+                            update_swarm_movement(entity, step_seconds);
+                            
+                        } else {
+                            update_enemy_movement(entity, step_seconds);
+                        }
+                        
+                    }
+                    
+                } else
+                    {
+                        motion.position.x -= cos(motion.angle) * motion.velocity.x * step_seconds;
+                        motion.position.y -= sin(motion.angle) * motion.velocity.y * step_seconds;
+                    }
             }
         }
     }

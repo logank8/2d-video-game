@@ -10,7 +10,7 @@ public:
     void step(float elapsed_ms_since_last_update);
 
     // Handle input
-    void on_key(int key, int, int action, int mods);
+    void on_key(int key, int action, int mods);
     void on_mouse_move(vec2 mouse_position);
     void on_mouse_button(int button, int action, int mod);
 
