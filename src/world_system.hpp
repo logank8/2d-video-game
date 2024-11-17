@@ -38,7 +38,7 @@ public:
 
 	// Should the game be over ?
 	bool is_over() const;
-	bool is_paused;
+	static bool is_paused;
 
 	std::vector<std::vector<int>> current_map;
 
