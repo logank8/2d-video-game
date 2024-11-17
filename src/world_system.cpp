@@ -316,7 +316,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 			// furniture spawning
 			if (current_map[j][i] == 2 || (current_map[j][i] >= 9 && current_map[j][i] <= 14)) {
-				if ((current_map[j][i] == 2 || current_map[j][i] == 9) && current_map[j - 1][i] == 1 && current_map[j][i-1] == 1) {
+				if (current_map[j][i] == 2 && current_map[j - 1][i] != current_map[j][i] && current_map[j][i-1] != current_map[j][i]) {
 					// add 2 while loops here to find furniture size
 					int horiz_idx = 1;
 					int vert_idx = 1;
@@ -329,7 +329,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					
 					// pos {world_pos.x + (TILE_SIZE * ((horiz_idx - 1) / 2)), world_pos.y + (TILE_SIZE * ((vert_idx - 1) / 2))}
 					createFurniture(renderer, {world_pos.x, world_pos.y}, current_map[j][i]);
-				} else if (current_map[j][i] != 2 && current_map[j][i] != 9) {
+				} else if (current_map[j][i] != 2) {
 					createFurniture(renderer, {world_pos.x, world_pos.y}, current_map[j][i]);
 				}
 
