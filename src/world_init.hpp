@@ -76,3 +76,5 @@ Entity createStaminaBar(RenderSystem* renderer, vec2 pos);
 Entity createExperience(RenderSystem *renderer, vec2 pos, int experience);
 
 Entity createSwarm(RenderSystem* renderer, vec2 pos, float separation, float alignment, float cohesion);
+
+Entity createSwarmMember(RenderSystem* renderer, vec2 pos, float separation, float alignment, float cohesion, int leader);

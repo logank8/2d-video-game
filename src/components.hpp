@@ -96,6 +96,16 @@ struct Effect
 	EFFECT_TYPE type;
 };
 
+struct SwarmMember
+{
+	int leader_id;
+	float separation_factor;
+	float alignment_factor;
+	float cohesion_factor;
+	float max_speed = 180.f;
+	float min_speed = 150.f;
+};
+
 struct Ranged
 {
 	float projectile_delay = 1000.f;

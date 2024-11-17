@@ -761,7 +761,25 @@ Entity createStaminaBar(RenderSystem* renderer, vec2 pos) {
 }
 
 Entity createSwarm(RenderSystem* renderer, vec2 pos, float separation, float alignment, float cohesion) {
-	/** create leader of swarm **/
+	
+	Entity leader = createSwarmMember(renderer, pos, separation, alignment, cohesion, -1);
+
+	std::random_device rd; 
+    std::mt19937 gen(rd());
+	std::uniform_real_distribution<> distrib(-100, 100);
+
+	for (int i = 0; i < 50; i++) {
+		float dist_diff_x = distrib(gen);
+		float dist_diff_y = distrib(gen);
+
+		vec2 new_pos = {pos.x + dist_diff_x, pos.y + dist_diff_y};
+		createSwarmMember(renderer, new_pos, separation, alignment, cohesion, leader);
+	}
+
+	return leader;
+}
+
+Entity createSwarmMember(RenderSystem* renderer, vec2 pos, float separation, float alignment, float cohesion, int leader) {
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object
@@ -781,7 +799,8 @@ Entity createSwarm(RenderSystem* renderer, vec2 pos, float separation, float ali
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = vec2({30, 30});
+	motion.scale = vec2({20, 20});
+	motion.speed = 150.f;
 
 	registry.renderRequests.insert(
 			entity, 
@@ -804,5 +823,15 @@ Entity createSwarm(RenderSystem* renderer, vec2 pos, float separation, float ali
 	animSet.animations[idle.name] = idle;
 	animSet.current_animation = idle.name;
 
+	int lead_boid = (leader == -1) ? entity : leader;
+
+	registry.swarms.insert(entity, {
+		lead_boid,
+		separation,
+		alignment,
+		cohesion
+	});
+
 	return entity;
+
 }

@@ -159,7 +159,7 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 	fprintf(stderr, "Loaded music\n");
 	fps_counter_ms = FPS_COUNTER_MS;
 	
-	current_map = map2;
+	current_map = map1;
 
 	// Set all states to default
 	restart_game();
@@ -169,7 +169,8 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 void createHPBar(Entity enemy)
 {
 	// Check to avoid errors since collisions occur after world step
-	if (!registry.deadlys.has(enemy)) {
+	
+	if (registry.swarms.has(enemy)) {
 		return;
 	}
 	if (registry.healths.has(enemy) && registry.deadlys.get(enemy).enemy_type != ENEMY_TYPES::PROJECTILE)
@@ -384,7 +385,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			}
 			
 			if (current_map[j][i] == 8) {
-				createSwarm(renderer, world_pos, 0.2, 0.2, 0.2);
+				Entity swarm_leader = createSwarm(renderer, world_pos, 0.55f, 0.05f, 0.00005f);
+				Motion& swarm_motion = motions_registry.get(swarm_leader);
 				tile_vec.push_back(vec2(i, j));
 			}
 			
@@ -494,6 +496,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				restart_game();
 				return true;
 			}
+			// Enemy death - animation finished, remove entity
 			if (registry.deadlys.has(entity)) {
 				if (registry.animationSets.has(entity)) {
 					AnimationSet animSet_enemy = registry.animationSets.get(entity);
@@ -508,11 +511,37 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				{
 					createExperience(renderer, enemy_motion.position, deadly.experience);
 				}
+
+				// replace dead leader with new swarm member
+				if (registry.swarms.has(entity)) {
+					if (registry.swarms.get(entity).leader_id == entity) {
+						for (int i = 0; i < registry.swarms.entities.size(); i++) {
+							Entity e = registry.swarms.entities[i];
+							SwarmMember& s = registry.swarms.get(e);
+							if (s.leader_id == entity && e != entity) {
+								s.leader_id = e;
+								for (int j = 0; j < registry.swarms.components.size(); j++) {
+									SwarmMember& swarm = registry.swarms.components[j];
+									if (swarm.leader_id == entity) {
+										swarm.leader_id = e;
+									}
+								}
+								// erase later - for debugging
+								registry.motions.get(e).velocity = vec2(1, 1);
+								registry.motions.get(e).speed = 150.f;
+								break;
+							}
+						}
+					}
+				}
+
 				registry.remove_all_components_of(entity);
 				enemies_killed++;
 				if (enemies_killed >= enemy_kill_goal) {
 					mapSwitch(2);
+					return true;
 				}
+				
 				
 			}
 			
@@ -1035,7 +1064,6 @@ void WorldSystem::handle_collisions(float step_seconds)
 					d.state = ENEMY_STATE::DEAD;
 					DeathTimer& death = registry.deathTimers.emplace(entity_other);
 					death.counter_ms = 550.4f;
-					std::cout << "enemy dying" << std::endl;
 				}
 
 				registry.playerAttacks.get(entity).has_hit = true;

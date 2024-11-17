@@ -7,6 +7,8 @@ WorldSystem world;
 PhysicsSystem phsyics;
 std::vector<std::vector<int>> map;
 const float TILE_SIZE = 100.0f;
+const float GRID_OFFSET_X = (640 - (25 * TILE_SIZE));
+const float GRID_OFFSET_Y = (640 - (44 * TILE_SIZE));
 
 #include <iostream>
 
@@ -280,8 +282,6 @@ std::vector<vec2> find_path(const Motion &enemy, const Motion &player)
 {
     vec2 start = enemy.position;
 
-    const float GRID_OFFSET_X = (640 - (25 * TILE_SIZE));
-    const float GRID_OFFSET_Y = (640 - (44 * TILE_SIZE));
 
     // Convert to grid coordinates
     int grid_x = static_cast<int>((player.position.x - GRID_OFFSET_X) / TILE_SIZE);
@@ -401,6 +401,129 @@ std::vector<vec2> find_path(const Motion &enemy, const Motion &player)
     for (auto node : closed_list)
         delete node;
     return std::vector<vec2>();
+}
+
+void PhysicsSystem::update_swarm_movement(Entity swarm_member, float step_seconds) {
+    int leader_id = registry.swarms.get(swarm_member).leader_id;
+    const Motion& player_motion = registry.motions.get(registry.players.entities[0]);
+    Motion& entity_motion = registry.motions.get(swarm_member);
+
+    SwarmMember& swarm = registry.swarms.get(swarm_member);
+
+    // if leader -> chase player
+    if (entity_motion.velocity == vec2(0,0)) {
+        entity_motion.velocity = normalize(player_motion.position - entity_motion.position);
+    } else {
+        entity_motion.velocity = entity_motion.speed * entity_motion.velocity;
+
+        vec2 chase_velocity = player_motion.position - entity_motion.position;
+
+        // edit current velocity by separation, alignment, and cohesion
+        // not super efficient rn - maybe optimize later idk
+        // TODO: make boids strongly biased towards leader direction
+        
+        // separation
+        float close_x = 0;
+        float close_y = 0;
+        for (Entity e : registry.swarms.entities) {
+            if (e == swarm_member) {
+                continue;
+            }
+            if (registry.swarms.get(e).leader_id != leader_id) {
+                continue;
+            }
+            Motion& m = registry.motions.get(e);
+
+            if (distance(m.position, entity_motion.position) >= 20) {
+                continue;
+            }
+
+
+            // cumulative closeness calculation
+            close_x += entity_motion.position.x - m.position.x;
+            close_y += entity_motion.position.y - m.position.y;
+        }
+
+        entity_motion.velocity.x += close_x * swarm.separation_factor;
+        entity_motion.velocity.y += close_y * swarm.separation_factor;
+
+        // alignment
+        float x_velocity_avg = 0;
+        float y_velocity_avg = 0;
+        int neighbors = 0;
+
+        for (Entity e : registry.swarms.entities) {
+            if (e == swarm_member) {
+                continue;
+            }
+            if (registry.swarms.get(e).leader_id != leader_id) {
+                continue;
+            }
+
+            Motion& m = registry.motions.get(e);
+
+            if (distance(m.position, entity_motion.position) >= 30) {
+                continue;
+            }
+
+            x_velocity_avg += m.speed * m.velocity.x;
+            y_velocity_avg += m.speed * m.velocity.y;
+            neighbors++;
+        }
+
+        if (neighbors > 0) {
+            x_velocity_avg = x_velocity_avg / neighbors;
+            y_velocity_avg = y_velocity_avg / neighbors;
+        }
+
+        entity_motion.velocity.x += (x_velocity_avg - entity_motion.velocity.x) * swarm.alignment_factor;
+        entity_motion.velocity.y += (y_velocity_avg - entity_motion.velocity.y) * swarm.alignment_factor;
+
+        // cohesion
+        float x_pos_avg = 0;
+        float y_pos_avg = 0;
+        neighbors = 0;
+
+        for (Entity e : registry.swarms.entities) {
+            if (e == swarm_member) {
+                continue;
+            }
+            if (registry.swarms.get(e).leader_id != leader_id) {
+                continue;
+            }
+
+            Motion& m = registry.motions.get(e);
+
+            x_pos_avg += m.position.x;
+            y_pos_avg += m.position.y;
+            neighbors++;
+        }
+
+        if (neighbors > 0) {
+            x_pos_avg = x_pos_avg / neighbors;
+            y_pos_avg = y_pos_avg / neighbors;
+        }
+
+        entity_motion.velocity.x += (x_pos_avg - entity_motion.position.x) * swarm.cohesion_factor;
+        entity_motion.velocity.y += (y_pos_avg - entity_motion.position.y) * swarm.cohesion_factor;
+
+        // boids biased towards chasing direction
+        float leader_bias = 0.2f;
+        float speed = distance({0, 0}, entity_motion.velocity);
+        entity_motion.velocity = (1.f - leader_bias) * entity_motion.velocity + (leader_bias * chase_velocity); 
+
+
+        
+        entity_motion.speed = max(swarm.min_speed, min(swarm.max_speed, speed));
+
+        entity_motion.velocity = normalize(entity_motion.velocity);
+    }
+    vec2 prevpos = entity_motion.position;
+    entity_motion.position = (entity_motion.speed * entity_motion.velocity * step_seconds) + entity_motion.position;
+    int grid_x = static_cast<int>((entity_motion.position.x - GRID_OFFSET_X) / TILE_SIZE);
+    int grid_y = static_cast<int>((entity_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE);
+
+    // TODO: need collision correction
 }
 
 // A* pathfinding code
@@ -641,10 +764,17 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
 			//Handle contact damage enemies
 			if (registry.deadlys.has(entity)) {
 				if (registry.deadlys.get(entity).enemy_type != ENEMY_TYPES::PROJECTILE) {
+                    
 
                     //A* pathfinding
                     if (!registry.deathTimers.has(entity)) {
-                        update_enemy_movement(entity, step_seconds);
+                        if (registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::SWARM) {
+                            update_swarm_movement(entity, step_seconds);
+                            
+                        } else {
+                            update_enemy_movement(entity, step_seconds);
+                        }
+                        
                     }
                     
                 } else
