@@ -23,6 +23,9 @@ const float RANGED_BB_HEIGHT = 0.6 * 90.f;
 const float PLANT_BB_HEIGHT = 72.f;
 const float PLANT_BB_WIDTH = 60.f;
 
+const float COAT_RACK_BB_HEIGHT = 3.5f * 44.f;
+const float COAT_RACK_BB_WIDTH = 4.f * 16.f;
+
 const float HPBAR_BB_WIDTH = 0.46f;
 const float HPBAR_BB_HEIGHT = 0.20f;
 
@@ -61,7 +64,7 @@ Entity createText(vec2 pos, float scale, std::string text, glm::vec3 color);
 Entity createWalls(RenderSystem *renderer, vec2 pos, bool side_wall);
 
 // a piece of furniture
-Entity createFurniture(RenderSystem *renderer, vec2 pos);
+Entity createFurniture(RenderSystem *renderer, vec2 pos, int type);
 
 // a slime patch
 Entity createSlimePatch(RenderSystem *renderer, vec2 pos);

@@ -27,3 +27,7 @@ e.g. sprite_sheets[SPRITE_ASSET_ID::PLAYER] = {TEXTURE_ASSET_ID::PLAYERS, 10, 6,
         - sprite index can be left out (defaults to -1)
         - set SPRITE_ASSET_ID to SPRITE_COUNT
 
+
+Credits:
+- Penzilla (https://penzilla.itch.io/top-down-retro-interior) - Various furniture sprites
+

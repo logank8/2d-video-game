@@ -535,7 +535,7 @@ Entity createGround(RenderSystem *renderer, vec2 pos, vec2 size)
 	return entity;
 }
 
-Entity createFurniture(RenderSystem *renderer, vec2 pos)
+Entity createFurniture(RenderSystem *renderer, vec2 pos, int type)
 {
 	auto entity = Entity();
 	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -546,7 +546,13 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = {0.f, 0.f};
-	motion.scale = vec2({PLANT_BB_WIDTH, PLANT_BB_HEIGHT});
+
+	if (type == 2) {
+		motion.scale = vec2({PLANT_BB_WIDTH, PLANT_BB_HEIGHT});
+	} else if (type == 9) {
+		motion.scale = vec2({COAT_RACK_BB_WIDTH, COAT_RACK_BB_HEIGHT});
+		motion.position.y += 50.f;
+	}
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::FURNITURE;
 
@@ -554,11 +560,20 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos)
 
 	// create an empty component for the furniture as a solid object
 	registry.solidObjs.emplace(entity);
-	registry.renderRequests.insert(
-		entity, {TEXTURE_ASSET_ID::PLANT,
-				 SPRITE_ASSET_ID::SPRITE_COUNT,
-				 EFFECT_ASSET_ID::TEXTURED,
-				 GEOMETRY_BUFFER_ID::SPRITE});
+	if (type == 2) {
+		registry.renderRequests.insert(
+			entity, {TEXTURE_ASSET_ID::PLANT,
+					SPRITE_ASSET_ID::SPRITE_COUNT,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE});
+	} else if (type == 9) {
+		registry.renderRequests.insert(
+			entity, {TEXTURE_ASSET_ID::COAT_RACK,
+					SPRITE_ASSET_ID::SPRITE_COUNT,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE});
+	}
+	
 
 	return entity;
 }

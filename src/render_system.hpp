@@ -54,6 +54,7 @@ class RenderSystem
 			textures_path("hp_bar/hp_bar_full.png"), // full
 			textures_path("plant.png"),
 			textures_path("long_table.png"),
+			textures_path("Coat_Rack.png"),
 			textures_path("wall.png"),
 			textures_path("side_wall.png"),
 			textures_path("player.png"),

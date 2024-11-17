@@ -231,7 +231,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == 0 || map[y][x] == 2)
+            if (map[y][x] == 0 || map[y][x] == 2 || map[y][x] == 9 || map[y-1][x] == 9 || map[y+1][x] == 9)
             {
                 return false;
             }
@@ -255,7 +255,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == 0 || map[y][x] == 2)
+            if (map[y][x] == 0 || map[y][x] == 2 || map[y][x] == 9 || map[y-1][x] == 9 || map[y+1][x] == 9)
             {
                 return false;
             }
