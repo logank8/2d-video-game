@@ -678,20 +678,8 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                 if (registry.stickies.has(entity_i) && registry.players.has(entity_j))
                 {
                     is_colliding = mesh_collides(entity_i, motion_i, motion_j);
-                    if (is_colliding)
-                        std::cout << "player slowed down (mesh collision)" << std::endl;
                 }
                 
-                // touching health buffs
-                /*
-                if (registry.buffs.has(entity_i) && registry.players.has(entity_j)) {
-                    Buff& hb = registry.buffs.get(entity_i);
-                    hb.touching = true;
-                } else if (registry.buffs.has(entity_j) && registry.players.has(entity_i)) {
-                    Buff& hb = registry.buffs.get(entity_j);
-                    hb.touching = true;
-                }
-                */
 
                 if (is_colliding)
                 {

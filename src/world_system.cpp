@@ -619,8 +619,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				int bound = 2900 + (i * 20);
 				if (player.curr_dash_cooldown_ms < bound && player.curr_dash_cooldown_ms + elapsed_ms_since_last_update > bound) {
 					// TODO: modify this a little bit to make dash shadows fully even
-					// TODO: make it so player is invulnerable during dash
-					// TODO: make direction uneditable during dash
+					// TODO: make it so player is invulnerable during dash ?
 					vec2 effectPos = registry.motions.get(my_player).position;
 					createEffect(renderer, effectPos, 500, EFFECT_TYPE::DASH);
 				}
@@ -666,7 +665,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				break;
 			case ENEMY_STATE::DEAD:
 			// seems fine
-			// TODO: make it so enemies cannot shoot/inflict damage when dying
 				if (animSet_enemy.current_animation != enemy_name + "enemy_die") {
 					animSet_enemy.current_animation = enemy_name + "enemy_die";
 					animSet_enemy.current_frame = 0;
@@ -814,7 +812,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 			{
 				float &player_hp = registry.healths.get(entity).hit_points;
 				Player &player = registry.players.get(entity);
-				if (!player.invulnerable)
+				if (!player.invulnerable && !registry.deathTimers.has(entity_other))
 				{
 					// player takes damage
 					player_hp -= registry.damages.get(entity_other).damage;
