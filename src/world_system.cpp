@@ -204,7 +204,7 @@ void createHPBar(Entity enemy)
 		// Shift centre of line to left as the hp bar decreases
 		Entity hp_bar = createLine({enemy_motion.position.x - ((100.f) * (1 - (hp / max_hp))) / 2,
 									enemy_motion.position.y - enemy_motion.scale.y * 0.75f},
-								   {(100.f) * hp / max_hp, 15.f});
+								   {(100.f) * hp / max_hp, 10.f});
 		vec3 &color = registry.colors.emplace(hp_bar);
 		color = vec3(0.f, 5.f, 0.f);
 	}
