@@ -305,7 +305,7 @@ struct Powerup {
 	float multiplier = 1; // Only in case of damage and speed boost
 	float timer = 10000;
 	bool equipped = false;
-}
+};
 
 struct UpgradeCard
 {

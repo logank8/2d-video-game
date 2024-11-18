@@ -79,7 +79,7 @@ class RenderSystem
 			textures_path("stamina_regen.png"),
 			textures_path("coins.png"),
 			textures_path("beetle.png"),
-			textures_path("powerup.png")
+			textures_path("powerup.png"),
 			textures_path("card.png")
 	};
 
