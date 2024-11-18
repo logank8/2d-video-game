@@ -752,7 +752,14 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
         if (distance({0, 0}, motion.velocity) != 0) {
             motion.velocity = (1 / distance({0, 0}, motion.velocity)) * motion.velocity;
         }
-        motion.velocity = motion.speed * motion.velocity;
+
+        auto& player = registry.players.get(entity);
+        if (player.slowed_duration_ms <= 0.f) {
+            motion.velocity = motion.speed * motion.velocity;
+        }
+        else {
+            motion.velocity = motion.speed * motion.velocity * player.slowed_amount;
+        }
         
 		motion.position[0] += motion.velocity[0] * step_seconds;
 		motion.position[1] += motion.velocity[1] * step_seconds;

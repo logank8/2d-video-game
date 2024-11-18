@@ -52,6 +52,8 @@ struct Player
 	float dash_cooldown_ms = 3000.f;
 	float curr_dash_cooldown_ms = dash_cooldown_ms;
 	bool is_dash_up = true;
+	float slowed_duration_ms = 0.f;
+	float slowed_amount = 0.f;
 
 	// For attacking
 	bool is_attacking = false;
@@ -73,7 +75,8 @@ enum class ENEMY_TYPES
 	CONTACT_DMG_2 = CONTACT_DMG + 1,
 	RANGED = CONTACT_DMG_2 + 1,
 	PROJECTILE = RANGED + 1,
-	SWARM = PROJECTILE + 1
+	SWARM = PROJECTILE + 1,
+	SLOWING_CONTACT = SWARM + 1
 };
 
 struct PlayerAttack
@@ -164,6 +167,7 @@ struct Solid
 // slows player down when walked on - applied to specific ground tiles
 struct Slows
 {
+	float duration = 1000.f;
 	float speed_dec = 20;
 };
 

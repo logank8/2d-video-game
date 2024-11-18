@@ -46,6 +46,8 @@ Entity createContactFast(RenderSystem *renderer, vec2 position);
 
 Entity createRangedEnemy(RenderSystem *renderer, vec2 position);
 
+Entity createSlowingEnemy(RenderSystem* renderer, vec2 position);
+
 Entity createRangedProjectile(RenderSystem *renderer, vec2 position);
 
 Entity createBasicAttackHitbox(RenderSystem *renderer, vec2 position, Entity player_entity);
