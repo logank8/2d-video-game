@@ -946,26 +946,33 @@ void WorldSystem::handle_collisions(float step_seconds)
 				float x_diff = motion_moving.position.x - motion_solid.position.x;
 				float y_diff = motion_moving.position.y - motion_solid.position.y;
 
+				vec2 newpos = {motion_moving.position.x, motion_moving.position.y};
+				vec2 newvelocity = {motion_moving.velocity.x, motion_moving.velocity.y};
+
 				if (x_diff < 0 && abs(x_diff) > abs(y_diff) && motion_moving.velocity.x > 0)
 				{
-					motion_moving.velocity.x = 0.f;
-					motion_moving.position.x = registry.players.get(entity).last_pos.x;
+					newvelocity.x = 0.f;
+					newpos.x = motion_solid.position.x - (abs(motion_solid.scale.x / 2) + abs(motion_moving.scale.x / 2)) - 0.5;
+
 				}
 				if (x_diff > 0 && abs(x_diff) > abs(y_diff) && motion_moving.velocity.x < 0)
 				{
-					motion_moving.velocity.x = 0.f;
-					motion_moving.position.x = registry.players.get(entity).last_pos.x;
+					newvelocity.x = 0.f;
+					newpos.x = motion_solid.position.x + (abs(motion_solid.scale.x / 2) + abs(motion_moving.scale.x / 2)) + 0.5;
 				}
 				if (y_diff < 0 && abs(y_diff) > abs(x_diff) && motion_moving.velocity.y > 0)
 				{
-					motion_moving.velocity.y = 0.f;
-					motion_moving.position.y = registry.players.get(entity).last_pos.y;
+					newvelocity.y = 0.f;
+					newpos.y = registry.players.get(entity).last_pos.y;
 				}
 				if (y_diff > 0 && abs(y_diff) > abs(x_diff) && motion_moving.velocity.y < 0)
 				{
-					motion_moving.velocity.y = 0.f;
-					motion_moving.position.y = registry.players.get(entity).last_pos.y;
+					newvelocity.y = 0.f;
+					newpos.y = registry.players.get(entity).last_pos.y;
 				}
+
+				motion_moving.velocity = newvelocity;
+				motion_moving.position = newpos;
 
 				/*
 				float left_1 = motion_moving.position.x - (abs(motion_moving.scale.x) / 2);

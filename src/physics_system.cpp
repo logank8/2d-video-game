@@ -32,10 +32,10 @@ bool collides(const Motion &motion1, const Motion &motion2)
     float right_2 = motion2.position.x + (abs(motion2.scale.x) / 2);
 
     // check for vertical overlap
-    if (((top_1 >= bottom_2) && (top_1 <= top_2)) || ((top_2 >= bottom_1) && (top_2 <= top_1)))
+    if (((top_1 > bottom_2) && (top_1 < top_2)) || ((top_2 > bottom_1) && (top_2 < top_1)))
     {
         // horiz overlap
-        if (((left_1 <= right_2) && (left_1 >= left_2)) || ((left_2 <= right_1) && (left_2 >= left_1)))
+        if (((left_1 < right_2) && (left_1 > left_2)) || ((left_2 < right_1) && (left_2 > left_1)))
         {
             return true;
         }
