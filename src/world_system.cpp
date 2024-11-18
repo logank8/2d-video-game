@@ -1047,6 +1047,10 @@ void WorldSystem::handle_collisions(float step_seconds)
 				motion_moving.velocity = newvelocity;
 				motion_moving.position = newpos;
 
+				if (!registry.players.get(entity).is_dash_up && (registry.players.get(entity).curr_dash_cooldown_ms) >= 2900.f) {
+					registry.motions.get(entity).speed = 0.f;
+				}
+
 				/*
 				float left_1 = motion_moving.position.x - (abs(motion_moving.scale.x) / 2);
 				float right_1 = motion_moving.position.x + (abs(motion_moving.scale.x) / 2);
