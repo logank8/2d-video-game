@@ -762,7 +762,7 @@ Entity createSwarm(RenderSystem *renderer, vec2 pos, float separation, float ali
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<> distrib(-100, 100);
 
-	for (int i = 0; i < 50; i++)
+	for (int i = 0; i < 40; i++)
 	{
 		float dist_diff_x = distrib(gen);
 		float dist_diff_y = distrib(gen);

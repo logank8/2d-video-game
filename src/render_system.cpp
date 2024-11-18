@@ -219,7 +219,10 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	if (registry.colors.has(entity)) {
 		if (registry.players.has(entity) && registry.players.get(entity).invulnerable) {
-			color = vec3(1, 0, 0);
+			if (!(!registry.players.get(entity).is_dash_up && registry.players.get(entity).curr_dash_cooldown_ms >=2900)) {
+				color = vec3(1, 0, 0);
+			}
+			
 		} else {
 			color = registry.colors.get(entity);
 		}

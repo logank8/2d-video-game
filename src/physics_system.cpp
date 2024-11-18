@@ -231,7 +231,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == 0)
+            if (map[y][x] == 0 || map[y][x] == 2)
             {
                 return false;
             }
@@ -255,7 +255,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == 0)
+            if (map[y][x] == 0 || map[y][x] == 2)
             {
                 return false;
             }
@@ -274,7 +274,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
     {
         return false;
     }
-    return map[y][x] != 0;
+    return map[y][x] != 0 && map[y][x] != 2;
 }
 
 // Find A* path for enemy
@@ -420,7 +420,6 @@ void PhysicsSystem::update_swarm_movement(Entity swarm_member, float step_second
 
         // edit current velocity by separation, alignment, and cohesion
         // not super efficient rn - maybe optimize later idk
-        // TODO: make boids strongly biased towards leader direction
         
         // separation
         float close_x = 0;
@@ -524,6 +523,9 @@ void PhysicsSystem::update_swarm_movement(Entity swarm_member, float step_second
     int grid_y = static_cast<int>((entity_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE);
 
     // TODO: need collision correction
+    if (map[grid_y][grid_x] == 0 || map[grid_y][grid_x] == 2) {
+        registry.remove_all_components_of(swarm_member);
+    }
 }
 
 // A* pathfinding code
@@ -602,6 +604,8 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
             float length = sqrt(direction.x * direction.x + direction.y * direction.y);
             if (length > 0)
             {
+                registry.deadlys.get(enemy).state = ENEMY_STATE::RUN;
+
                 direction.x /= length;
                 direction.y /= length;
 
@@ -649,6 +653,10 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
                 {
                     path.current_index++;
                 }
+            } else {
+              
+                registry.deadlys.get(enemy).state = ENEMY_STATE::IDLE;
+            
             }
         }
     }

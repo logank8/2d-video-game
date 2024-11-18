@@ -61,7 +61,7 @@ void PlayerController::set_world(WorldSystem *world)
 }
 
 void PlayerController::step(float elapsed_ms_since_last_update)
-{
+{ 
     // Handle Player Attacks
     auto &attackRegistry = registry.playerAttacks;
     for (Entity entity : attackRegistry.entities)

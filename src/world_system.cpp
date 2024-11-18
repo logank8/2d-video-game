@@ -203,7 +203,7 @@ void createHPBar(Entity enemy)
 		Motion &enemy_motion = registry.motions.get(enemy);
 		// Shift centre of line to left as the hp bar decreases
 		Entity hp_bar = createLine({enemy_motion.position.x - ((100.f) * (1 - (hp / max_hp))) / 2,
-									enemy_motion.position.y - enemy_motion.scale.y * 0.75f},
+									enemy_motion.position.y - abs(enemy_motion.scale.y) * 0.75f},
 								   {(100.f) * hp / max_hp, 10.f});
 		vec3 &color = registry.colors.emplace(hp_bar);
 		color = vec3(0.f, 5.f, 0.f);
@@ -243,6 +243,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 	vec2 player_pos = motions_registry.get(my_player).position;
 	vec2 world_origin = vec2(-1860, -3760);
+
+
+	registry.list_all_components();
 
 	if (display_fps)
 	{
@@ -1285,6 +1288,9 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			registry.lightUps.emplace(my_player);
 			AnimationSet &stamina_anim = registry.animationSets.get(stamina_bar);
 			stamina_anim.current_animation = "staminabar_depleting";
+
+			player.invulnerable = true;
+			player.invulnerable_duration_ms = 150.f;
 		}
 	}
   
