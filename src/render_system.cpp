@@ -37,11 +37,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		}
 	}
 
-	/*
-	if (registry.buffs.has(entity)) {
-		transform.scale(vec2(2, 2));
-	}
-	*/
 
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest &render_request = registry.renderRequests.get(entity);
@@ -163,6 +158,57 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
 							  sizeof(ColoredVertex), (void *)sizeof(vec3));
 		gl_has_errors();
+	}  else if (render_request.used_effect == EFFECT_ASSET_ID::SMOKE) {
+
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+							  sizeof(ColoredVertex), (void *)0);
+		gl_has_errors();
+
+		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+		assert(in_texcoord_loc >= 0);
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(TexturedVertex), (void*)0);
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_texcoord_loc);
+		glVertexAttribPointer(
+			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+			(void*)sizeof(
+				vec3)); // note the stride to skip the preceeding vertex position
+
+		// Enabling and binding texture to slot 0
+		glActiveTexture(GL_TEXTURE0);
+		gl_has_errors();
+
+		assert(registry.renderRequests.has(entity));
+		GLuint texture_index = (GLuint)registry.renderRequests.get(entity).used_texture - 1;
+		if (texture_index == -1) {
+			texture_index = 0;
+		}
+		GLuint texture_id = texture_gl_handles[texture_index];;
+
+
+		texture_id =
+				texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+
+		glBindTexture(GL_TEXTURE_2D, texture_id);
+		gl_has_errors();
+
+		GLuint uv_offset_loc = glGetUniformLocation(program, "uv_offset");
+		glUniform2f(uv_offset_loc, 0.0f, 0.0f);
+
+		GLuint uv_scale_loc = glGetUniformLocation(program, "uv_scale");
+		glUniform2f(uv_scale_loc, 1.0f, 1.0f);
+
+		GLuint time_uloc = glGetUniformLocation(program, "time");
+		glUniform1f(time_uloc, registry.effects.get(entity).ms_passed);
+		
 	} else {
 		assert(false && "Type of render request not supported");
 	}
@@ -199,7 +245,12 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float *)&projection);
 	gl_has_errors();
 	// Drawing of num_indices/3 triangles specified in the index buffer
-	glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
+	if (render_request.used_effect == EFFECT_ASSET_ID::SMOKE) {
+		glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, 0, 120);
+	} else {
+		glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
+	}
+	
 	gl_has_errors();
 }
 

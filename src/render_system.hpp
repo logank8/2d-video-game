@@ -74,7 +74,8 @@ class RenderSystem
 		shader_path("textured"),
 		shader_path("water"),
 		shader_path("font"),
-		shader_path("dash")
+		shader_path("dash"),
+		shader_path("smoke")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;

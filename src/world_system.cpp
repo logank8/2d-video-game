@@ -535,6 +535,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					createExperience(renderer, enemy_motion.position, deadly.experience);
 				}
 
+
 				// replace dead leader with new swarm member
 				if (registry.swarms.has(entity)) {
 					if (registry.swarms.get(entity).leader_id == entity) {
@@ -1086,6 +1087,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 					d.state = ENEMY_STATE::DEAD;
 					DeathTimer& death = registry.deathTimers.emplace(entity_other);
 					death.counter_ms = 550.4f;
+					createSmoke(renderer, {enemy_motion.position.x , enemy_motion.position.y});
 				}
 
 				registry.playerAttacks.get(entity).has_hit = true;
