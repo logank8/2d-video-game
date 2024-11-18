@@ -868,6 +868,5 @@ Entity createTempPowerup(RenderSystem* renderer, vec2 pos, PowerupType type, flo
 		 0
 		});
 
-	std::cout << "ENTITY CREATED WITH TYPE: " << powerup.type << std::endl;
 	return entity;
 }

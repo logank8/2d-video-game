@@ -750,7 +750,6 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
             Powerup& powerup = registry.powerups.get(entity);
             if (powerup.type == PowerupType::SPEED_BOOST) {
                 temp_multiplier *= powerup.multiplier;
-                std::cout << "Speed multiplier: " << temp_multiplier << std::endl;
             }
         }
         motion.velocity = motion.speed * temp_multiplier * motion.velocity;

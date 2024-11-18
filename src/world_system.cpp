@@ -12,6 +12,7 @@
 #include "physics_system.hpp"
 #include "animation_system.hpp"
 #include "player_controller.hpp"
+#include <iomanip>
 
 // Game configuration
 //const size_t MAX_NUM_CONTACT_SLOW = 2;
@@ -27,6 +28,8 @@ std::vector<vec2> tile_vec;
 std::vector<vec2> spawnable_tiles;
 const int LIGHT_FLICKER_RATE = 2000 * 10;
 const int FPS_COUNTER_MS = 1000;
+const float POWERUP_DROP_CHANCE = 1;
+const float POWERUP_TIMER = 15000;
 
 int lightflicker_counter_ms;
 int fps_counter_ms;
@@ -85,6 +88,12 @@ namespace
 	{
 		fprintf(stderr, "%d: %s", error, desc);
 	}
+}
+
+// Returns an int between 0 and n
+int WorldSystem::randomInt(int n) {
+	double randomFloat = uniform_dist(rng);
+	return static_cast<int>(std::floor(randomFloat * (n + 1)));
 }
 
 // World initialization
@@ -221,6 +230,12 @@ void WorldSystem::mapSwitch(int map) {
 	restart_game();
 }
 
+std::string floatToString1DP(double value) {
+	std::ostringstream out;
+	out << std::fixed << std::setprecision(1) << value;
+	return out.str();
+}
+
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update)
@@ -275,13 +290,24 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	}
 
 	// Update timer on equipped powerups, if any
+	// Also show active powerup
 	if (registry.powerups.has(my_player)) {
 		Powerup& powerup = registry.powerups.get(my_player);
 		powerup.timer -= elapsed_ms_since_last_update;
+		float x = 60;
+		float y = 550;
 
+		std::string powerup_name = "";
+		if (powerup.type == PowerupType::DAMAGE_BOOST)
+			powerup_name = "Damage Boost";
+		else if (powerup.type == PowerupType::SPEED_BOOST)
+			powerup_name = "Speed Boost";
+		else if (powerup.type == PowerupType::INVINCIBILITY)
+			powerup_name = "Invincibility";
+
+		createText({ x, y }, 0.5f, "Powerup active: " + powerup_name + (powerup.multiplier < 1.02f ? "" : " with multiplier x" + floatToString1DP(powerup.multiplier)), {1.f, 1.f, 1.f});
 		if (powerup.timer < 0) {
 			registry.powerups.remove(my_player);
-			std::cout << "Player lost a powerup now!" << std::endl;
 		}
 	}
 
@@ -544,7 +570,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				if (roll <= deadly.drop_chance && deadly.enemy_type != ENEMY_TYPES::PROJECTILE)
 				{
 					createExperience(renderer, enemy_motion.position, deadly.experience);
-					createTempPowerup(renderer, enemy_motion.position, PowerupType::SPEED_BOOST, 2.f, 30000);
+					
+				}
+
+				
+				float roll_powerup = uniform_dist(rng);
+				if (roll_powerup <= POWERUP_DROP_CHANCE && deadly.enemy_type != ENEMY_TYPES::PROJECTILE) {
+					PowerupType type = (PowerupType) randomInt(2); // Change this if more powerups
+					float multiplier = 1.f;
+					float timer = POWERUP_TIMER;
+					if (type == PowerupType::DAMAGE_BOOST || type == PowerupType::SPEED_BOOST) {
+						int multiplier_roll = randomInt(10);
+						if (multiplier_roll < 7)
+							multiplier *= 1.5f;
+						else multiplier *= 2.f;
+					}
+					createTempPowerup(renderer, enemy_motion.position, type, multiplier, timer);
 				}
 
 				// replace dead leader with new swarm member
@@ -852,13 +893,11 @@ void WorldSystem::handle_collisions(float step_seconds)
 				{
 					if (registry.powerups.has(entity)) {
 						Powerup& powerup = registry.powerups.get(entity);
-						std::cout << "Powerup type: " << powerup.type << std::endl;
 						if (powerup.type == PowerupType::INVINCIBILITY)
 							// In this case, player does not receive damage
 							continue;
 					}
 
-					std::cout << "Player is not invincible" << std::endl;
 					// player takes damage
 					player_hp -= registry.damages.get(entity_other).damage;
 					// avoid negative hp values for hp bar
@@ -1029,7 +1068,6 @@ void WorldSystem::handle_collisions(float step_seconds)
 				if (registry.powerups.has(my_player)) {
 					Powerup &powerup = registry.powerups.get(my_player);
 					if (powerup.type == PowerupType::DAMAGE_BOOST) {
-						std::cout << "Damage type found" << powerup.multiplier << std::endl;
 						temp_multiplier *= powerup.multiplier;
 					}
 				}
