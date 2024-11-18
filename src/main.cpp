@@ -23,8 +23,9 @@ int main()
 	AnimationSystem animations;
 
 	// Initializing window
-	GLFWwindow* window = world.create_window();
-	if (!window) {
+	GLFWwindow *window = world.create_window();
+	if (!window)
+	{
 		// Time to read the error message
 		printf("Press any key to exit");
 		getchar();
@@ -37,7 +38,8 @@ int main()
 
 	// variable timestep loop
 	auto t = Clock::now();
-	while (!world.is_over()) {
+	while (!world.is_over())
+	{
 		// Processes system messages, if this wasn't present the window would become unresponsive
 		glfwPollEvents();
 
@@ -46,14 +48,16 @@ int main()
 		float elapsed_ms =
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
-		if (!WorldSystem::is_paused) {
+		if (!WorldSystem::is_paused && !world.is_level_up)
+		{
 			world.step(elapsed_ms);
 			physics.step(elapsed_ms, world.get_current_map());
 			animations.step(elapsed_ms);
 		}
-		else {
+		else
+		{
 			// Darken screen if game is paused
-			ScreenState& screen = registry.screenStates.components[0];
+			ScreenState &screen = registry.screenStates.components[0];
 			if (WorldSystem::is_paused)
 			{
 				screen.darken_screen_factor = 0.9;

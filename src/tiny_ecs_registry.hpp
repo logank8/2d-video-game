@@ -46,6 +46,8 @@ public:
 	ComponentContainer<Collectible> collectibles;
 	ComponentContainer<SwarmMember> swarms;
 	ComponentContainer<Powerup> powerups;
+	ComponentContainer<UpgradeCard> upgradeCards;
+	ComponentContainer<SelectedCard> selectedCards;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -86,6 +88,8 @@ public:
 		registry_list.push_back(&experiences);
 		registry_list.push_back(&swarms);
 		registry_list.push_back(&powerups);
+		registry_list.push_back(&upgradeCards);
+		registry_list.push_back(&selectedCards);
 	}
 
 	void clear_all_components()

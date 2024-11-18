@@ -32,10 +32,10 @@ bool collides(const Motion &motion1, const Motion &motion2)
     float right_2 = motion2.position.x + (abs(motion2.scale.x) / 2);
 
     // check for vertical overlap
-    if (((top_1 >= bottom_2) && (top_1 <= top_2)) || ((top_2 >= bottom_1) && (top_2 <= top_1)))
+    if (((top_1 > bottom_2) && (top_1 < top_2)) || ((top_2 > bottom_1) && (top_2 < top_1)))
     {
         // horiz overlap
-        if (((left_1 <= right_2) && (left_1 >= left_2)) || ((left_2 <= right_1) && (left_2 >= left_1)))
+        if (((left_1 < right_2) && (left_1 > left_2)) || ((left_2 < right_1) && (left_2 > left_1)))
         {
             return true;
         }
@@ -177,23 +177,35 @@ bool is_walkable(const vec2 &pos, vec2 dir)
 
     // Check for clipping through walls when moving diagonally
     if (dir == diagonals[0]) {  // Moving top-right
+        if (map[grid_y][grid_x - 1] == -1 || map[grid_y - 1][grid_x] == -1) return false;
         if (map[grid_y][grid_x - 1] == 0 || map[grid_y - 1][grid_x] == 0) return false;
         if (map[grid_y][grid_x - 1] == 2 || map[grid_y - 1][grid_x] == 2) return false;
+        if (map[grid_y][grid_x - 1] == 9 || map[grid_y - 1][grid_x] == 9) return false;
+        if ((map[grid_y][grid_x - 1] >= 10 && map[grid_y][grid_x - 1] <= 26) || (map[grid_y - 1][grid_x] >= 2 && map[grid_y - 1][grid_x] <= 26)) return false;
     }
     else if (dir == diagonals[1]) {  // Moving top-left
+        if (map[grid_y][grid_x + 1] == -1 || map[grid_y - 1][grid_x] == -1) return false;
         if (map[grid_y][grid_x + 1] == 0 || map[grid_y - 1][grid_x] == 0) return false;
         if (map[grid_y][grid_x + 1] == 2 || map[grid_y - 1][grid_x] == 2) return false;
+        if (map[grid_y][grid_x + 1] == 9 || map[grid_y - 1][grid_x] == 9) return false;
+        if ((map[grid_y][grid_x + 1] >= 10 && map[grid_y][grid_x + 1] <= 26) || (map[grid_y - 1][grid_x] >= 2 && map[grid_y - 1][grid_x] <= 9)) return false;
     }
     else if (dir == diagonals[2]) {  // Moving bottom-right
+        if (map[grid_y + 1][grid_x] == -1 || map[grid_y + 1][grid_x] == -1) return false;
         if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x - 1] == 0) return false;
         if (map[grid_y + 1][grid_x] == 2 || map[grid_y][grid_x - 1] == 2) return false;
+        if (map[grid_y + 1][grid_x] == 9 || map[grid_y + 1][grid_x] == 9) return false;
+        if ((map[grid_y][grid_x + 1] >= 10 && map[grid_y + 1][grid_x] <= 26) || (map[grid_y + 1][grid_x] >= 2 && map[grid_y + 1][grid_x] <= 26)) return false;
     }
     else if (dir == diagonals[3]) {  // Moving bottom-left
+        if (map[grid_y + 1][grid_x] == -1 || map[grid_y][grid_x + 1] == -1) return false;
         if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x + 1] == 0) return false;
         if (map[grid_y + 1][grid_x] == 2 || map[grid_y][grid_x + 1] == 2) return false;
+        if (map[grid_y + 1][grid_x] == 9 || map[grid_y][grid_x + 1] == 9) return false;
+        if ((map[grid_y][grid_x + 1] >= 10 && map[grid_y + 1][grid_x] <= 26) || (map[grid_y][grid_x + 1] >= 2 && map[grid_y][grid_x + 1] <= 26)) return false;
     }
 
-    return map[grid_y][grid_x] != 0 && map[grid_y][grid_x] != 2;
+    return map[grid_y][grid_x] == 1 || (map[grid_y][grid_x] >= 3 && map[grid_y][grid_x] <= 8);
 }
 
 // Checking for line of sight using Bresenham's algorithm
@@ -231,7 +243,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == 0 || map[y][x] == 2)
+            if (map[y][x] == -1 || map[y][x] == 0 || map[y][x] == 2 || map[y][x] == 9 || (map[y][x] >= 10 && map[y][x] <= 26))
             {
                 return false;
             }
@@ -255,7 +267,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == 0 || map[y][x] == 2)
+            if (map[y][x] == -1 || map[y][x] == 0 || map[y][x] == 2 || map[y][x] == 9 || (map[y][x] >= 10 && map[y][x] <= 26))
             {
                 return false;
             }
@@ -420,7 +432,6 @@ void PhysicsSystem::update_swarm_movement(Entity swarm_member, float step_second
 
         // edit current velocity by separation, alignment, and cohesion
         // not super efficient rn - maybe optimize later idk
-        // TODO: make boids strongly biased towards leader direction
         
         // separation
         float close_x = 0;
@@ -524,6 +535,9 @@ void PhysicsSystem::update_swarm_movement(Entity swarm_member, float step_second
     int grid_y = static_cast<int>((entity_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE);
 
     // TODO: need collision correction
+    if (map[grid_y][grid_x] == 0 || map[grid_y][grid_x] == 2) {
+        registry.remove_all_components_of(swarm_member);
+    }
 }
 
 // A* pathfinding code
@@ -602,6 +616,8 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
             float length = sqrt(direction.x * direction.x + direction.y * direction.y);
             if (length > 0)
             {
+                registry.deadlys.get(enemy).state = ENEMY_STATE::RUN;
+
                 direction.x /= length;
                 direction.y /= length;
 
@@ -649,6 +665,10 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
                 {
                     path.current_index++;
                 }
+            } else {
+              
+                registry.deadlys.get(enemy).state = ENEMY_STATE::IDLE;
+            
             }
         }
     }
@@ -715,20 +735,20 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
         Effect& effect = registry.effects.get(e);
         Motion& effect_motion = registry.motions.get(e);
         
-        effect_motion.scale =  {((effect.lifespan_ms - effect.ms_passed) / effect.lifespan_ms) * effect.width_init, ((effect.lifespan_ms - effect.ms_passed) / effect.lifespan_ms) * effect.height_init};
         effect.ms_passed += elapsed_ms;
         if (effect.type == EFFECT_TYPE::SMOKE) {
-            effect_motion.velocity *= 0.7;
-            //if (effect.ms_passed >= (0.5 * effect.lifespan_ms)) {
-            //    effect_motion.velocity.y = 0;
-            //}
-        }
-        if (effect.type == EFFECT_TYPE::DASH) {
-            effect_motion.scale = {effect.width_init, effect.height_init};
+            if (effect.ms_passed >= 500) {
+                //effect_motion.scale *= 0.9;
+            }
+            
         }
 
         effect_motion.position.x += effect_motion.velocity.x * elapsed_ms;
         effect_motion.position.y += effect_motion.velocity.y * elapsed_ms;
+
+        if (effect.ms_passed >= effect.lifespan_ms) {
+            registry.remove_all_components_of(e);
+        }
     }
     
 	// Move fish based on how much time has passed, this is to (partially) avoid
@@ -752,7 +772,13 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                 temp_multiplier *= powerup.multiplier;
             }
         }
-        motion.velocity = motion.speed * temp_multiplier * motion.velocity;
+        auto& player = registry.players.get(entity);
+        if (player.slowed_duration_ms <= 0.f) {
+            motion.velocity = motion.speed * temp_multiplier * motion.velocity;
+        }
+        else {
+            motion.velocity = motion.speed * motion.velocity * temp_multiplier * player.slowed_amount;
+        }
         
 		motion.position[0] += motion.velocity[0] * step_seconds;
 		motion.position[1] += motion.velocity[1] * step_seconds;

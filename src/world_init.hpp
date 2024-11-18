@@ -23,12 +23,65 @@ const float RANGED_BB_HEIGHT = 0.6 * 90.f;
 const float PLANT_BB_HEIGHT = 72.f;
 const float PLANT_BB_WIDTH = 60.f;
 
+const float COAT_RACK_BB_HEIGHT = 3.5f * 44.f;
+const float COAT_RACK_BB_WIDTH = 4.f * 16.f;
+
+const float LONG_TABLE_BB_WIDTH = 154.f;
+const float LONG_TABLE_BB_HEIGHT = 117.f;
+
+const float CHAIR_FRONT_BB_WIDTH = 3.f * 16.f;
+const float CHAIR_FRONT_BB_HEIGHT = 3.f * 27.f;
+
+const float CHAIR_BACK_BB_WIDTH = 3.f * 16.f;
+const float CHAIR_BACK_BB_HEIGHT = 3.f * 21.f;
+
+const float CHAIR_SIDE_BB_WIDTH = 3.f * 15.f;
+const float CHAIR_SIDE_BB_HEIGHT = 3.f * 28.f;
+
+const float KITCHEN_COUNTER_1_BB_WIDTH = 3.125f * 64.f;
+const float KITCHEN_COUNTER_1_BB_HEIGHT = 3.125f * 43.f;
+
+const float KITCHEN_COUNTER_2_BB_WIDTH = 3.125f * 32.f;
+const float KITCHEN_COUNTER_2_BB_HEIGHT = 3.125f * 64.f;
+
+const float FRIDGE_BB_WIDTH = 3.636f * 26.f;
+const float FRIDGE_BB_HEIGHT = 3.636f * 55.f;
+
+const float STOVE_BB_WIDTH = 3.125f * 30.f;
+const float STOVE_BB_HEIGHT = 3.125f * 43.f;
+
+const float BOOK_CASE_BB_WIDTH = 3.f * 46.f;
+const float BOOK_CASE_BB_HEIGHT = 3.f * 45.f;
+
+const float COFFEE_TABLE_BB_WIDTH = 4.f * 24.f;
+const float COFFEE_TABLE_BB_HEIGHT = 4.f * 19.f;
+
+const float COUCH_BB_WIDTH = 4.f * 49.f;
+const float COUCH_BB_HEIGHT = 4.f * 31.f;
+
+const float DRESSER_BB_WIDTH = 4.f * 25.f;
+const float DRESSER_BB_HEIGHT = 4.f * 35.f;
+
+const float GRANDFATHER_CLOCK_BB_WIDTH = 4.f * 21.f;
+const float GRANDFATHER_CLOCK_BB_HEIGHT = 4.f * 46.f;
+
+const float LAMP_BB_WIDTH = 4.f * 15.f;
+const float LAMP_BB_HEIGHT = 4.f * 46.f;
+
+const float ROUND_TABLE_BB_WIDTH = 4.f * 16.f;
+const float ROUND_TABLE_BB_HEIGHT = 4.f * 24.f;
+
+const float SIDE_TABLE_BB_WIDTH = 4.f * 20.f;
+const float SIDE_TABLE_BB_HEIGHT = 4.f * 23.f;
+
 const float HPBAR_BB_WIDTH = 0.46f;
 const float HPBAR_BB_HEIGHT = 0.20f;
 
 const float TILE_PX_SIZE = 16.f;
 const float BASIC_ATTACK_WIDTH = 100.f;
 const float BASIC_ATTACK_HEIGHT = 100.f;
+
+const float UPGRADE_CARD_TITLE_Y = 0.2f;
 
 // the player
 Entity createPlayer(RenderSystem *renderer, vec2 pos);
@@ -43,6 +96,8 @@ Entity createContactSlow(RenderSystem *renderer, vec2 position);
 Entity createContactFast(RenderSystem *renderer, vec2 position);
 
 Entity createRangedEnemy(RenderSystem *renderer, vec2 position);
+
+Entity createSlowingEnemy(RenderSystem* renderer, vec2 position);
 
 Entity createRangedProjectile(RenderSystem *renderer, vec2 position);
 
@@ -61,22 +116,26 @@ Entity createText(vec2 pos, float scale, std::string text, glm::vec3 color);
 Entity createWalls(RenderSystem *renderer, vec2 pos, bool side_wall);
 
 // a piece of furniture
-Entity createFurniture(RenderSystem *renderer, vec2 pos);
+Entity createFurniture(RenderSystem *renderer, vec2 pos, int type);
 
 // a slime patch
 Entity createSlimePatch(RenderSystem *renderer, vec2 pos);
 
 
-void createSmoke(RenderSystem* renderer, vec2 pos);
+Entity createSmoke(RenderSystem* renderer, vec2 pos);
 
 Entity createEffect(RenderSystem* renderer, vec2 pos, float lifespan_ms, EFFECT_TYPE type);
 
-Entity createStaminaBar(RenderSystem* renderer, vec2 pos);
+Entity createStaminaBar(RenderSystem *renderer, vec2 pos);
 // a experience
 Entity createExperience(RenderSystem *renderer, vec2 pos, int experience);
 
-Entity createSwarm(RenderSystem* renderer, vec2 pos, float separation, float alignment, float cohesion);
+Entity createSwarm(RenderSystem *renderer, vec2 pos, float separation, float alignment, float cohesion);
 
-Entity createSwarmMember(RenderSystem* renderer, vec2 pos, float separation, float alignment, float cohesion, int leader);
+Entity createSwarmMember(RenderSystem *renderer, vec2 pos, float separation, float alignment, float cohesion, int leader);
+
+using OnClickCallback = std::function<void()>;
 
 Entity createTempPowerup(RenderSystem* renderer, vec2 pos, PowerupType type, float multiplier, float timer);
+
+Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, TEXTURE_ASSET_ID texture_id, std::string title, std::string description, OnClickCallback onClick);

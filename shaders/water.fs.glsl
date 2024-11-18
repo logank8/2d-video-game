@@ -36,7 +36,7 @@ void main()
 	vec3 viewPos1 = 2 * viewPos;
 
 	// ambient calculation
-	float lightStrength = 0.45;
+	float lightStrength = 0.35;
 	vec3 ambient = lightStrength * vec3(1.0, 1.0, 1.0);
 	// ambient done
 

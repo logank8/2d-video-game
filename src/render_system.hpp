@@ -54,6 +54,22 @@ class RenderSystem
 			textures_path("hp_bar/hp_bar_full.png"), // full
 			textures_path("plant.png"),
 			textures_path("long_table.png"),
+			textures_path("Coat_Rack.png"),
+			textures_path("Chair_Front.png"),
+			textures_path("Chair_Back.png"),
+			textures_path("Chair_Side.png"),
+			textures_path("Kitchen_Counter_1.png"),
+			textures_path("Kitchen_Counter_2.png"),
+			textures_path("Fridge.png"),
+			textures_path("Stove.png"),
+			textures_path("Book_Case.png"),
+			textures_path("Coffee_Table.png"),
+			textures_path("Couch.png"),
+			textures_path("Dresser.png"),
+			textures_path("Grandfather_Clock.png"),
+			textures_path("Lamp.png"),
+			textures_path("Round_Table.png"),
+			textures_path("Side_Table.png"),
 			textures_path("wall.png"),
 			textures_path("side_wall.png"),
 			textures_path("player.png"),
@@ -64,6 +80,7 @@ class RenderSystem
 			textures_path("coins.png"),
 			textures_path("beetle.png"),
 			textures_path("powerup.png")
+			textures_path("card.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -75,7 +92,8 @@ class RenderSystem
 		shader_path("textured"),
 		shader_path("water"),
 		shader_path("font"),
-		shader_path("dash")
+		shader_path("dash"),
+		shader_path("smoke")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;

@@ -13,20 +13,23 @@ enum class PLAYER_STATE
 	DEAD = DASH + 1
 };
 
-enum class ENEMY_STATE {
+enum class ENEMY_STATE
+{
 	IDLE = 0,
 	RUN = IDLE + 1,
 	ATTACK = RUN + 1,
 	DEAD = ATTACK + 1
 };
 
-enum class BUFF_TYPE {
+enum class BUFF_TYPE
+{
 	HEALTH = 0,
 	SPEED = HEALTH + 1,
 	ATTACK = SPEED + 1
 };
 
-enum class EFFECT_TYPE {
+enum class EFFECT_TYPE
+{
 	HEART = 0,
 	SMOKE = HEART + 1,
 	DASH = SMOKE + 1
@@ -45,10 +48,12 @@ struct Player
 	// For dashing and after taking damage;
 	bool invulnerable = false;
 	float invulnerable_duration_ms = 2000.f;
-	vec2 last_pos = { 0, 0 };
+	vec2 last_pos = {0, 0};
 	float dash_cooldown_ms = 3000.f;
 	float curr_dash_cooldown_ms = dash_cooldown_ms;
 	bool is_dash_up = true;
+	float slowed_duration_ms = 0.f;
+	float slowed_amount = 0.f;
 
 	// For attacking
 	bool is_attacking = false;
@@ -60,6 +65,8 @@ struct Player
 	// Other
 	float collection_distance = 100.f;
 	int experience = 0;
+	int toNextLevel = 5;
+	int level = 0;
 };
 
 enum class ENEMY_TYPES
@@ -68,7 +75,8 @@ enum class ENEMY_TYPES
 	CONTACT_DMG_2 = CONTACT_DMG + 1,
 	RANGED = CONTACT_DMG_2 + 1,
 	PROJECTILE = RANGED + 1,
-	SWARM = PROJECTILE + 1
+	SWARM = PROJECTILE + 1,
+	SLOWING_CONTACT = SWARM + 1
 };
 
 struct PlayerAttack
@@ -83,7 +91,7 @@ struct Deadly
 	ENEMY_TYPES enemy_type = ENEMY_TYPES::CONTACT_DMG;
 	float movement_timer = 0.f;
 	float drop_chance = 1.0f;
-	int experience = 5;
+	int experience = 1;
 	ENEMY_STATE state = ENEMY_STATE::IDLE;
 };
 
@@ -159,6 +167,7 @@ struct Solid
 // slows player down when walked on - applied to specific ground tiles
 struct Slows
 {
+	float duration = 1000.f;
 	float speed_dec = 20;
 };
 
@@ -191,8 +200,8 @@ struct Motion
 {
 	vec2 position = {0, 0};
 	float angle = 0;
-	vec2 velocity = { 0, 0 };
-	vec2 scale = { 10, 10 };
+	vec2 velocity = {0, 0};
+	vec2 scale = {10, 10};
 	float speed = 30.0f; // To control player speed
 };
 
@@ -296,6 +305,21 @@ struct Powerup {
 	float multiplier = 1; // Only in case of damage and speed boost
 	float timer = 10000;
 	bool equipped = false;
+}
+
+struct UpgradeCard
+{
+	int tier = 1;
+	GLuint textureID;
+	Entity icon;
+	Entity name;
+	Entity description;
+	std::function<void()> onClick;
+};
+
+struct SelectedCard
+{
+	vec2 scale;
 };
 
 /**
@@ -341,7 +365,23 @@ enum class TEXTURE_ASSET_ID
 	HP_BAR_FULL = HP_BAR_7 + 1,
 	PLANT = HP_BAR_FULL + 1,
 	FURNITURE = PLANT + 1,
-	WALL = FURNITURE + 1,
+	COAT_RACK = FURNITURE + 1,
+	CHAIR_FRONT = COAT_RACK + 1,
+	CHAIR_BACK = CHAIR_FRONT + 1,
+	CHAIR_SIDE = CHAIR_BACK + 1,
+	KITCHEN_COUNTER_1 = CHAIR_SIDE + 1,
+	KITCHEN_COUNTER_2 = KITCHEN_COUNTER_1 + 1,
+	FRIDGE = KITCHEN_COUNTER_2 + 1,
+	STOVE = FRIDGE + 1,
+	BOOK_CASE = STOVE + 1,
+	COFFEE_TABLE = BOOK_CASE + 1,
+	COUCH = COFFEE_TABLE + 1,
+	DRESSER = COUCH + 1,
+	GRANDFATHER_CLOCK = DRESSER + 1,
+	LAMP = GRANDFATHER_CLOCK + 1,
+	ROUND_TABLE = LAMP + 1,
+	SIDE_TABLE = ROUND_TABLE + 1,
+	WALL = SIDE_TABLE + 1,
 	SIDE_WALL = WALL + 1,
 	PLAYERS = SIDE_WALL + 1,
 	HEART = PLAYERS + 1,
@@ -351,7 +391,8 @@ enum class TEXTURE_ASSET_ID
 	COINS = STAMINA_BAR + 1,
 	BEETLE = COINS + 1,
 	POWERUP = BEETLE + 1,
-	TEXTURE_COUNT = POWERUP + 1
+	CARD = POWERUP + 1,
+	TEXTURE_COUNT = CARD + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -380,7 +421,8 @@ enum class EFFECT_ASSET_ID
 	WATER = TEXTURED + 1,
 	FONT = WATER + 1,
 	DASH = FONT + 1,
-	EFFECT_COUNT = DASH + 1
+	SMOKE = DASH + 1,
+	EFFECT_COUNT = SMOKE + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
