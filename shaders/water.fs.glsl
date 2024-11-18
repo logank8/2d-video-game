@@ -63,7 +63,7 @@ void main()
 
 	// excluding UI from lighting effects (unless it is paused):
 
-	if (paused == 0) {
+	if (paused != 1) {
 		// HP Bar
 		if ((fragPos.y >= 0.75) && (fragPos.y <= 0.95)) {
 			if ((fragPos.x >= -0.98) && (fragPos.x <= -0.52)) {

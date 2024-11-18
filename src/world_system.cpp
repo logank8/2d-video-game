@@ -952,14 +952,16 @@ void WorldSystem::handle_collisions(float step_seconds)
 				if (x_diff < 0 && abs(x_diff) > abs(y_diff) && motion_moving.velocity.x > 0)
 				{
 					newvelocity.x = 0.f;
-					newpos.x = motion_solid.position.x - (abs(motion_solid.scale.x / 2) + abs(motion_moving.scale.x / 2)) - 0.5;
+					newpos.x = motion_solid.position.x - (abs(motion_solid.scale.x / 2) + abs(motion_moving.scale.x / 2)) - 1;
 
 				}
 				if (x_diff > 0 && abs(x_diff) > abs(y_diff) && motion_moving.velocity.x < 0)
 				{
 					newvelocity.x = 0.f;
-					newpos.x = motion_solid.position.x + (abs(motion_solid.scale.x / 2) + abs(motion_moving.scale.x / 2)) + 0.5;
+					newpos.x = motion_solid.position.x + (abs(motion_solid.scale.x / 2) + abs(motion_moving.scale.x / 2)) + 1;
 				}
+				// do we need to check for collision again here ?
+
 				if (y_diff < 0 && abs(y_diff) > abs(x_diff) && motion_moving.velocity.y > 0)
 				{
 					newvelocity.y = 0.f;
