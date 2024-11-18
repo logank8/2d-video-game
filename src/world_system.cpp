@@ -21,6 +21,7 @@ const size_t CONTACT_FAST_SPAWN_DELAY_MS = 2000 * 3;
 // const size_t MAX_NUM_RANGED_ENEMY = 1;
 const size_t RANGED_ENEMY_SPAWN_DELAY_MS = 5000 * 3;
 const size_t RANGED_ENEMY_PROJECTILE_DELAY_MS = 3000;
+const size_t MAX_NUM_ENEMIES = 50;
 
 const int TILE_SIZE = 100;
 std::vector<vec2> tile_vec;
@@ -203,8 +204,8 @@ void createHPBar(Entity enemy)
 		Motion &enemy_motion = registry.motions.get(enemy);
 		// Shift centre of line to left as the hp bar decreases
 		Entity hp_bar = createLine({enemy_motion.position.x - ((100.f) * (1 - (hp / max_hp))) / 2,
-									enemy_motion.position.y - enemy_motion.scale.y * 0.75f},
-								   {(100.f) * hp / max_hp, 15.f});
+									enemy_motion.position.y - abs(enemy_motion.scale.y) * 0.75f},
+								   {(100.f) * hp / max_hp, 10.f});
 		vec3 &color = registry.colors.emplace(hp_bar);
 		color = vec3(0.f, 5.f, 0.f);
 	}
@@ -243,6 +244,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 	vec2 player_pos = motions_registry.get(my_player).position;
 	vec2 world_origin = vec2(-1860, -3760);
+
+
+	registry.list_all_components();
 
 	if (display_fps)
 	{
@@ -341,7 +345,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				
 			}
 
-			if (current_map[j][i] == 3)
+			if (current_map[j][i] == 3 && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
 			{
 				int encounter = rand() % 3;
 				if (encounter == 0)
@@ -361,7 +365,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
-			if (current_map[j][i] == 4)
+			if (current_map[j][i] == 4 && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
 			{
 				int encounter = rand() % 3;
 				if (encounter == 0)
@@ -384,7 +388,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
-			if (current_map[j][i] == 5)
+			if (current_map[j][i] == 5 && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
 			{
 				int encounter = rand() % 3;
 				if (encounter == 0)
@@ -416,7 +420,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				tile_vec.push_back(vec2(i, j));
 			}
 
-			if (current_map[j][i] == 8)
+			if (current_map[j][i] == 8 && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
 			{
 				Entity swarm_leader = createSwarm(renderer, world_pos, 0.55f, 0.05f, 0.00005f);
 				Motion &swarm_motion = motions_registry.get(swarm_leader);
@@ -434,7 +438,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	// TODO: spawn frequencies and spawn radius to be adjusted
 	//  Spawn Level 1 type enemy: slow with contact damage
 	next_contact_slow_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (next_contact_slow_spawn < 0.f)
+	if (next_contact_slow_spawn < 0.f && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
 	{
 		next_contact_slow_spawn = (CONTACT_SLOW_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_SLOW_SPAWN_DELAY_MS / 2);
 		vec2 contact_slow_pos;
@@ -453,7 +457,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 	// Spawn Level 2 type enemy: fast with contact damage
 	next_contact_fast_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (next_contact_fast_spawn < 0.f)
+	if (next_contact_fast_spawn < 0.f && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
 	{
 		next_contact_fast_spawn = (CONTACT_FAST_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_FAST_SPAWN_DELAY_MS / 2);
 		vec2 contact_fast_pos;
@@ -465,14 +469,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			contact_fast_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
 			distance_to_player = sqrt(pow(contact_fast_pos.x - player_pos.x, 2) + pow(contact_fast_pos.y - player_pos.y, 2));
 		} while (distance_to_player < 300.f);
-
-		createContactFast(renderer, contact_fast_pos);
+		if (uniform_dist(rng) > 0.5) {
+			createContactFast(renderer, contact_fast_pos);
+		}
+		else {
+			createSlowingEnemy(renderer, contact_fast_pos);
+		}
 		// tile_vec.push_back(spawnable_tiles[index]);
 	}
 
 	// Spawn Level 3 type enemy: slow ranged enemy
 	next_ranged_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (next_ranged_spawn < 0.f)
+	if (next_ranged_spawn < 0.f && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
 	{
 		next_ranged_spawn = (RANGED_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_SPAWN_DELAY_MS / 2);
 		vec2 ranged_pos;
@@ -708,6 +716,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		case ENEMY_TYPES::SWARM:
 			enemy_name = "swarm";
 			break;
+		case ENEMY_TYPES::SLOWING_CONTACT:
+			enemy_name = "fast";
+			break;
 		default:
 			break;
 		}
@@ -888,6 +899,12 @@ void WorldSystem::handle_collisions(float step_seconds)
 						}
 
 						// motion.position.x += HPBAR_BB_WIDTH * (player_hp / 400);
+					}
+
+					if (registry.deadlys.get(entity_other).enemy_type == ENEMY_TYPES::SLOWING_CONTACT) {
+						Slows& slows = registry.slows.get(entity_other);
+						player.slowed_amount = slows.speed_dec;
+						player.slowed_duration_ms = slows.duration;
 					}
 					player.invulnerable = true;
 					player.invulnerable_duration_ms = 1000.f;
@@ -1298,6 +1315,9 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			registry.lightUps.emplace(my_player);
 			AnimationSet &stamina_anim = registry.animationSets.get(stamina_bar);
 			stamina_anim.current_animation = "staminabar_depleting";
+
+			player.invulnerable = true;
+			player.invulnerable_duration_ms = 150.f;
 		}
 	}
   

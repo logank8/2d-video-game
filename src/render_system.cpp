@@ -28,7 +28,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		Deadly& enemy = registry.deadlys.get(entity);
 		if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG) {
 			transform.scale(vec2(2.5f,1.6f));
-		} else if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG_2) {
+		} else if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG_2 || enemy.enemy_type == ENEMY_TYPES::SLOWING_CONTACT) {
 			transform.scale(vec2(2.4f, 2.2f));
 		} else if (enemy.enemy_type == ENEMY_TYPES::RANGED) {
 			transform.scale(vec2(1.5, 2.7));
@@ -219,7 +219,10 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	if (registry.colors.has(entity)) {
 		if (registry.players.has(entity) && registry.players.get(entity).invulnerable) {
-			color = vec3(1, 0, 0);
+			if (!(!registry.players.get(entity).is_dash_up && registry.players.get(entity).curr_dash_cooldown_ms >=2900)) {
+				color = vec3(1, 0, 0);
+			}
+			
 		} else {
 			color = registry.colors.get(entity);
 		}

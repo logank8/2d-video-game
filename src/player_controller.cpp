@@ -61,7 +61,7 @@ void PlayerController::set_world(WorldSystem *world)
 }
 
 void PlayerController::step(float elapsed_ms_since_last_update)
-{
+{ 
     // Handle Player Attacks
     auto &attackRegistry = registry.playerAttacks;
     for (Entity entity : attackRegistry.entities)
@@ -106,7 +106,7 @@ void PlayerController::step(float elapsed_ms_since_last_update)
         {
             if (!player.is_moving)
             {
-                player.state = PLAYER_STATE::IDLE;
+                player.state = PLAYER_STATE::IDLE; 
             }
             else
             {
@@ -121,7 +121,13 @@ void PlayerController::step(float elapsed_ms_since_last_update)
             if (player.is_moving && !player.is_attacking)
             {
                 player.last_direction = snapToClosestAxis(player.move_direction);
-                pmotion.velocity = glm::normalize(player.move_direction) * pmotion.speed;
+                if (player.slowed_duration_ms <= 0) {
+                    pmotion.velocity = glm::normalize(player.move_direction) * pmotion.speed;
+                }
+                else {
+                    pmotion.velocity = glm::normalize(player.move_direction) * pmotion.speed * player.slowed_amount;
+                }
+                
             }
             else
             {
@@ -267,6 +273,16 @@ void PlayerController::step(float elapsed_ms_since_last_update)
             // std::cout << "Invuln ended" << std::endl;
             player.invulnerable = false;
             player.invulnerable_duration_ms = 1000.f;
+        }
+    }
+
+    // Check if player is slowed
+    if (player.slowed_duration_ms > 0)
+    {
+        player.slowed_duration_ms -= elapsed_ms_since_last_update;
+        if (player.invulnerable_duration_ms < 0.f)
+        {
+            player.slowed_amount = 1.f;
         }
     }
 
