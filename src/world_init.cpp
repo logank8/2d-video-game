@@ -198,21 +198,21 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 
 	std::vector<int> idle_f_vec = {0, 1, 2, 3};
 	Animation idle_f = {
-		"rangedenemy_idle_f",
+		"final_boss_idle_f",
 		12,
 		SPRITE_ASSET_ID::FINAL_BOSS,
 		idle_f_vec};
 
 	std::vector<int> run_f_vec = {0, 1, 2, 3};
 	Animation run_f = {
-		"rangedenemy_run_f",
+		"final_boss_run_f",
 		10,
 		SPRITE_ASSET_ID::FINAL_BOSS,
 		run_f_vec};
 
 	std::vector<int> die_vec = {0, 1, 2, 3};
 	Animation die = {
-		"rangedenemy_die",
+		"final_boss_die",
 		7,
 		SPRITE_ASSET_ID::FINAL_BOSS,
 		die_vec};
