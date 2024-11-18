@@ -235,6 +235,11 @@ struct UserInterface
 	vec2 scale = {10, 10};
 };
 
+struct HealthBuff {
+	float factor = 1;
+	bool touching = false;
+};
+
 // A struct to refer to debugging graphics in the ECS
 struct DebugComponent
 {
@@ -392,7 +397,9 @@ enum class TEXTURE_ASSET_ID
 	BEETLE = COINS + 1,
 	POWERUP = BEETLE + 1,
 	CARD = POWERUP + 1,
-	TEXTURE_COUNT = CARD + 1
+	GREY_CAT = CARD + 1,
+	ORANGE_CAT = GREY_CAT + 1,
+	TEXTURE_COUNT = ORANGE_CAT + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

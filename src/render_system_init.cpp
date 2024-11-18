@@ -218,6 +218,8 @@ void RenderSystem::initializeSpriteSheets()
 	sprite_sheets[SPRITE_ASSET_ID::COIN] = {TEXTURE_ASSET_ID::COINS, 1, 10, 16, 16};
 	sprite_sheets[SPRITE_ASSET_ID::BEETLE] = {TEXTURE_ASSET_ID::BEETLE, 1, 2, 8, 8};
 	sprite_sheets[SPRITE_ASSET_ID::POWERUP] = { TEXTURE_ASSET_ID::POWERUP, 1, 1, 32, 32 };
+	sprite_sheets[SPRITE_ASSET_ID::GREY_CAT] = {TEXTURE_ASSET_ID::GREY_CAT, 10, 8, 64, 64};
+	sprite_sheets[SPRITE_ASSET_ID::ORANGE_CAT] = {TEXTURE_ASSET_ID::ORANGE_CAT, 10, 8, 64, 64};
 }
 
 void RenderSystem::initializeGlEffects()

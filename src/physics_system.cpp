@@ -718,17 +718,17 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
 	}
 
     // Modify health buffs that are not touching player
-    /*
+    
     const Motion& player_motion = registry.motions.get(registry.players.entities[0]);
-    for (Entity e : registry.buffs.entities) {
-        Buff& hb = registry.buffs.get(e);
+    for (Entity e : registry.healthBuffs.entities) {
+        HealthBuff& hb = registry.healthBuffs.get(e);
         if (hb.touching) {
             if (!collides(registry.motions.get(e),player_motion)) {
                 hb.touching = false;
             }
         }
     }
-    */
+
 
     // Effect movement
     for (Entity e : registry.effects.entities) {
@@ -736,12 +736,6 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
         Motion& effect_motion = registry.motions.get(e);
         
         effect.ms_passed += elapsed_ms;
-        if (effect.type == EFFECT_TYPE::SMOKE) {
-            if (effect.ms_passed >= 500) {
-                //effect_motion.scale *= 0.9;
-            }
-            
-        }
 
         effect_motion.position.x += effect_motion.velocity.x * elapsed_ms;
         effect_motion.position.y += effect_motion.velocity.y * elapsed_ms;

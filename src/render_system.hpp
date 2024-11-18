@@ -80,7 +80,9 @@ class RenderSystem
 			textures_path("coins.png"),
 			textures_path("beetle.png"),
 			textures_path("powerup.png"),
-			textures_path("card.png")
+			textures_path("card.png"),
+			textures_path("grey_cat.png"),
+			textures_path("orange_cat.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

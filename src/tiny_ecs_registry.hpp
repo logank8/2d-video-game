@@ -48,6 +48,7 @@ public:
 	ComponentContainer<Powerup> powerups;
 	ComponentContainer<UpgradeCard> upgradeCards;
 	ComponentContainer<SelectedCard> selectedCards;
+	ComponentContainer<HealthBuff> healthBuffs;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -90,6 +91,7 @@ public:
 		registry_list.push_back(&powerups);
 		registry_list.push_back(&upgradeCards);
 		registry_list.push_back(&selectedCards);
+		registry_list.push_back(&healthBuffs);
 	}
 
 	void clear_all_components()

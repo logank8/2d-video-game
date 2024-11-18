@@ -453,7 +453,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			if (current_map[j][i] == 6)
 			{
 				// BUFF_TYPE type = static_cast<BUFF_TYPE>((int) (rand() % 3));
-				// createBuff(renderer, world_pos, type);
+				createHealthBuff(renderer, world_pos);
 				tile_vec.push_back(vec2(i, j));
 			}
 
@@ -1109,6 +1109,12 @@ void WorldSystem::handle_collisions(float step_seconds)
 				player_motion.speed = 120.f;
 				unstick_player = false;
 			}
+
+			// touching health buffs
+            if (registry.healthBuffs.has(entity_other)) {
+                HealthBuff& hb = registry.healthBuffs.get(entity_other);
+                hb.touching = true;
+            } 
 		}
 		else if (registry.deadlys.has(entity))
 		{
@@ -1411,6 +1417,27 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			player.invulnerable = true;
 			player.invulnerable_duration_ms = 150.f;
 		}
+	}
+
+	if (key == GLFW_KEY_E && action == GLFW_RELEASE) {
+		for (Entity e : registry.healthBuffs.entities) {
+			HealthBuff& buff = registry.healthBuffs.get(e);
+			if (buff.touching) {
+				Health& p_health = registry.healths.get(my_player);
+				RenderRequest& hp_bar_render = registry.renderRequests.get(hp_bar);
+				if (p_health.hit_points < 200) {
+					std::cout << "player regained health" << std::endl;
+					p_health.hit_points += min(buff.factor * 25.f, 200.f - p_health.hit_points);
+					createEffect(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);
+				}
+					
+				if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_FULL) {
+					hp_bar_render.used_texture = static_cast<TEXTURE_ASSET_ID>(static_cast<int>(hp_bar_render.used_texture) + 1);
+				}
+				
+			} 
+		}
+
 	}
   
   if (!WorldSystem::is_paused)
