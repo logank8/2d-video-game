@@ -62,6 +62,7 @@ class RenderSystem
 			textures_path("Kitchen_Counter_2.png"),
 			textures_path("Fridge.png"),
 			textures_path("Stove.png"),
+			textures_path("Book_Case.png"),
 			textures_path("wall.png"),
 			textures_path("side_wall.png"),
 			textures_path("player.png"),

@@ -318,7 +318,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			}
 
 			// furniture spawning
-			if (current_map[j][i] == 2 || (current_map[j][i] >= 9 && current_map[j][i] <= 18)) {
+			if (current_map[j][i] == 2 || (current_map[j][i] >= 9 && current_map[j][i] <= 19)) {
 				if (current_map[j][i] == 2 && current_map[j - 1][i] != current_map[j][i] && current_map[j][i-1] != current_map[j][i]) {
 					// add 2 while loops here to find furniture size
 					int horiz_idx = 1;
@@ -1179,21 +1179,21 @@ vec2 WorldSystem::adjust_knockback_coordinates(int grid_x, int grid_y, int adjus
 		&& current_map[grid_y + adjust_y][grid_x + adjust_x] != 0
 		&& current_map[grid_y + adjust_y][grid_x + adjust_x] != 2
 		&& current_map[grid_y + adjust_y][grid_x + adjust_x] != 9
-		&& !(current_map[grid_y + adjust_y][grid_x + adjust_x] >= 10 && current_map[grid_y + adjust_y][grid_x + adjust_x] <= 18)) {
+		&& !(current_map[grid_y + adjust_y][grid_x + adjust_x] >= 10 && current_map[grid_y + adjust_y][grid_x + adjust_x] <= 19)) {
 		return vec2(adjust_x, adjust_y);
 	}
 	if (current_map[grid_y + adjust_y][grid_x] != -1
 		&& current_map[grid_y + adjust_y][grid_x] != 0
 		&& current_map[grid_y + adjust_y][grid_x] != 2
 		&& current_map[grid_y + adjust_y][grid_x] != 9
-		&& !(current_map[grid_y + adjust_y][grid_x] >= 10 && current_map[grid_y + adjust_y][grid_x] <= 18)) {
+		&& !(current_map[grid_y + adjust_y][grid_x] >= 10 && current_map[grid_y + adjust_y][grid_x] <= 19)) {
 		return vec2(0, adjust_y);
 	}
 	if (current_map[grid_y][grid_x + adjust_x] != -1
 		&& current_map[grid_y][grid_x + adjust_x] != 0
 		&& current_map[grid_y][grid_x + adjust_x] != 2
 		&& current_map[grid_y][grid_x + adjust_x] != 9
-		&& !(current_map[grid_y][grid_x + adjust_x] >= 10 && current_map[grid_y][grid_x + adjust_x] <= 18)) {
+		&& !(current_map[grid_y][grid_x + adjust_x] >= 10 && current_map[grid_y][grid_x + adjust_x] <= 19)) {
 		return vec2(adjust_x, 0);
 	}
 	return vec2(0, 0);
