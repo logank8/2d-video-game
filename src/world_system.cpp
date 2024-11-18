@@ -780,8 +780,7 @@ void WorldSystem::restart_game()
 				// tile_vec.push_back(vec2(i, j));
 			}
 			// create vector of spawnable tiles
-			else if (current_map[i][j] != 0)
-			{
+			else if (current_map[i][j] != 0 && current_map[i][j] != 2) {
 				spawnable_tiles.push_back(vec2(i, j));
 			}
 		}
@@ -827,7 +826,7 @@ void WorldSystem::restart_game()
 	// create health bar
 	vec2 hp_bar_pos = {-0.75, 0.85f};
 	hp_bar = createHPBar(renderer, hp_bar_pos);
-
+	
 	vec2 stamina_bar_pos = {-0.74f, 0.7f};
 	stamina_bar = createStaminaBar(renderer, stamina_bar_pos);
 }
@@ -1038,78 +1037,57 @@ void WorldSystem::handle_collisions(float step_seconds)
 					int grid_y = static_cast<int>((kockback_pos.y - (640 - (44 * TILE_SIZE))) / TILE_SIZE);
 					int adjust_x = 0;
 					int adjust_y = 0;
-					if (diff.x < 0 && diff.y < 0)
-					{
-						if (abs(diff.x) < 50 && abs(diff.y) < 50)
-						{
+					if (diff.x < 0 && diff.y < 0) {
+						if (abs(diff.x) < 50 && abs(diff.y) < 50) {
 							adjust_x -= 1;
 							adjust_y -= 1;
 						}
-						else
-						{
-							if (abs(diff.x) > 50)
-							{
+						else {
+							if (abs(diff.x) > 50) {
 								adjust_x -= 1;
 							}
-							if (abs(diff.y) > 50)
-							{
+							if (abs(diff.y) > 50) {
 								adjust_y -= 1;
 							}
 						}
-					}
-					else if (diff.x > 0 && diff.y < 0)
-					{
-						if (abs(diff.x) < 50 && abs(diff.y) < 50)
-						{
+					} else if (diff.x > 0 && diff.y < 0) {
+						if (abs(diff.x) < 50 && abs(diff.y) < 50) {
 							adjust_x += 1;
 							adjust_y -= 1;
 						}
-						else
-						{
-							if (abs(diff.x) > 50)
-							{
-								adjust_x += 1;
+						else {
+							if (abs(diff.x) > 50) {
+								adjust_x += 2;
 							}
-							if (abs(diff.y) > 50)
-							{
+							if (abs(diff.y) > 50) {
 								adjust_y -= 1;
 							}
 						}
 					}
-					else if (diff.x > 0 && diff.y > 0)
-					{
-						if (abs(diff.x) < 50 && abs(diff.y) < 50)
-						{
+					else if (diff.x > 0 && diff.y > 0) {
+						if (abs(diff.x) < 50 && abs(diff.y) < 50) {
 							adjust_x += 1;
 							adjust_y += 1;
 						}
-						else
-						{
-							if (abs(diff.x) > 50)
-							{
-								adjust_x += 1;
+						else {
+							if (abs(diff.x) > 50) {
+								adjust_x += 2;
 							}
-							if (abs(diff.y) > 50)
-							{
+							if (abs(diff.y) > 50) {
 								adjust_y += 1;
 							}
 						}
 					}
-					else if (diff.x < 0 && diff.y > 0)
-					{
-						if (abs(diff.x) < 50 && abs(diff.y) < 50)
-						{
+					else if (diff.x < 0 && diff.y > 0) {
+						if (abs(diff.x) < 50 && abs(diff.y) < 50) {
 							adjust_x -= 1;
 							adjust_y += 1;
 						}
-						else
-						{
-							if (abs(diff.x) > 50)
-							{
+						else {
+							if (abs(diff.x) > 50) {
 								adjust_x -= 1;
 							}
-							if (abs(diff.y) > 50)
-							{
+							if (abs(diff.y) > 50) {
 								adjust_y += 1;
 							}
 						}
@@ -1117,18 +1095,51 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 					vec2 adjust = adjust_knockback_coordinates(grid_x, grid_y, adjust_x, adjust_y);
 
-					if (!(adjust_x == 0 && adjust_y == 0) && registry.motions.has(entity_other))
-					{
-						vec2 grid_kockback_pos = {(640 - (25 * 100)) + ((grid_x + adjust.x) * TILE_SIZE), (640 - (44 * 100)) + ((grid_y + adjust.y) * TILE_SIZE)};
-						enemy_motion.position = grid_kockback_pos;
-						physics.update_enemy_movement(entity_other, step_seconds);
-						if (registry.pathTimers.has(entity_other))
-						{
-							registry.pathTimers.get(entity_other).timer = -1.f;
+					if (registry.motions.has(entity_other)) {
+						vec2 grid_kockback_pos = { (640 - (25 * 100)) + ((grid_x + adjust.x) * TILE_SIZE), (640 - (44 * 100)) + ((grid_y + adjust.y) * TILE_SIZE) };
+						vec2 new_diff = grid_kockback_pos - pmotion.position;
+						bool accept_zero_adjust = true;
+						if (adjust.x == 0 && adjust.y == 0) {
+							if (diff.x < 0) {
+								if (new_diff.x > diff.x) {
+									accept_zero_adjust = false;
+								}
+							}
+							else {
+								if (new_diff.x < diff.x) {
+									accept_zero_adjust = false;
+								}
+							}
+
+							if (diff.y < 0) {
+								if (new_diff.y > diff.y) {
+									accept_zero_adjust = false;
+								}
+							}
+							else {
+								if (new_diff.y < diff.y) {
+									accept_zero_adjust = false;
+								}
+							}
+							if (accept_zero_adjust) {
+								enemy_motion.position = grid_kockback_pos;
+								physics.update_enemy_movement(entity_other, step_seconds);
+								if (registry.pathTimers.has(entity_other)) {
+									registry.pathTimers.get(entity_other).timer = -1.f;
+								}
+							}
 						}
+						else {
+							enemy_motion.position = grid_kockback_pos;
+							physics.update_enemy_movement(entity_other, step_seconds);
+							if (registry.pathTimers.has(entity_other)) {
+								registry.pathTimers.get(entity_other).timer = -1.f;
+							}
+						}
+						
+						
 					}
 				}
-
 				if (registry.lightUps.has(entity_other))
 				{
 					registry.lightUps.remove(entity_other);
@@ -1157,23 +1168,19 @@ void WorldSystem::handle_collisions(float step_seconds)
 		Motion &player_motion = registry.motions.get(my_player);
 		player_motion.speed = 300.f;
 	}
-
+	
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
 }
 
-vec2 WorldSystem::adjust_knockback_coordinates(int grid_x, int grid_y, int adjust_x, int adjust_y)
-{
-	if (current_map[grid_y + adjust_y][grid_x + adjust_x] != 0)
-	{
+vec2 WorldSystem::adjust_knockback_coordinates(int grid_x, int grid_y, int adjust_x, int adjust_y) {
+	if (current_map[grid_y + adjust_y][grid_x + adjust_x] != 0 && current_map[grid_y + adjust_y][grid_x + adjust_x] != 2) {
 		return vec2(adjust_x, adjust_y);
 	}
-	if (current_map[grid_y + adjust_y][grid_x] != 0)
-	{
+	if (current_map[grid_y + adjust_y][grid_x] != 0 && current_map[grid_y + adjust_y][grid_x] != 2) {
 		return vec2(0, adjust_y);
 	}
-	if (current_map[grid_y][grid_x + adjust_x] != 0)
-	{
+	if (current_map[grid_y][grid_x + adjust_x] != 0 && current_map[grid_y + adjust_y][grid_x] != 2) {
 		return vec2(adjust_x, 0);
 	}
 	return vec2(0, 0);
@@ -1280,9 +1287,9 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			stamina_anim.current_animation = "staminabar_depleting";
 		}
 	}
-
-	if (!WorldSystem::is_paused)
-		player_controller.on_key(key, action, mod);
+  
+  if (!WorldSystem::is_paused)
+	  player_controller.on_key(key, action, mod);
 
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA)

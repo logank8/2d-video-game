@@ -312,6 +312,10 @@ void PlayerController::step(float elapsed_ms_since_last_update)
                 displayUpgradeCards();
 
                 std::cout << "Player levelled up: " << player.level << std::endl;
+                player.experience -= player.toNextLevel;
+
+                // temporary increase
+                player.toNextLevel += 5;
             }
 
             registry.remove_all_components_of(entity);
