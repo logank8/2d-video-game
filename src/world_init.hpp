@@ -53,6 +53,27 @@ const float STOVE_BB_HEIGHT = 3.125f * 43.f;
 const float BOOK_CASE_BB_WIDTH = 3.f * 46.f;
 const float BOOK_CASE_BB_HEIGHT = 3.f * 45.f;
 
+const float COFFEE_TABLE_BB_WIDTH = 4.f * 24.f;
+const float COFFEE_TABLE_BB_HEIGHT = 4.f * 19.f;
+
+const float COUCH_BB_WIDTH = 4.f * 49.f;
+const float COUCH_BB_HEIGHT = 4.f * 31.f;
+
+const float DRESSER_BB_WIDTH = 4.f * 25.f;
+const float DRESSER_BB_HEIGHT = 4.f * 35.f;
+
+const float GRANDFATHER_CLOCK_BB_WIDTH = 4.f * 21.f;
+const float GRANDFATHER_CLOCK_BB_HEIGHT = 4.f * 46.f;
+
+const float LAMP_BB_WIDTH = 4.f * 15.f;
+const float LAMP_BB_HEIGHT = 4.f * 46.f;
+
+const float ROUND_TABLE_BB_WIDTH = 4.f * 16.f;
+const float ROUND_TABLE_BB_HEIGHT = 4.f * 24.f;
+
+const float SIDE_TABLE_BB_WIDTH = 4.f * 20.f;
+const float SIDE_TABLE_BB_HEIGHT = 4.f * 23.f;
+
 const float HPBAR_BB_WIDTH = 0.46f;
 const float HPBAR_BB_HEIGHT = 0.20f;
 

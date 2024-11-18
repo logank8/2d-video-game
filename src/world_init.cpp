@@ -573,6 +573,32 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos, int type)
 		motion.position.x += 50;
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::BOOK_CASE;
+	} else if (type == 20) {
+		motion.scale = vec2({COFFEE_TABLE_BB_WIDTH, COFFEE_TABLE_BB_HEIGHT});
+		texture = TEXTURE_ASSET_ID::COFFEE_TABLE;
+	} else if (type == 21) {
+		motion.scale = vec2({COUCH_BB_WIDTH, COUCH_BB_HEIGHT});
+		motion.position.x += 50;
+		motion.position.y -= 50;
+		texture = TEXTURE_ASSET_ID::COUCH;
+	} else if (type == 22) {
+		motion.scale = vec2({DRESSER_BB_WIDTH, DRESSER_BB_HEIGHT});
+		motion.position.y -= 50;
+		texture = TEXTURE_ASSET_ID::DRESSER;
+	} else if (type == 23) {
+		motion.scale = vec2({GRANDFATHER_CLOCK_BB_WIDTH, GRANDFATHER_CLOCK_BB_HEIGHT});
+		motion.position.y -= 50;
+		texture = TEXTURE_ASSET_ID::GRANDFATHER_CLOCK;
+	} else if (type == 24) {
+		motion.scale = vec2({LAMP_BB_WIDTH, LAMP_BB_HEIGHT});
+		motion.position.y -= 50;
+		texture = TEXTURE_ASSET_ID::LAMP;
+	} else if (type == 25) {
+		motion.scale = vec2({ROUND_TABLE_BB_WIDTH, ROUND_TABLE_BB_HEIGHT});
+		texture = TEXTURE_ASSET_ID::ROUND_TABLE;
+	} else if (type == 26) {
+		motion.scale = vec2({SIDE_TABLE_BB_WIDTH, SIDE_TABLE_BB_HEIGHT});
+		texture = TEXTURE_ASSET_ID::SIDE_TABLE;
 	}
 
 	// create an empty component for the furniture as a solid object
