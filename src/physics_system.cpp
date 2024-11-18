@@ -205,7 +205,7 @@ bool is_walkable(const vec2 &pos, vec2 dir)
         if ((map[grid_y][grid_x + 1] >= 10 && map[grid_y + 1][grid_x] <= 18) || (map[grid_y][grid_x + 1] >= 2 && map[grid_y][grid_x + 1] <= 18)) return false;
     }
 
-    return map[grid_y][grid_x] != 0 && map[grid_y][grid_x] != 2;
+    return map[grid_y][grid_x] == 1 || (map[grid_y][grid_x] >= 3 && map[grid_y][grid_x] <= 8);
 }
 
 // Checking for line of sight using Bresenham's algorithm

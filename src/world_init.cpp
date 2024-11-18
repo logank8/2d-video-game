@@ -526,6 +526,8 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos, int type)
 	motion.velocity = {0.f, 0.f};
 
 	TEXTURE_ASSET_ID texture;
+
+	// Selecting asset and scale based on furniture type
 	if (type == 2) {
 		motion.scale = vec2({PLANT_BB_WIDTH, PLANT_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::PLANT;

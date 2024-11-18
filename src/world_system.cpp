@@ -781,7 +781,7 @@ void WorldSystem::restart_game()
 				// tile_vec.push_back(vec2(i, j));
 			}
 			// create vector of spawnable tiles
-			else if (current_map[i][j] != 0 && current_map[i][j] != 2) {
+			else if (current_map[i][j] == 1 || (current_map[i][j] >= 3 && current_map[i][j] <= 8)) {
 				spawnable_tiles.push_back(vec2(i, j));
 			}
 		}
@@ -1175,13 +1175,25 @@ void WorldSystem::handle_collisions(float step_seconds)
 }
 
 vec2 WorldSystem::adjust_knockback_coordinates(int grid_x, int grid_y, int adjust_x, int adjust_y) {
-	if (current_map[grid_y + adjust_y][grid_x + adjust_x] != 0 && current_map[grid_y + adjust_y][grid_x + adjust_x] != 2) {
+	if (current_map[grid_y + adjust_y][grid_x + adjust_x] != -1
+		&& current_map[grid_y + adjust_y][grid_x + adjust_x] != 0
+		&& current_map[grid_y + adjust_y][grid_x + adjust_x] != 2
+		&& current_map[grid_y + adjust_y][grid_x + adjust_x] != 9
+		&& !(current_map[grid_y + adjust_y][grid_x + adjust_x] >= 10 && current_map[grid_y + adjust_y][grid_x + adjust_x] <= 18)) {
 		return vec2(adjust_x, adjust_y);
 	}
-	if (current_map[grid_y + adjust_y][grid_x] != 0 && current_map[grid_y + adjust_y][grid_x] != 2) {
+	if (current_map[grid_y + adjust_y][grid_x] != -1
+		&& current_map[grid_y + adjust_y][grid_x] != 0
+		&& current_map[grid_y + adjust_y][grid_x] != 2
+		&& current_map[grid_y + adjust_y][grid_x] != 9
+		&& !(current_map[grid_y + adjust_y][grid_x] >= 10 && current_map[grid_y + adjust_y][grid_x] <= 18)) {
 		return vec2(0, adjust_y);
 	}
-	if (current_map[grid_y][grid_x + adjust_x] != 0 && current_map[grid_y + adjust_y][grid_x] != 2) {
+	if (current_map[grid_y][grid_x + adjust_x] != -1
+		&& current_map[grid_y][grid_x + adjust_x] != 0
+		&& current_map[grid_y][grid_x + adjust_x] != 2
+		&& current_map[grid_y][grid_x + adjust_x] != 9
+		&& !(current_map[grid_y][grid_x + adjust_x] >= 10 && current_map[grid_y][grid_x + adjust_x] <= 18)) {
 		return vec2(adjust_x, 0);
 	}
 	return vec2(0, 0);
