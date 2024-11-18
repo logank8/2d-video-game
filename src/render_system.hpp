@@ -62,7 +62,8 @@ class RenderSystem
 			textures_path("dash.png"),
 			textures_path("stamina_regen.png"),
 			textures_path("coins.png"),
-			textures_path("beetle.png")
+			textures_path("beetle.png"),
+			textures_path("powerup.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

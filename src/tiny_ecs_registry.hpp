@@ -45,6 +45,7 @@ public:
 	ComponentContainer<Effect> effects;
 	ComponentContainer<Collectible> collectibles;
 	ComponentContainer<SwarmMember> swarms;
+	ComponentContainer<Powerup> powerups;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -84,6 +85,7 @@ public:
 		registry_list.push_back(&collectibles);
 		registry_list.push_back(&experiences);
 		registry_list.push_back(&swarms);
+		registry_list.push_back(&powerups);
 	}
 
 	void clear_all_components()

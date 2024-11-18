@@ -835,3 +835,39 @@ Entity createSwarmMember(RenderSystem* renderer, vec2 pos, float separation, flo
 	return entity;
 
 }
+
+Entity createTempPowerup(RenderSystem* renderer, vec2 pos, PowerupType type, float multiplier, float timer) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.velocity = { 0.f, 0.f };
+	motion.scale = vec2(32, 32);
+
+	registry.eatables.emplace(entity);
+
+	Powerup& powerup = registry.powerups.emplace(entity);
+
+	powerup.type = type;
+	powerup.timer = timer;
+
+	if (type == PowerupType::DAMAGE_BOOST || type == PowerupType::SPEED_BOOST) {
+		powerup.multiplier = multiplier;
+	}
+
+	registry.renderRequests.insert(
+		entity,
+		{ 
+		 TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 SPRITE_ASSET_ID::POWERUP,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 0
+		});
+
+	std::cout << "ENTITY CREATED WITH TYPE: " << powerup.type << std::endl;
+	return entity;
+}

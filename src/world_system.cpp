@@ -274,6 +274,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 	}
 
+	// Update timer on equipped powerups, if any
+	if (registry.powerups.has(my_player)) {
+		Powerup& powerup = registry.powerups.get(my_player);
+		powerup.timer -= elapsed_ms_since_last_update;
+
+		if (powerup.timer < 0) {
+			registry.powerups.remove(my_player);
+			std::cout << "Player lost a powerup now!" << std::endl;
+		}
+	}
+
 	/*** UPDATING MAP ***/
 	// given player position in world coords, convert to map:
 	// origin: [-1860, -3760]
@@ -533,6 +544,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				if (roll <= deadly.drop_chance && deadly.enemy_type != ENEMY_TYPES::PROJECTILE)
 				{
 					createExperience(renderer, enemy_motion.position, deadly.experience);
+					createTempPowerup(renderer, enemy_motion.position, PowerupType::SPEED_BOOST, 2.f, 30000);
 				}
 
 				// replace dead leader with new swarm member
@@ -838,6 +850,15 @@ void WorldSystem::handle_collisions(float step_seconds)
 				Player &player = registry.players.get(entity);
 				if (!player.invulnerable && !registry.deathTimers.has(entity_other))
 				{
+					if (registry.powerups.has(entity)) {
+						Powerup& powerup = registry.powerups.get(entity);
+						std::cout << "Powerup type: " << powerup.type << std::endl;
+						if (powerup.type == PowerupType::INVINCIBILITY)
+							// In this case, player does not receive damage
+							continue;
+					}
+
+					std::cout << "Player is not invincible" << std::endl;
 					// player takes damage
 					player_hp -= registry.damages.get(entity_other).damage;
 					// avoid negative hp values for hp bar
@@ -873,15 +894,26 @@ void WorldSystem::handle_collisions(float step_seconds)
 					motion.velocity[1] = 0.0f;
 				}
 			}
-			// Checking Player - Eatable collisions
+			// Checking Player - Eatable collisions (e.g. powerups)
 			else if (registry.eatables.has(entity_other))
 			{
-				if (!registry.deathTimers.has(entity))
+				if (!registry.deathTimers.has(entity) && !registry.powerups.has(entity))
 				{
-					// chew, count points, and set the LightUp timer
+					Powerup& powerup = registry.powerups.get(entity_other);
+					PowerupType type = powerup.type;
+					float timer = powerup.timer;
+					float multiplier = powerup.multiplier;
+
 					registry.remove_all_components_of(entity_other);
+
+					Powerup& player_powerup = registry.powerups.emplace(entity);
+					
+					player_powerup.type = type;
+
+					player_powerup.multiplier = multiplier;
+					player_powerup.timer = timer;
+
 					Mix_PlayChannel(-1, salmon_eat_sound, 0);
-					++points;
 				}
 			}
 			// Checking player collision with solid object
@@ -993,8 +1025,16 @@ void WorldSystem::handle_collisions(float step_seconds)
 				Player &player = registry.players.get(my_player);
 				Deadly &deadly = registry.deadlys.get(entity_other);
 
+				float temp_multiplier = 1.f;
+				if (registry.powerups.has(my_player)) {
+					Powerup &powerup = registry.powerups.get(my_player);
+					if (powerup.type == PowerupType::DAMAGE_BOOST) {
+						std::cout << "Damage type found" << powerup.multiplier << std::endl;
+						temp_multiplier *= powerup.multiplier;
+					}
+				}
 
-				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - damage.damage);
+				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - (damage.damage * temp_multiplier));
 
 				vec2 diff = enemy_motion.position - pmotion.position;
 

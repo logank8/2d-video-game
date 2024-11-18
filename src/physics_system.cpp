@@ -744,7 +744,16 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
         if (distance({0, 0}, motion.velocity) != 0) {
             motion.velocity = (1 / distance({0, 0}, motion.velocity)) * motion.velocity;
         }
-        motion.velocity = motion.speed * motion.velocity;
+
+        float temp_multiplier = 1.f;
+        if (registry.powerups.has(entity)) {
+            Powerup& powerup = registry.powerups.get(entity);
+            if (powerup.type == PowerupType::SPEED_BOOST) {
+                temp_multiplier *= powerup.multiplier;
+                std::cout << "Speed multiplier: " << temp_multiplier << std::endl;
+            }
+        }
+        motion.velocity = motion.speed * temp_multiplier * motion.velocity;
         
 		motion.position[0] += motion.velocity[0] * step_seconds;
 		motion.position[1] += motion.velocity[1] * step_seconds;

@@ -78,3 +78,5 @@ Entity createExperience(RenderSystem *renderer, vec2 pos, int experience);
 Entity createSwarm(RenderSystem* renderer, vec2 pos, float separation, float alignment, float cohesion);
 
 Entity createSwarmMember(RenderSystem* renderer, vec2 pos, float separation, float alignment, float cohesion, int leader);
+
+Entity createTempPowerup(RenderSystem* renderer, vec2 pos, PowerupType type, float multiplier, float timer);
