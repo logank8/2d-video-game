@@ -45,6 +45,7 @@ public:
 	ComponentContainer<Effect> effects;
 	ComponentContainer<Collectible> collectibles;
 	ComponentContainer<SwarmMember> swarms;
+	ComponentContainer<Powerup> powerups;
 	ComponentContainer<UpgradeCard> upgradeCards;
 	ComponentContainer<SelectedCard> selectedCards;
 
@@ -86,6 +87,7 @@ public:
 		registry_list.push_back(&collectibles);
 		registry_list.push_back(&experiences);
 		registry_list.push_back(&swarms);
+		registry_list.push_back(&powerups);
 		registry_list.push_back(&upgradeCards);
 		registry_list.push_back(&selectedCards);
 	}

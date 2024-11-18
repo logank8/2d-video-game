@@ -765,12 +765,19 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
             motion.velocity = (1 / distance({0, 0}, motion.velocity)) * motion.velocity;
         }
 
+        float temp_multiplier = 1.f;
+        if (registry.powerups.has(entity)) {
+            Powerup& powerup = registry.powerups.get(entity);
+            if (powerup.type == PowerupType::SPEED_BOOST) {
+                temp_multiplier *= powerup.multiplier;
+            }
+        }
         auto& player = registry.players.get(entity);
         if (player.slowed_duration_ms <= 0.f) {
-            motion.velocity = motion.speed * motion.velocity;
+            motion.velocity = motion.speed * temp_multiplier * motion.velocity;
         }
         else {
-            motion.velocity = motion.speed * motion.velocity * player.slowed_amount;
+            motion.velocity = motion.speed * motion.velocity * temp_multiplier * player.slowed_amount;
         }
         
 		motion.position[0] += motion.velocity[0] * step_seconds;

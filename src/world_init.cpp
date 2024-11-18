@@ -982,8 +982,8 @@ Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, 
 
 	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
-
-	auto &ui = registry.userInterfaces.emplace(entity);
+  
+  auto &ui = registry.userInterfaces.emplace(entity);
 	ui.angle = 0.f;
 	ui.position = pos;
 	ui.scale = vec2({0.5, -1.25});
@@ -1002,5 +1002,41 @@ Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, 
 
 	vec2 screen_pos = screenToNDC(pos + (ui.scale / vec2(2.0f, 2.0f)) - vec2(ui.scale.x - 0.05f, UPGRADE_CARD_TITLE_Y));
 	upgradeCardComponent.name = createText(screen_pos, 0.65f, title, vec3(0.9f, 0.9f, 0.9f));
+  
+  return entity;
+}
+
+Entity createTempPowerup(RenderSystem* renderer, vec2 pos, PowerupType type, float multiplier, float timer) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.velocity = { 0.f, 0.f };
+	motion.scale = vec2(32, 32);
+
+	registry.eatables.emplace(entity);
+
+	Powerup& powerup = registry.powerups.emplace(entity);
+
+	powerup.type = type;
+	powerup.timer = timer;
+
+	if (type == PowerupType::DAMAGE_BOOST || type == PowerupType::SPEED_BOOST) {
+		powerup.multiplier = multiplier;
+	}
+
+	registry.renderRequests.insert(
+		entity,
+		{ 
+		 TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 SPRITE_ASSET_ID::POWERUP,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 0
+		});
+
 	return entity;
 }
