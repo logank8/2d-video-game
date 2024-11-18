@@ -1,10 +1,11 @@
-#include "world_system.hpp"
 #include "world_init.hpp"
 
 #include "player_controller.hpp"
 #include "animation_system.hpp"
+#include "world_system.hpp"
 
 #include <iostream>
+#include <random>
 
 PlayerController::PlayerController() : my_player(nullptr) {}
 
@@ -52,6 +53,11 @@ void PlayerController::set_player_reference(Entity *player_ref)
 void PlayerController::set_renderer(RenderSystem *renderer)
 {
     this->renderer = renderer;
+}
+
+void PlayerController::set_world(WorldSystem *world)
+{
+    this->world = world;
 }
 
 void PlayerController::step(float elapsed_ms_since_last_update)
@@ -252,7 +258,6 @@ void PlayerController::step(float elapsed_ms_since_last_update)
         pmotion.scale.x = std::abs(pmotion.scale.x);
     }
 
-
     // Check if player is invulnerable
     if (player.invulnerable)
     {
@@ -285,10 +290,6 @@ void PlayerController::step(float elapsed_ms_since_last_update)
 
                 if (registry.experiences.has(entity))
                 {
-                    auto &collectible_experience = registry.experiences.get(entity);
-
-                    player.experience += collectible_experience.experience;
-
                     animation.current_animation = "experience_collect";
                     animation.current_frame = 0;
                 }
@@ -298,8 +299,67 @@ void PlayerController::step(float elapsed_ms_since_last_update)
         // Remove entity when animation is finished playing
         if (collectible.is_collected && animation.current_frame == animation.animations[animation.current_animation].sprite_indices.size() - 1)
         {
+            auto &collectible_experience = registry.experiences.get(entity);
+
+            player.experience += collectible_experience.experience;
+
+            if (player.experience >= player.toNextLevel)
+            {
+                player.level++;
+
+                world->set_level_up_state(true);
+
+                displayUpgradeCards();
+
+                std::cout << "Player levelled up: " << player.level << std::endl;
+                player.experience -= player.toNextLevel;
+
+                // temporary increase
+                player.toNextLevel += 5;
+            }
+
             registry.remove_all_components_of(entity);
         }
+    }
+}
+
+const float CARD_PADDING = -0.6f;
+const float CARD_DISTANCE = 0.6f;
+const int UPGRADE_CARD_COUNT = 3;
+
+bool operator==(const Upgrade &up1, const Upgrade &up2)
+{
+    return up1.id == up2.id;
+}
+
+void PlayerController::displayUpgradeCards()
+{
+    std::vector<Upgrade> availableUpgrades = {};
+    static std::mt19937 rng{std::random_device{}()};
+    std::uniform_int_distribution<int> dist(0, upgradePool.size() - 1);
+
+    for (int i = 0; i < UPGRADE_CARD_COUNT; i++)
+    {
+        int cardIndex = dist(rng);
+
+        // Ensure no duplicates (codes a little sus but should be fine)
+        while (std::find(availableUpgrades.begin(), availableUpgrades.end(), upgradePool[cardIndex]) != availableUpgrades.end())
+        {
+            cardIndex = dist(rng);
+        }
+
+        Upgrade currCard = upgradePool[cardIndex];
+
+        availableUpgrades.push_back(currCard);
+
+        Entity card = createUpgradeCard(renderer,
+                                        vec2(CARD_PADDING + (i * CARD_DISTANCE), 0.2f),
+                                        vec2(0.1f, 0.1f),
+                                        currCard.tier,
+                                        TEXTURE_ASSET_ID::BEETLE,
+                                        currCard.title,
+                                        currCard.description,
+                                        currCard.onClick);
     }
 }
 
@@ -362,9 +422,14 @@ void PlayerController::on_key(int key, int action, int mod)
             }
         }
     }
-
 }
 
+vec2 mousePosToNormalizedDevice(vec2 mouse_position)
+{
+    float normalized_x = (2.0f * mouse_position.x) / window_width_px - 1.0f;
+    float normalized_y = 1.0f - (2.0f * mouse_position.y) / window_height_px;
+    return vec2(normalized_x, normalized_y);
+}
 void PlayerController::on_mouse_move(vec2 mouse_position)
 {
     // Update player attack direction
@@ -374,6 +439,42 @@ void PlayerController::on_mouse_move(vec2 mouse_position)
 
     Player &player = registry.players.get(*my_player);
     player.attack_direction = snapToClosestAxis(direction);
+
+    if (world->is_level_up)
+    {
+        for (Entity entity : registry.upgradeCards.entities)
+        {
+            auto &ui = registry.userInterfaces.get(entity);
+
+            vec2 mouse_position_ndc = mousePosToNormalizedDevice(mouse_position);
+
+            // std::cout << mouse_position_ndc.x << ',' << mouse_position_ndc.y << std::endl;
+
+            if (mouse_position_ndc.x >= ui.position.x - (ui.scale.x / 2) && mouse_position_ndc.x <= ui.position.x + (ui.scale.x / 2) &&
+                mouse_position_ndc.y >= ui.position.y - (-ui.scale.y / 2) && mouse_position_ndc.y <= ui.position.y + (-ui.scale.y / 2))
+            {
+                if (!registry.selectedCards.has(entity))
+                {
+                    auto &selected = registry.selectedCards.emplace(entity);
+                    auto &upgradeCard = registry.upgradeCards.get(entity);
+                    auto &titleText = registry.motions.get(upgradeCard.name);
+                    selected.scale = ui.scale;
+                    ui.scale = selected.scale * vec2(1.02f, 1.02f);
+                }
+            }
+            else
+            {
+                if (registry.selectedCards.has(entity))
+                {
+                    auto &selected = registry.selectedCards.get(entity);
+                    ui.scale = selected.scale;
+
+                    auto &upgradeCard = registry.upgradeCards.get(entity);
+                    registry.selectedCards.remove(entity);
+                }
+            }
+        }
+    }
 }
 
 void PlayerController::on_mouse_button(int button, int action, int mods)
@@ -390,6 +491,32 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
             createBasicAttackHitbox(renderer, player_pos + (attack_direction * vec2(75, 75)), *my_player);
             player.last_direction = attack_direction;
             player.is_attacking = true;
+        }
+    }
+
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+    {
+        world->set_level_up_state(true);
+
+        displayUpgradeCards();
+    }
+
+    if (world->is_level_up && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
+        for (Entity entity : registry.selectedCards.entities)
+        {
+            auto &upgradeCardComponent = registry.upgradeCards.get(entity);
+
+            std::cout << upgradeCardComponent.name << std::endl;
+            upgradeCardComponent.onClick();
+
+            for (Entity entity : registry.upgradeCards.entities)
+            {
+                registry.remove_all_components_of(entity);
+            }
+
+            world->set_level_up_state(false);
+            break;
         }
     }
 }

@@ -231,7 +231,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == -1 || map[y][x] == 0 || map[y][x] == 2 || map[y][x] == 9 || (map[y][x] >= 10 && map[y][x] <= 16))
+            if (map[y][x] == -1 || map[y][x] == 0 || map[y][x] == 9 || (map[y][x] >= 10 && map[y][x] <= 16))
             {
                 return false;
             }
@@ -255,7 +255,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == -1 || map[y][x] == 0 || map[y][x] == 2 || map[y][x] == 9 || (map[y][x] >= 10 && map[y][x] <= 16))
+            if (map[y][x] == -1 || map[y][x] == 0 || map[y][x] == 9 || (map[y][x] >= 10 && map[y][x] <= 16))
             {
                 return false;
             }
@@ -274,7 +274,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
     {
         return false;
     }
-    return map[y][x] != 0 && map[y][x] != 2;
+    return map[y][x] != 0;
 }
 
 // Find A* path for enemy
@@ -715,20 +715,20 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
         Effect& effect = registry.effects.get(e);
         Motion& effect_motion = registry.motions.get(e);
         
-        effect_motion.scale =  {((effect.lifespan_ms - effect.ms_passed) / effect.lifespan_ms) * effect.width_init, ((effect.lifespan_ms - effect.ms_passed) / effect.lifespan_ms) * effect.height_init};
         effect.ms_passed += elapsed_ms;
         if (effect.type == EFFECT_TYPE::SMOKE) {
-            effect_motion.velocity *= 0.7;
-            //if (effect.ms_passed >= (0.5 * effect.lifespan_ms)) {
-            //    effect_motion.velocity.y = 0;
-            //}
-        }
-        if (effect.type == EFFECT_TYPE::DASH) {
-            effect_motion.scale = {effect.width_init, effect.height_init};
+            if (effect.ms_passed >= 500) {
+                //effect_motion.scale *= 0.9;
+            }
+            
         }
 
         effect_motion.position.x += effect_motion.velocity.x * elapsed_ms;
         effect_motion.position.y += effect_motion.velocity.y * elapsed_ms;
+
+        if (effect.ms_passed >= effect.lifespan_ms) {
+            registry.remove_all_components_of(e);
+        }
     }
     
 	// Move fish based on how much time has passed, this is to (partially) avoid

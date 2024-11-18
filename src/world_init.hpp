@@ -51,6 +51,8 @@ const float TILE_PX_SIZE = 16.f;
 const float BASIC_ATTACK_WIDTH = 100.f;
 const float BASIC_ATTACK_HEIGHT = 100.f;
 
+const float UPGRADE_CARD_TITLE_Y = 0.2f;
+
 // the player
 Entity createPlayer(RenderSystem *renderer, vec2 pos);
 
@@ -88,14 +90,18 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos, int type);
 Entity createSlimePatch(RenderSystem *renderer, vec2 pos);
 
 
-void createSmoke(RenderSystem* renderer, vec2 pos);
+Entity createSmoke(RenderSystem* renderer, vec2 pos);
 
 Entity createEffect(RenderSystem* renderer, vec2 pos, float lifespan_ms, EFFECT_TYPE type);
 
-Entity createStaminaBar(RenderSystem* renderer, vec2 pos);
+Entity createStaminaBar(RenderSystem *renderer, vec2 pos);
 // a experience
 Entity createExperience(RenderSystem *renderer, vec2 pos, int experience);
 
-Entity createSwarm(RenderSystem* renderer, vec2 pos, float separation, float alignment, float cohesion);
+Entity createSwarm(RenderSystem *renderer, vec2 pos, float separation, float alignment, float cohesion);
 
-Entity createSwarmMember(RenderSystem* renderer, vec2 pos, float separation, float alignment, float cohesion, int leader);
+Entity createSwarmMember(RenderSystem *renderer, vec2 pos, float separation, float alignment, float cohesion, int leader);
+
+using OnClickCallback = std::function<void()>;
+
+Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, TEXTURE_ASSET_ID texture_id, std::string title, std::string description, OnClickCallback onClick);

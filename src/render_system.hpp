@@ -69,7 +69,8 @@ class RenderSystem
 			textures_path("dash.png"),
 			textures_path("stamina_regen.png"),
 			textures_path("coins.png"),
-			textures_path("beetle.png")
+			textures_path("beetle.png"),
+			textures_path("card.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -81,7 +82,8 @@ class RenderSystem
 		shader_path("textured"),
 		shader_path("water"),
 		shader_path("font"),
-		shader_path("dash")
+		shader_path("dash"),
+		shader_path("smoke")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
