@@ -360,26 +360,26 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 			// furniture spawning
 			if (current_map[j][i] == 2 || (current_map[j][i] >= 9 && current_map[j][i] <= 26)) {
-				if (current_map[j][i] == 2 && current_map[j - 1][i] != current_map[j][i] && current_map[j][i-1] != current_map[j][i]) {
-					// add 2 while loops here to find furniture size
-					int horiz_idx = 1;
-					int vert_idx = 1;
-					while (current_map[j + vert_idx][i] == 2)
-					{
-						vert_idx += 1;
-					}
-					while (current_map[j][i + horiz_idx] == 2)
-					{
-						horiz_idx += 1;
-					}
+				//if (current_map[j][i] == 2 && current_map[j - 1][i] != current_map[j][i] && current_map[j][i-1] != current_map[j][i]) {
+				//	// add 2 while loops here to find furniture size
+				//	int horiz_idx = 1;
+				//	int vert_idx = 1;
+				//	while (current_map[j + vert_idx][i] == 2)
+				//	{
+				//		vert_idx += 1;
+				//	}
+				//	while (current_map[j][i + horiz_idx] == 2)
+				//	{
+				//		horiz_idx += 1;
+				//	}
 
-					// pos {world_pos.x + (TILE_SIZE * ((horiz_idx - 1) / 2)), world_pos.y + (TILE_SIZE * ((vert_idx - 1) / 2))}
-					createFurniture(renderer, {world_pos.x, world_pos.y}, current_map[j][i]);
-				} else if (current_map[j][i] != 2) {
-					createFurniture(renderer, {world_pos.x, world_pos.y}, current_map[j][i]);
-				}
+				//	// pos {world_pos.x + (TILE_SIZE * ((horiz_idx - 1) / 2)), world_pos.y + (TILE_SIZE * ((vert_idx - 1) / 2))}
+				//	createFurniture(renderer, {world_pos.x, world_pos.y}, current_map[j][i]);
+				//} else if (current_map[j][i] != 2) {
+				//	createFurniture(renderer, {world_pos.x, world_pos.y}, current_map[j][i]);
+				//}
+				createFurniture(renderer, { world_pos.x, world_pos.y }, current_map[j][i]);
 				tile_vec.push_back(vec2(i, j));
-				
 			}
 
 			if (current_map[j][i] == 3 && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
@@ -830,6 +830,9 @@ void WorldSystem::restart_game()
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
+	
+	//clear spawnable_tiles on map switch
+	spawnable_tiles.clear();
 
 	// create a slime patches and create spawnable tiles vector
 	for (int i = 0; i < current_map.size(); i++)
