@@ -34,6 +34,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			transform.scale(vec2(1.5, 2.7));
 		} else if (enemy.enemy_type == ENEMY_TYPES::PROJECTILE) {
 			transform.scale(vec2(5, 5));
+		} else if (enemy.enemy_type == ENEMY_TYPES::FINAL_BOSS) {
+			transform.scale(vec2(1.5, 1.5));
 		}
 	}
 

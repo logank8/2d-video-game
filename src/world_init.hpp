@@ -14,8 +14,8 @@ const float PROJ_SIZE = 0.6f * 30.f;
 const float PLAYER_BB_WIDTH = 0.7f * 90.f;
 const float PLAYER_BB_HEIGHT = 0.7f * 110.f;
 
-const float BOSS_BB_WIDTH = 3.f * 14.f;
-const float BOSS_BB_HEIGHT = 3.f * 39.f;
+const float BOSS_BB_WIDTH = 4.f * 14.f;
+const float BOSS_BB_HEIGHT = 4.f * 36.f;
 
 const float EEL_BB_WIDTH = 0.6f * 80.f;  // 1001
 const float EEL_BB_HEIGHT = 0.6f * 70.f; // 870

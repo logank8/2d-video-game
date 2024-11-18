@@ -180,7 +180,7 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 
 	// Create an (empty) Bug component to be able to refer to all bug
 	auto &enemy = registry.deadlys.emplace(entity);
-	enemy.enemy_type = ENEMY_TYPES::RANGED;
+	enemy.enemy_type = ENEMY_TYPES::FINAL_BOSS;
 
 	auto &health = registry.healths.emplace(entity);
 	health.hit_points = 1000.f;
@@ -191,30 +191,30 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 	registry.renderRequests.insert(
 		entity,
 		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
-		 SPRITE_ASSET_ID::RANGED_ENEMY,
+		 SPRITE_ASSET_ID::FINAL_BOSS,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 0});
 
-	std::vector<int> idle_f_vec = {0, 1, 2, 3, 4};
+	std::vector<int> idle_f_vec = {0, 1, 2, 3};
 	Animation idle_f = {
 		"rangedenemy_idle_f",
 		12,
-		SPRITE_ASSET_ID::RANGED_ENEMY,
+		SPRITE_ASSET_ID::FINAL_BOSS,
 		idle_f_vec};
 
-	std::vector<int> run_f_vec = {8, 9, 10, 11, 12, 13, 14, 15};
+	std::vector<int> run_f_vec = {0, 1, 2, 3};
 	Animation run_f = {
 		"rangedenemy_run_f",
 		10,
-		SPRITE_ASSET_ID::RANGED_ENEMY,
+		SPRITE_ASSET_ID::FINAL_BOSS,
 		run_f_vec};
 
-	std::vector<int> die_vec = {32, 33, 34, 35, 36};
+	std::vector<int> die_vec = {0, 1, 2, 3};
 	Animation die = {
 		"rangedenemy_die",
 		7,
-		SPRITE_ASSET_ID::RANGED_ENEMY,
+		SPRITE_ASSET_ID::FINAL_BOSS,
 		die_vec};
 
 	auto &animSet = registry.animationSets.emplace(entity);

@@ -42,6 +42,7 @@ class RenderSystem
 			textures_path("adventurer.png"),
 			textures_path("mini_golem.png"),
 			textures_path("bubble_closed.png"), // ranged projectile
+			textures_path("boss_run.png"),
 			textures_path("health_bar.png"),
 			textures_path("hp_bar/hp_bar_0.png"), // empty
 			textures_path("hp_bar/hp_bar_1.png"), // 1
