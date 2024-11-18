@@ -779,7 +779,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
     } else {
 			//Handle contact damage enemies
 			if (registry.deadlys.has(entity)) {
-				if (registry.deadlys.get(entity).enemy_type != ENEMY_TYPES::PROJECTILE) {
+				if (!registry.projectiles.has(entity)) {
                     
 
                     //A* pathfinding
@@ -793,8 +793,13 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                         
                     }
                     
-                } else
+                }
+                else
                     {
+                        if (registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::HOMING_PROJECTILE) {
+                            Motion& player_motion = registry.motions.get(registry.players.entities[0]);
+                            motion.angle = atan2(motion.position.y - player_motion.position.y, motion.position.x - player_motion.position.x);
+                        }
                         motion.position.x -= cos(motion.angle) * motion.velocity.x * step_seconds;
                         motion.position.y -= sin(motion.angle) * motion.velocity.y * step_seconds;
                     }

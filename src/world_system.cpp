@@ -206,7 +206,7 @@ void createHPBar(Entity enemy)
 	{
 		return;
 	}
-	if (registry.healths.has(enemy) && registry.deadlys.get(enemy).enemy_type != ENEMY_TYPES::PROJECTILE)
+	if (registry.healths.has(enemy) && !registry.projectiles.has(enemy))
 	{
 		float &hp = registry.healths.get(enemy).hit_points;
 		float &max_hp = registry.healths.get(enemy).max_hp;
@@ -529,8 +529,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			ranged_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
 			distance_to_player = sqrt(pow(ranged_pos.x - player_pos.x, 2) + pow(ranged_pos.y - player_pos.y, 2));
 		} while (distance_to_player < 300.f);
-
-		createRangedEnemy(renderer, ranged_pos);
+		if (uniform_dist(rng) > 0.5) {
+			createRangedEnemy(renderer, ranged_pos);
+		}
+		else {
+			createRangedHomingEnemy(renderer, ranged_pos);
+		}
 		// tile_vec.push_back(spawnable_tiles[index]);
 	}
 
@@ -546,7 +550,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			{
 				// reset timer
 				projectile_delay = (RANGED_ENEMY_PROJECTILE_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_PROJECTILE_DELAY_MS / 2);
-				Entity projectile = createRangedProjectile(renderer, registry.motions.get(ranged).position);
+				Entity projectile;
+				if (registry.deadlys.get(ranged).enemy_type == ENEMY_TYPES::RANGED) {
+					projectile = createRangedProjectile(renderer, registry.motions.get(ranged).position);
+				}
+				else if (registry.deadlys.get(ranged).enemy_type == ENEMY_TYPES::RANGED_HOMING) {
+					projectile = createRangedHomingProjectile(renderer, registry.motions.get(ranged).position);
+				}
 				Motion &projectile_motion = registry.motions.get(projectile);
 				Motion &player_motion = registry.motions.get(my_player);
 				projectile_motion.angle = atan2(projectile_motion.position.y - player_motion.position.y, projectile_motion.position.x - player_motion.position.x);
@@ -593,7 +603,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				Deadly &deadly = registry.deadlys.get(entity);
 				Motion &enemy_motion = registry.motions.get(entity);
 
-				if (roll <= deadly.drop_chance && deadly.enemy_type != ENEMY_TYPES::PROJECTILE)
+				if (roll <= deadly.drop_chance && !registry.projectiles.has(entity))
 				{
 					createExperience(renderer, enemy_motion.position, deadly.experience);
 					
@@ -601,7 +611,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 				
 				float roll_powerup = uniform_dist(rng);
-				if (roll_powerup <= POWERUP_DROP_CHANCE && deadly.enemy_type != ENEMY_TYPES::PROJECTILE) {
+				if (roll_powerup <= POWERUP_DROP_CHANCE && !registry.projectiles.has(entity)) {
 					PowerupType type = (PowerupType) randomInt(2); // Change this if more powerups
 					float multiplier = 1.f;
 					float timer = POWERUP_TIMER;
@@ -746,7 +756,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	for (Entity &e : registry.deadlys.entities)
 	{
 		Deadly &enemy = registry.deadlys.get(e);
-		if (enemy.enemy_type == ENEMY_TYPES::PROJECTILE)
+		if (registry.projectiles.has(e))
 		{
 			continue;
 		}
@@ -756,6 +766,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		switch (enemy.enemy_type)
 		{
 		case ENEMY_TYPES::PROJECTILE:
+			continue;
+		case ENEMY_TYPES::HOMING_PROJECTILE:
 			continue;
 		case ENEMY_TYPES::RANGED:
 			enemy_name = "ranged";
@@ -771,6 +783,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			break;
 		case ENEMY_TYPES::SLOWING_CONTACT:
 			enemy_name = "fast";
+			break;
+		case ENEMY_TYPES::RANGED_HOMING:
+			enemy_name = "ranged";
 			break;
 		default:
 			break;
@@ -972,7 +987,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 					player.invulnerable = true;
 					player.invulnerable_duration_ms = 1000.f;
 				}
-				if (registry.deadlys.get(entity_other).enemy_type == ENEMY_TYPES::PROJECTILE)
+				if (registry.projectiles.has(entity_other))
 				{
 					registry.remove_all_components_of(entity_other);
 				}
@@ -1149,7 +1164,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 				vec2 diff = enemy_motion.position - pmotion.position;
 
-				if (deadly.enemy_type != ENEMY_TYPES::PROJECTILE && deadly_health.hit_points > 0)
+				if (!registry.projectiles.has(entity_other) && deadly_health.hit_points > 0)
 				{
 					vec2 kockback_pos = enemy_motion.position + (diff * player.knockback_strength);
 					int grid_x = static_cast<int>((kockback_pos.x - (640 - (25 * TILE_SIZE))) / TILE_SIZE);
@@ -1271,7 +1286,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 					d.state = ENEMY_STATE::DEAD;
 					DeathTimer &death = registry.deathTimers.emplace(entity_other);
 					death.counter_ms = 550.4f;
-					if (!(d.enemy_type == ENEMY_TYPES::PROJECTILE || d.enemy_type == ENEMY_TYPES::SWARM)) {
+					if (!(registry.projectiles.has(entity_other) || d.enemy_type == ENEMY_TYPES::SWARM)) {
 						createSmoke(renderer, {enemy_motion.position.x , enemy_motion.position.y});
 					}
 					

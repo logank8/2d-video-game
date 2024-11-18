@@ -364,7 +364,6 @@ Entity createRangedProjectile(RenderSystem *renderer, vec2 position)
 	// Create an (empty) Bug component to be able to refer to all bug
 	auto &enemy = registry.deadlys.emplace(entity);
 	enemy.enemy_type = ENEMY_TYPES::PROJECTILE;
-	// registry.healths.emplace(entity);
 	auto &damage = registry.damages.emplace(entity);
 	damage.damage = 25.f;
 	auto &health = registry.healths.emplace(entity);
@@ -376,6 +375,108 @@ Entity createRangedProjectile(RenderSystem *renderer, vec2 position)
 		 SPRITE_ASSET_ID::SPRITE_COUNT,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE});
+
+	return entity;
+}
+
+Entity createRangedHomingEnemy(RenderSystem* renderer, vec2 position)
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 50.f, 50.f };
+	motion.position = position;
+
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ RANGED_BB_WIDTH, RANGED_BB_HEIGHT });
+
+	// Create an (empty) Bug component to be able to refer to all bug
+	auto& enemy = registry.deadlys.emplace(entity);
+	enemy.enemy_type = ENEMY_TYPES::RANGED_HOMING;
+	registry.healths.emplace(entity);
+	registry.damages.emplace(entity);
+	registry.ranged.emplace(entity);
+	auto& color = registry.colors.emplace(entity);
+	color = vec3(1.f, 0, 0);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 SPRITE_ASSET_ID::RANGED_ENEMY,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 0 });
+
+	std::vector<int> idle_f_vec = { 0, 1, 2, 3, 4 };
+	Animation idle_f = {
+		"rangedenemy_idle_f",
+		12,
+		SPRITE_ASSET_ID::RANGED_ENEMY,
+		idle_f_vec };
+
+	std::vector<int> run_f_vec = { 8, 9, 10, 11, 12, 13, 14, 15 };
+	Animation run_f = {
+		"rangedenemy_run_f",
+		10,
+		SPRITE_ASSET_ID::RANGED_ENEMY,
+		run_f_vec };
+
+	std::vector<int> die_vec = { 32, 33, 34, 35, 36 };
+	Animation die = {
+		"rangedenemy_die",
+		7,
+		SPRITE_ASSET_ID::RANGED_ENEMY,
+		die_vec };
+
+	auto& animSet = registry.animationSets.emplace(entity);
+	animSet.animations[idle_f.name] = idle_f;
+	animSet.animations[run_f.name] = run_f;
+	animSet.animations[die.name] = die;
+	animSet.current_animation = idle_f.name;
+
+	return entity;
+}
+
+Entity createRangedHomingProjectile(RenderSystem* renderer, vec2 position)
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ -PROJ_SIZE, PROJ_SIZE });
+
+	// Create an (empty) Bug component to be able to refer to all bug
+	auto& enemy = registry.deadlys.emplace(entity);
+	enemy.enemy_type = ENEMY_TYPES::HOMING_PROJECTILE;
+	auto& damage = registry.damages.emplace(entity);
+	damage.damage = 25.f;
+	auto& health = registry.healths.emplace(entity);
+	health.hit_points = 1.f;
+	registry.projectiles.emplace(entity);
+	auto& color = registry.colors.emplace(entity);
+	color = vec3(1.f, 0, 0);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::RANGED_PROJECTILE,
+		 SPRITE_ASSET_ID::SPRITE_COUNT,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
 }
