@@ -782,6 +782,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		case ENEMY_TYPES::SLOWING_CONTACT:
 			enemy_name = "fast";
 			break;
+		case ENEMY_TYPES::FINAL_BOSS:
+			enemy_name = "final_boss_";
+			break;
 		default:
 			break;
 		}

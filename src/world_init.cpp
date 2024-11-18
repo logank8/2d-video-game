@@ -183,8 +183,8 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 	enemy.enemy_type = ENEMY_TYPES::FINAL_BOSS;
 
 	auto &health = registry.healths.emplace(entity);
-	health.hit_points = 1000.f;
-	health.max_hp = 1000.f;
+	health.hit_points = 2000.f;
+	health.max_hp = 2000.f;
 
 	registry.damages.emplace(entity);
 	registry.bosses.emplace(entity);
@@ -198,21 +198,21 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 
 	std::vector<int> idle_f_vec = {0, 1, 2, 3};
 	Animation idle_f = {
-		"final_boss_idle_f",
+		"final_boss_enemy_idle_f",
 		12,
 		SPRITE_ASSET_ID::FINAL_BOSS,
 		idle_f_vec};
 
 	std::vector<int> run_f_vec = {0, 1, 2, 3};
 	Animation run_f = {
-		"final_boss_run_f",
+		"final_boss_enemy_run_f",
 		10,
 		SPRITE_ASSET_ID::FINAL_BOSS,
 		run_f_vec};
 
 	std::vector<int> die_vec = {0, 1, 2, 3};
 	Animation die = {
-		"final_boss_die",
+		"final_boss_enemy_die",
 		7,
 		SPRITE_ASSET_ID::FINAL_BOSS,
 		die_vec};
