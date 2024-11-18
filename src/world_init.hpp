@@ -44,6 +44,12 @@ const float KITCHEN_COUNTER_1_BB_HEIGHT = 3.125f * 43.f;
 const float KITCHEN_COUNTER_2_BB_WIDTH = 3.125f * 32.f;
 const float KITCHEN_COUNTER_2_BB_HEIGHT = 3.125f * 64.f;
 
+const float FRIDGE_BB_WIDTH = 3.636f * 26.f;
+const float FRIDGE_BB_HEIGHT = 3.636f * 55.f;
+
+const float STOVE_BB_WIDTH = 3.125f * 30.f;
+const float STOVE_BB_HEIGHT = 3.125f * 43.f;
+
 const float HPBAR_BB_WIDTH = 0.46f;
 const float HPBAR_BB_HEIGHT = 0.20f;
 

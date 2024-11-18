@@ -318,7 +318,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			}
 
 			// furniture spawning
-			if (current_map[j][i] == 2 || (current_map[j][i] >= 9 && current_map[j][i] <= 16)) {
+			if (current_map[j][i] == 2 || (current_map[j][i] >= 9 && current_map[j][i] <= 18)) {
 				if (current_map[j][i] == 2 && current_map[j - 1][i] != current_map[j][i] && current_map[j][i-1] != current_map[j][i]) {
 					// add 2 while loops here to find furniture size
 					int horiz_idx = 1;

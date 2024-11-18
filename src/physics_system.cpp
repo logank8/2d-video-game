@@ -177,20 +177,32 @@ bool is_walkable(const vec2 &pos, vec2 dir)
 
     // Check for clipping through walls when moving diagonally
     if (dir == diagonals[0]) {  // Moving top-right
+        if (map[grid_y][grid_x - 1] == -1 || map[grid_y - 1][grid_x] == -1) return false;
         if (map[grid_y][grid_x - 1] == 0 || map[grid_y - 1][grid_x] == 0) return false;
         if (map[grid_y][grid_x - 1] == 2 || map[grid_y - 1][grid_x] == 2) return false;
+        if (map[grid_y][grid_x - 1] == 9 || map[grid_y - 1][grid_x] == 9) return false;
+        if ((map[grid_y][grid_x - 1] >= 10 && map[grid_y][grid_x - 1] <= 18) || (map[grid_y - 1][grid_x] >= 2 && map[grid_y - 1][grid_x] <= 18)) return false;
     }
     else if (dir == diagonals[1]) {  // Moving top-left
+        if (map[grid_y][grid_x + 1] == -1 || map[grid_y - 1][grid_x] == -1) return false;
         if (map[grid_y][grid_x + 1] == 0 || map[grid_y - 1][grid_x] == 0) return false;
         if (map[grid_y][grid_x + 1] == 2 || map[grid_y - 1][grid_x] == 2) return false;
+        if (map[grid_y][grid_x + 1] == 9 || map[grid_y - 1][grid_x] == 9) return false;
+        if ((map[grid_y][grid_x + 1] >= 10 && map[grid_y][grid_x + 1] <= 18) || (map[grid_y - 1][grid_x] >= 2 && map[grid_y - 1][grid_x] <= 18)) return false;
     }
     else if (dir == diagonals[2]) {  // Moving bottom-right
+        if (map[grid_y + 1][grid_x] == -1 || map[grid_y + 1][grid_x] == -1) return false;
         if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x - 1] == 0) return false;
         if (map[grid_y + 1][grid_x] == 2 || map[grid_y][grid_x - 1] == 2) return false;
+        if (map[grid_y + 1][grid_x] == 9 || map[grid_y + 1][grid_x] == 9) return false;
+        if ((map[grid_y][grid_x + 1] >= 10 && map[grid_y + 1][grid_x] <= 18) || (map[grid_y + 1][grid_x] >= 2 && map[grid_y + 1][grid_x] <= 18)) return false;
     }
     else if (dir == diagonals[3]) {  // Moving bottom-left
+        if (map[grid_y + 1][grid_x] == -1 || map[grid_y][grid_x + 1] == -1) return false;
         if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x + 1] == 0) return false;
         if (map[grid_y + 1][grid_x] == 2 || map[grid_y][grid_x + 1] == 2) return false;
+        if (map[grid_y + 1][grid_x] == 9 || map[grid_y][grid_x + 1] == 9) return false;
+        if ((map[grid_y][grid_x + 1] >= 10 && map[grid_y + 1][grid_x] <= 18) || (map[grid_y][grid_x + 1] >= 2 && map[grid_y][grid_x + 1] <= 18)) return false;
     }
 
     return map[grid_y][grid_x] != 0 && map[grid_y][grid_x] != 2;
@@ -231,7 +243,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == -1 || map[y][x] == 0 || map[y][x] == 9 || (map[y][x] >= 10 && map[y][x] <= 16))
+            if (map[y][x] == -1 || map[y][x] == 0 || map[y][x] == 9 || (map[y][x] >= 10 && map[y][x] <= 18))
             {
                 return false;
             }
@@ -255,7 +267,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == -1 || map[y][x] == 0 || map[y][x] == 9 || (map[y][x] >= 10 && map[y][x] <= 16))
+            if (map[y][x] == -1 || map[y][x] == 0 || map[y][x] == 9 || (map[y][x] >= 10 && map[y][x] <= 18))
             {
                 return false;
             }

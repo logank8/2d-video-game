@@ -558,6 +558,14 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos, int type)
 		motion.scale = vec2({KITCHEN_COUNTER_2_BB_WIDTH, KITCHEN_COUNTER_2_BB_HEIGHT});
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::KITCHEN_COUNTER_2;
+	} else if (type == 17) {
+		motion.scale = vec2({FRIDGE_BB_WIDTH, FRIDGE_BB_HEIGHT});
+		motion.position.y -= 50;
+		texture = TEXTURE_ASSET_ID::FRIDGE;
+	} else if (type == 18) {
+		motion.scale = vec2({STOVE_BB_WIDTH, STOVE_BB_HEIGHT});
+		motion.position.y += 17;
+		texture = TEXTURE_ASSET_ID::STOVE;
 	}
 
 	// create an empty component for the furniture as a solid object
