@@ -591,9 +591,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					}
 				}
 
+				// Check if final boss is dead then stop game
+				if (registry.bosses.has(entity)) {
+					is_paused = true;
+					createText({window_width_px / 2 - 100, window_height_px / 2}, 1, "!!!You Win!!!", glm::vec3(1.f, 1.f, 1.f));
+				}
+
 				registry.remove_all_components_of(entity);
 				enemies_killed++;
-				if (enemies_killed >= enemy_kill_goal)
+				if (enemies_killed >= enemy_kill_goal && current_map != map2)
 				{
 					mapSwitch(2);
 					return true;
@@ -794,6 +800,11 @@ void WorldSystem::restart_game()
 			// create vector of spawnable tiles
 			else if (current_map[i][j] == 1 || (current_map[i][j] >= 3 && current_map[i][j] <= 8)) {
 				spawnable_tiles.push_back(vec2(i, j));
+			}
+
+			// Create final boss
+			if (current_map[i][j] == 30) {
+				createBossEnemy(renderer, world_pos);
 			}
 		}
 	}

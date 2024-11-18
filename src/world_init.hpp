@@ -14,6 +14,9 @@ const float PROJ_SIZE = 0.6f * 30.f;
 const float PLAYER_BB_WIDTH = 0.7f * 90.f;
 const float PLAYER_BB_HEIGHT = 0.7f * 110.f;
 
+const float BOSS_BB_WIDTH = 3.f * 14.f;
+const float BOSS_BB_HEIGHT = 3.f * 39.f;
+
 const float EEL_BB_WIDTH = 0.6f * 80.f;  // 1001
 const float EEL_BB_HEIGHT = 0.6f * 70.f; // 870
 
@@ -88,6 +91,9 @@ Entity createPlayer(RenderSystem *renderer, vec2 pos);
 
 // the hp bar
 Entity createHPBar(RenderSystem *renderer, vec2 pos);
+
+// Final boss enemy
+Entity createBossEnemy(RenderSystem *renderer, vec2 position);
 
 // slow contact damage enemy
 Entity createContactSlow(RenderSystem *renderer, vec2 position);

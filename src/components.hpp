@@ -95,6 +95,12 @@ struct Deadly
 	ENEMY_STATE state = ENEMY_STATE::IDLE;
 };
 
+// anything that is deadly to the player
+struct FinalBoss
+{
+
+};
+
 struct Effect
 {
 	float ms_passed = 0.f;
