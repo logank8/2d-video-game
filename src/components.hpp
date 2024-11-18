@@ -384,7 +384,8 @@ enum class EFFECT_ASSET_ID
 	WATER = TEXTURED + 1,
 	FONT = WATER + 1,
 	DASH = FONT + 1,
-	EFFECT_COUNT = DASH + 1
+	SMOKE = DASH + 1,
+	EFFECT_COUNT = SMOKE + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

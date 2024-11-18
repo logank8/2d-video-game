@@ -607,12 +607,37 @@ Entity createExperience(RenderSystem *renderer, vec2 pos, int experience)
 	return entity;
 }
 
-void createSmoke(RenderSystem *renderer, vec2 pos)
-{
-	for (int i = 0; i < 20; i++)
-	{
-		createEffect(renderer, pos, 500, EFFECT_TYPE::SMOKE);
-	}
+
+Entity createSmoke(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.scale = vec2({ 10, 10});
+
+	registry.effects.insert(entity, {
+		0.f, 
+		400.f, 
+		motion.scale.x,
+		motion.scale.y,
+		EFFECT_TYPE::SMOKE
+	});
+
+	registry.renderRequests.insert(
+		entity, {
+			TEXTURE_ASSET_ID::SMOKE_PARTICLE,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
+			EFFECT_ASSET_ID::SMOKE,
+			GEOMETRY_BUFFER_ID::SPRITE
+		}
+	);
+
+	return entity;
 }
 
 // plan for effects - used for particles, heart popups, whatever:
