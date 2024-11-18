@@ -13,20 +13,23 @@ enum class PLAYER_STATE
 	DEAD = DASH + 1
 };
 
-enum class ENEMY_STATE {
+enum class ENEMY_STATE
+{
 	IDLE = 0,
 	RUN = IDLE + 1,
 	ATTACK = RUN + 1,
 	DEAD = ATTACK + 1
 };
 
-enum class BUFF_TYPE {
+enum class BUFF_TYPE
+{
 	HEALTH = 0,
 	SPEED = HEALTH + 1,
 	ATTACK = SPEED + 1
 };
 
-enum class EFFECT_TYPE {
+enum class EFFECT_TYPE
+{
 	HEART = 0,
 	SMOKE = HEART + 1,
 	DASH = SMOKE + 1
@@ -45,7 +48,7 @@ struct Player
 	// For dashing and after taking damage;
 	bool invulnerable = false;
 	float invulnerable_duration_ms = 2000.f;
-	vec2 last_pos = { 0, 0 };
+	vec2 last_pos = {0, 0};
 	float dash_cooldown_ms = 3000.f;
 	float curr_dash_cooldown_ms = dash_cooldown_ms;
 	bool is_dash_up = true;
@@ -60,6 +63,8 @@ struct Player
 	// Other
 	float collection_distance = 100.f;
 	int experience = 0;
+	int toNextLevel = 5;
+	int level = 0;
 };
 
 enum class ENEMY_TYPES
@@ -191,8 +196,8 @@ struct Motion
 {
 	vec2 position = {0, 0};
 	float angle = 0;
-	vec2 velocity = { 0, 0 };
-	vec2 scale = { 10, 10 };
+	vec2 velocity = {0, 0};
+	vec2 scale = {10, 10};
 	float speed = 30.0f; // To control player speed
 };
 
@@ -283,6 +288,21 @@ struct Text
 	float scale;
 };
 
+struct UpgradeCard
+{
+	int tier = 1;
+	GLuint textureID;
+	Entity icon;
+	Entity name;
+	Entity description;
+	std::function<void()> onClick;
+};
+
+struct SelectedCard
+{
+	vec2 scale;
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -335,7 +355,8 @@ enum class TEXTURE_ASSET_ID
 	STAMINA_BAR = DASH + 1,
 	COINS = STAMINA_BAR + 1,
 	BEETLE = COINS + 1,
-	TEXTURE_COUNT = BEETLE + 1
+	CARD = BEETLE + 1,
+	TEXTURE_COUNT = CARD + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
