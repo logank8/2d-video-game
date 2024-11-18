@@ -88,7 +88,7 @@ struct Deadly
 	ENEMY_TYPES enemy_type = ENEMY_TYPES::CONTACT_DMG;
 	float movement_timer = 0.f;
 	float drop_chance = 1.0f;
-	int experience = 5;
+	int experience = 1;
 	ENEMY_STATE state = ENEMY_STATE::IDLE;
 };
 
