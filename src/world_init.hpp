@@ -26,8 +26,8 @@ const float PLANT_BB_WIDTH = 60.f;
 const float COAT_RACK_BB_HEIGHT = 3.5f * 44.f;
 const float COAT_RACK_BB_WIDTH = 4.f * 16.f;
 
-const float LONG_TABLE_BB_WIDTH = 100.f;
-const float LONG_TABLE_BB_HEIGHT = 75.f;
+const float LONG_TABLE_BB_WIDTH = 154.f;
+const float LONG_TABLE_BB_HEIGHT = 117.f;
 
 const float CHAIR_FRONT_BB_WIDTH = 3.f * 16.f;
 const float CHAIR_FRONT_BB_HEIGHT = 3.f * 27.f;
@@ -37,6 +37,12 @@ const float CHAIR_BACK_BB_HEIGHT = 3.f * 21.f;
 
 const float CHAIR_SIDE_BB_WIDTH = 3.f * 15.f;
 const float CHAIR_SIDE_BB_HEIGHT = 3.f * 28.f;
+
+const float KITCHEN_COUNTER_1_BB_WIDTH = 3.125f * 64.f;
+const float KITCHEN_COUNTER_1_BB_HEIGHT = 3.125f * 43.f;
+
+const float KITCHEN_COUNTER_2_BB_WIDTH = 3.125f * 32.f;
+const float KITCHEN_COUNTER_2_BB_HEIGHT = 3.125f * 64.f;
 
 const float HPBAR_BB_WIDTH = 0.46f;
 const float HPBAR_BB_HEIGHT = 0.20f;

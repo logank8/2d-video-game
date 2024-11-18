@@ -564,13 +564,23 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos, int type)
 	} else if (type == 12) {
 		motion.scale = vec2({CHAIR_BACK_BB_WIDTH, CHAIR_BACK_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::CHAIR_BACK;
+		motion.position.y -= 20;
 	} else if (type == 13) {
 		motion.scale = vec2({CHAIR_SIDE_BB_WIDTH, CHAIR_SIDE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::CHAIR_SIDE;
 	} else if (type == 14) {
 		motion.scale = vec2({-CHAIR_SIDE_BB_WIDTH, CHAIR_SIDE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::CHAIR_SIDE;
-	}	
+	} else if (type == 15) {
+		motion.scale = vec2({KITCHEN_COUNTER_1_BB_WIDTH, KITCHEN_COUNTER_1_BB_HEIGHT});
+		motion.position.x += 50;
+		motion.position.y += 17;
+		texture = TEXTURE_ASSET_ID::KITCHEN_COUNTER_1;
+	} else if (type == 16) {
+		motion.scale = vec2({KITCHEN_COUNTER_2_BB_WIDTH, KITCHEN_COUNTER_2_BB_HEIGHT});
+		motion.position.y -= 50;
+		texture = TEXTURE_ASSET_ID::KITCHEN_COUNTER_2;
+	}
 
 	// create an empty component for the furniture as a solid object
 	registry.solidObjs.emplace(entity);
