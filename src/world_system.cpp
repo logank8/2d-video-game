@@ -12,6 +12,7 @@
 #include "physics_system.hpp"
 #include "animation_system.hpp"
 #include "player_controller.hpp"
+#include <iomanip>
 
 // Game configuration
 // const size_t MAX_NUM_CONTACT_SLOW = 2;
@@ -28,6 +29,8 @@ std::vector<vec2> tile_vec;
 std::vector<vec2> spawnable_tiles;
 const int LIGHT_FLICKER_RATE = 2000 * 10;
 const int FPS_COUNTER_MS = 1000;
+const float POWERUP_DROP_CHANCE = 0.35;
+const float POWERUP_TIMER = 15000;
 
 int lightflicker_counter_ms;
 int fps_counter_ms;
@@ -89,6 +92,12 @@ namespace
 	{
 		fprintf(stderr, "%d: %s", error, desc);
 	}
+}
+
+// Returns an int between 0 and n
+int WorldSystem::randomInt(int n) {
+	double randomFloat = uniform_dist(rng);
+	return static_cast<int>(std::floor(randomFloat * (n + 1)));
 }
 
 // World initialization
@@ -227,6 +236,12 @@ void WorldSystem::mapSwitch(int map)
 	restart_game();
 }
 
+std::string floatToString1DP(double value) {
+	std::ostringstream out;
+	out << std::fixed << std::setprecision(1) << value;
+	return out.str();
+}
+
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update)
 {
@@ -277,6 +292,28 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					registry.remove_all_components_of(entity);
 				}
 			}
+		}
+	}
+
+	// Update timer on equipped powerups, if any
+	// Also show active powerup
+	if (registry.powerups.has(my_player)) {
+		Powerup& powerup = registry.powerups.get(my_player);
+		powerup.timer -= elapsed_ms_since_last_update;
+		float x = 60;
+		float y = 550;
+
+		std::string powerup_name = "";
+		if (powerup.type == PowerupType::DAMAGE_BOOST)
+			powerup_name = "Damage Boost";
+		else if (powerup.type == PowerupType::SPEED_BOOST)
+			powerup_name = "Speed Boost";
+		else if (powerup.type == PowerupType::INVINCIBILITY)
+			powerup_name = "Invincibility";
+
+		createText({ x, y }, 0.5f, "Powerup active: " + powerup_name + (powerup.multiplier < 1.02f ? "" : " with multiplier x" + floatToString1DP(powerup.multiplier)), {1.f, 1.f, 1.f});
+		if (powerup.timer < 0) {
+			registry.powerups.remove(my_player);
 		}
 	}
 
@@ -416,7 +453,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			if (current_map[j][i] == 6)
 			{
 				// BUFF_TYPE type = static_cast<BUFF_TYPE>((int) (rand() % 3));
-				// createBuff(renderer, world_pos, type);
+				createHealthBuff(renderer, world_pos);
 				tile_vec.push_back(vec2(i, j));
 			}
 
@@ -559,6 +596,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				if (roll <= deadly.drop_chance && deadly.enemy_type != ENEMY_TYPES::PROJECTILE)
 				{
 					createExperience(renderer, enemy_motion.position, deadly.experience);
+					
+				}
+
+				
+				float roll_powerup = uniform_dist(rng);
+				if (roll_powerup <= POWERUP_DROP_CHANCE && deadly.enemy_type != ENEMY_TYPES::PROJECTILE) {
+					PowerupType type = (PowerupType) randomInt(2); // Change this if more powerups
+					float multiplier = 1.f;
+					float timer = POWERUP_TIMER;
+					if (type == PowerupType::DAMAGE_BOOST || type == PowerupType::SPEED_BOOST) {
+						int multiplier_roll = randomInt(10);
+						if (multiplier_roll < 7)
+							multiplier *= 1.5f;
+						else multiplier *= 2.f;
+					}
+					createTempPowerup(renderer, enemy_motion.position, type, multiplier, timer);
 				}
 
 
@@ -893,6 +946,13 @@ void WorldSystem::handle_collisions(float step_seconds)
 				Player &player = registry.players.get(entity);
 				if (!player.invulnerable && !registry.deathTimers.has(entity_other))
 				{
+					if (registry.powerups.has(entity)) {
+						Powerup& powerup = registry.powerups.get(entity);
+						if (powerup.type == PowerupType::INVINCIBILITY)
+							// In this case, player does not receive damage
+							continue;
+					}
+
 					// player takes damage
 					player_hp -= registry.damages.get(entity_other).damage;
 					// avoid negative hp values for hp bar
@@ -935,15 +995,26 @@ void WorldSystem::handle_collisions(float step_seconds)
 					motion.velocity[1] = 0.0f;
 				}
 			}
-			// Checking Player - Eatable collisions
+			// Checking Player - Eatable collisions (e.g. powerups)
 			else if (registry.eatables.has(entity_other))
 			{
-				if (!registry.deathTimers.has(entity))
+				if (!registry.deathTimers.has(entity) && !registry.powerups.has(entity))
 				{
-					// chew, count points, and set the LightUp timer
+					Powerup& powerup = registry.powerups.get(entity_other);
+					PowerupType type = powerup.type;
+					float timer = powerup.timer;
+					float multiplier = powerup.multiplier;
+
 					registry.remove_all_components_of(entity_other);
+
+					Powerup& player_powerup = registry.powerups.emplace(entity);
+					
+					player_powerup.type = type;
+
+					player_powerup.multiplier = multiplier;
+					player_powerup.timer = timer;
+
 					Mix_PlayChannel(-1, salmon_eat_sound, 0);
-					++points;
 				}
 			}
 			// Checking player collision with solid object
@@ -986,6 +1057,10 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 				motion_moving.velocity = newvelocity;
 				motion_moving.position = newpos;
+
+				if (!registry.players.get(entity).is_dash_up && (registry.players.get(entity).curr_dash_cooldown_ms) >= 2900.f) {
+					registry.motions.get(entity).speed = 0.f;
+				}
 
 				/*
 				float left_1 = motion_moving.position.x - (abs(motion_moving.scale.x) / 2);
@@ -1045,6 +1120,12 @@ void WorldSystem::handle_collisions(float step_seconds)
 				player_motion.speed = 120.f;
 				unstick_player = false;
 			}
+
+			// touching health buffs
+            if (registry.healthBuffs.has(entity_other)) {
+                HealthBuff& hb = registry.healthBuffs.get(entity_other);
+                hb.touching = true;
+            } 
 		}
 		else if (registry.deadlys.has(entity))
 		{
@@ -1064,7 +1145,15 @@ void WorldSystem::handle_collisions(float step_seconds)
 				Player &player = registry.players.get(my_player);
 				Deadly &deadly = registry.deadlys.get(entity_other);
 
-				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - damage.damage);
+				float temp_multiplier = 1.f;
+				if (registry.powerups.has(my_player)) {
+					Powerup &powerup = registry.powerups.get(my_player);
+					if (powerup.type == PowerupType::DAMAGE_BOOST) {
+						temp_multiplier *= powerup.multiplier;
+					}
+				}
+
+				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - (damage.damage * temp_multiplier));
 
 				vec2 diff = enemy_motion.position - pmotion.position;
 
@@ -1339,6 +1428,27 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			player.invulnerable = true;
 			player.invulnerable_duration_ms = 150.f;
 		}
+	}
+
+	if (key == GLFW_KEY_E && action == GLFW_RELEASE) {
+		for (Entity e : registry.healthBuffs.entities) {
+			HealthBuff& buff = registry.healthBuffs.get(e);
+			if (buff.touching) {
+				Health& p_health = registry.healths.get(my_player);
+				RenderRequest& hp_bar_render = registry.renderRequests.get(hp_bar);
+				if (p_health.hit_points < 200) {
+					std::cout << "player regained health" << std::endl;
+					p_health.hit_points += min(buff.factor * 25.f, 200.f - p_health.hit_points);
+					createEffect(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);
+				}
+					
+				if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_FULL) {
+					hp_bar_render.used_texture = static_cast<TEXTURE_ASSET_ID>(static_cast<int>(hp_bar_render.used_texture) + 1);
+				}
+				
+			} 
+		}
+
 	}
   
   if (!WorldSystem::is_paused)

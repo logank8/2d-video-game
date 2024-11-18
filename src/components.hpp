@@ -241,6 +241,11 @@ struct UserInterface
 	vec2 scale = {10, 10};
 };
 
+struct HealthBuff {
+	float factor = 1;
+	bool touching = false;
+};
+
 // A struct to refer to debugging graphics in the ECS
 struct DebugComponent
 {
@@ -296,6 +301,21 @@ struct Text
 	std::string content = "";
 	glm::vec3 color;
 	float scale;
+};
+
+enum PowerupType
+{
+	DAMAGE_BOOST = 0,
+	INVINCIBILITY = DAMAGE_BOOST + 1,
+	SPEED_BOOST = INVINCIBILITY + 1
+};
+
+// Current temporary powerup held by the player
+struct Powerup {
+	PowerupType type;
+	float multiplier = 1; // Only in case of damage and speed boost
+	float timer = 10000;
+	bool equipped = false;
 };
 
 struct UpgradeCard
@@ -381,8 +401,11 @@ enum class TEXTURE_ASSET_ID
 	STAMINA_BAR = DASH + 1,
 	COINS = STAMINA_BAR + 1,
 	BEETLE = COINS + 1,
-	CARD = BEETLE + 1,
-	TEXTURE_COUNT = CARD + 1
+	POWERUP = BEETLE + 1,
+	CARD = POWERUP + 1,
+	GREY_CAT = CARD + 1,
+	ORANGE_CAT = GREY_CAT + 1,
+	TEXTURE_COUNT = ORANGE_CAT + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -397,7 +420,8 @@ enum class SPRITE_ASSET_ID
 	STAMINA_BAR = ORANGE_CAT + 1,
 	COIN = STAMINA_BAR + 1,
 	BEETLE = COIN + 1,
-	SPRITE_COUNT = BEETLE + 1,
+	POWERUP = BEETLE + 1,
+	SPRITE_COUNT = POWERUP + 1
 };
 const int sprite_count = (int)SPRITE_ASSET_ID::SPRITE_COUNT;
 

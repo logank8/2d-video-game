@@ -718,17 +718,17 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
 	}
 
     // Modify health buffs that are not touching player
-    /*
+    
     const Motion& player_motion = registry.motions.get(registry.players.entities[0]);
-    for (Entity e : registry.buffs.entities) {
-        Buff& hb = registry.buffs.get(e);
+    for (Entity e : registry.healthBuffs.entities) {
+        HealthBuff& hb = registry.healthBuffs.get(e);
         if (hb.touching) {
             if (!collides(registry.motions.get(e),player_motion)) {
                 hb.touching = false;
             }
         }
     }
-    */
+
 
     // Effect movement
     for (Entity e : registry.effects.entities) {
@@ -736,12 +736,6 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
         Motion& effect_motion = registry.motions.get(e);
         
         effect.ms_passed += elapsed_ms;
-        if (effect.type == EFFECT_TYPE::SMOKE) {
-            if (effect.ms_passed >= 500) {
-                //effect_motion.scale *= 0.9;
-            }
-            
-        }
 
         effect_motion.position.x += effect_motion.velocity.x * elapsed_ms;
         effect_motion.position.y += effect_motion.velocity.y * elapsed_ms;
@@ -765,12 +759,19 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
             motion.velocity = (1 / distance({0, 0}, motion.velocity)) * motion.velocity;
         }
 
+        float temp_multiplier = 1.f;
+        if (registry.powerups.has(entity)) {
+            Powerup& powerup = registry.powerups.get(entity);
+            if (powerup.type == PowerupType::SPEED_BOOST) {
+                temp_multiplier *= powerup.multiplier;
+            }
+        }
         auto& player = registry.players.get(entity);
         if (player.slowed_duration_ms <= 0.f) {
-            motion.velocity = motion.speed * motion.velocity;
+            motion.velocity = motion.speed * temp_multiplier * motion.velocity;
         }
         else {
-            motion.velocity = motion.speed * motion.velocity * player.slowed_amount;
+            motion.velocity = motion.speed * motion.velocity * temp_multiplier * player.slowed_amount;
         }
         
 		motion.position[0] += motion.velocity[0] * step_seconds;
