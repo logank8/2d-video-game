@@ -68,9 +68,6 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos);
 // a slime patch
 Entity createSlimePatch(RenderSystem *renderer, vec2 pos);
 
-void createSmoke(RenderSystem *renderer, vec2 pos);
-
-
 Entity createSmoke(RenderSystem* renderer, vec2 pos);
 
 Entity createEffect(RenderSystem* renderer, vec2 pos, float lifespan_ms, EFFECT_TYPE type);
