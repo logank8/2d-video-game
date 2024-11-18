@@ -380,6 +380,73 @@ Entity createRangedProjectile(RenderSystem *renderer, vec2 position)
 	return entity;
 }
 
+Entity createSlowingEnemy(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 200.f, 200.f };
+	motion.position = position;
+
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ EEL_BB_WIDTH * sign(motion.velocity.x), EEL_BB_HEIGHT });
+
+	// create an empty Eel component to be able to refer to all eels
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.enemy_type = ENEMY_TYPES::SLOWING_CONTACT;
+	registry.healths.emplace(entity);
+	auto& damage = registry.damages.emplace(entity);
+	// TODO: adjust	 damage amounts
+	damage.damage = 25.0;
+	auto& color = registry.colors.emplace(entity);
+	color = vec3(0, 0, 50.f);
+	auto& slows = registry.slows.emplace(entity);
+	slows.speed_dec = 0.5;
+	slows.duration = 1000.f;
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 SPRITE_ASSET_ID::SLIME,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 1 });
+
+	std::vector<int> idle_f_vec = { 0, 1 };
+	Animation idle_f = {
+		"fastenemy_idle_f",
+		2,
+		SPRITE_ASSET_ID::SLIME,
+		idle_f_vec };
+
+	std::vector<int> run_f_vec = { 10, 11, 12, 13, 14 };
+	Animation run_f = {
+		"fastenemy_run_f",
+		8,
+		SPRITE_ASSET_ID::SLIME,
+		run_f_vec };
+
+	std::vector<int> die_vec = { 1, 2, 3, 4, 4 };
+	Animation die = {
+		"fastenemy_die",
+		7,
+		SPRITE_ASSET_ID::SLIME,
+		die_vec };
+
+	auto& animSet = registry.animationSets.emplace(entity);
+	animSet.animations[idle_f.name] = idle_f;
+	animSet.animations[run_f.name] = run_f;
+	animSet.animations[die.name] = die;
+	animSet.current_animation = idle_f.name;
+
+	return entity;
+}
+
 Entity createBasicAttackHitbox(RenderSystem *renderer, vec2 position, Entity player_entity)
 {
 	auto entity = Entity();

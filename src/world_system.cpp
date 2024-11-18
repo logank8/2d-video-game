@@ -464,8 +464,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			contact_fast_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
 			distance_to_player = sqrt(pow(contact_fast_pos.x - player_pos.x, 2) + pow(contact_fast_pos.y - player_pos.y, 2));
 		} while (distance_to_player < 300.f);
-
-		createContactFast(renderer, contact_fast_pos);
+		if (uniform_dist(rng) > 0.5) {
+			createContactFast(renderer, contact_fast_pos);
+		}
+		else {
+			createSlowingEnemy(renderer, contact_fast_pos);
+		}
 		// tile_vec.push_back(spawnable_tiles[index]);
 	}
 
@@ -707,6 +711,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		case ENEMY_TYPES::SWARM:
 			enemy_name = "swarm";
 			break;
+		case ENEMY_TYPES::SLOWING_CONTACT:
+			enemy_name = "fast";
+			break;
 		default:
 			break;
 		}
@@ -887,6 +894,12 @@ void WorldSystem::handle_collisions(float step_seconds)
 						}
 
 						// motion.position.x += HPBAR_BB_WIDTH * (player_hp / 400);
+					}
+
+					if (registry.deadlys.get(entity_other).enemy_type == ENEMY_TYPES::SLOWING_CONTACT) {
+						Slows& slows = registry.slows.get(entity_other);
+						player.slowed_amount = slows.speed_dec;
+						player.slowed_duration_ms = slows.duration;
 					}
 					player.invulnerable = true;
 					player.invulnerable_duration_ms = 1000.f;
