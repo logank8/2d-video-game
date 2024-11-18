@@ -21,6 +21,7 @@ const size_t CONTACT_FAST_SPAWN_DELAY_MS = 2000 * 3;
 // const size_t MAX_NUM_RANGED_ENEMY = 1;
 const size_t RANGED_ENEMY_SPAWN_DELAY_MS = 5000 * 3;
 const size_t RANGED_ENEMY_PROJECTILE_DELAY_MS = 3000;
+const size_t MAX_NUM_ENEMIES = 50;
 
 const int TILE_SIZE = 100;
 std::vector<vec2> tile_vec;
@@ -327,7 +328,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				tile_vec.push_back(vec2(i, j));
 			}
 
-			if (current_map[j][i] == 3)
+			if (current_map[j][i] == 3 && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
 			{
 				int encounter = rand() % 3;
 				if (encounter == 0)
@@ -347,7 +348,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
-			if (current_map[j][i] == 4)
+			if (current_map[j][i] == 4 && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
 			{
 				int encounter = rand() % 3;
 				if (encounter == 0)
@@ -370,7 +371,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
-			if (current_map[j][i] == 5)
+			if (current_map[j][i] == 5 && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
 			{
 				int encounter = rand() % 3;
 				if (encounter == 0)
@@ -402,7 +403,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				tile_vec.push_back(vec2(i, j));
 			}
 
-			if (current_map[j][i] == 8)
+			if (current_map[j][i] == 8 && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
 			{
 				Entity swarm_leader = createSwarm(renderer, world_pos, 0.55f, 0.05f, 0.00005f);
 				Motion &swarm_motion = motions_registry.get(swarm_leader);
@@ -420,7 +421,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	// TODO: spawn frequencies and spawn radius to be adjusted
 	//  Spawn Level 1 type enemy: slow with contact damage
 	next_contact_slow_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (next_contact_slow_spawn < 0.f)
+	if (next_contact_slow_spawn < 0.f && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
 	{
 		next_contact_slow_spawn = (CONTACT_SLOW_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_SLOW_SPAWN_DELAY_MS / 2);
 		vec2 contact_slow_pos;
@@ -439,7 +440,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 	// Spawn Level 2 type enemy: fast with contact damage
 	next_contact_fast_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (next_contact_fast_spawn < 0.f)
+	if (next_contact_fast_spawn < 0.f && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
 	{
 		next_contact_fast_spawn = (CONTACT_FAST_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_FAST_SPAWN_DELAY_MS / 2);
 		vec2 contact_fast_pos;
@@ -462,7 +463,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 	// Spawn Level 3 type enemy: slow ranged enemy
 	next_ranged_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (next_ranged_spawn < 0.f)
+	if (next_ranged_spawn < 0.f && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
 	{
 		next_ranged_spawn = (RANGED_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_SPAWN_DELAY_MS / 2);
 		vec2 ranged_pos;
