@@ -1141,7 +1141,10 @@ void WorldSystem::handle_collisions(float step_seconds)
 					d.state = ENEMY_STATE::DEAD;
 					DeathTimer &death = registry.deathTimers.emplace(entity_other);
 					death.counter_ms = 550.4f;
-					createSmoke(renderer, {enemy_motion.position.x , enemy_motion.position.y});
+					if (!(d.enemy_type == ENEMY_TYPES::PROJECTILE || d.enemy_type == ENEMY_TYPES::SWARM)) {
+						createSmoke(renderer, {enemy_motion.position.x , enemy_motion.position.y});
+					}
+					
 				}
 
 				registry.playerAttacks.get(entity).has_hit = true;
@@ -1212,6 +1215,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	{
 		WorldSystem::is_paused = !WorldSystem::is_paused;
 		ScreenState &screen = registry.screenStates.components[0];
+		screen.paused = !screen.paused;
 	}
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_F)
@@ -1227,6 +1231,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		if (!WorldSystem::is_paused)
 		{
 			WorldSystem::is_paused = true;
+			screen.paused = true;
 			is_tutorial_on = true;
 			screen.darken_screen_factor = 0.9;
 			float tutorial_header_x = window_width_px / 2 - 120;
@@ -1246,6 +1251,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		{
 			WorldSystem::is_paused = false;
 			is_tutorial_on = false;
+			screen.paused = false;
 			screen.darken_screen_factor = 0.0;
 		}
 	}
