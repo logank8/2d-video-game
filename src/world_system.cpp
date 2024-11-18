@@ -216,7 +216,11 @@ void createHPBar(Entity enemy)
 									enemy_motion.position.y - abs(enemy_motion.scale.y) * 0.75f},
 								   {(100.f) * hp / max_hp, 10.f});
 		vec3 &color = registry.colors.emplace(hp_bar);
-		color = vec3(0.f, 5.f, 0.f);
+		if (registry.bosses.has(enemy)) {
+			color = vec3(1.f, 0.f, 0.f);
+		} else {
+			color = vec3(0.f, 5.f, 0.f);
+		}
 	}
 }
 
