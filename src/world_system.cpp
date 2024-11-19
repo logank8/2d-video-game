@@ -84,7 +84,7 @@ WorldSystem::~WorldSystem()
 	// Close the window
 	glfwDestroyWindow(window);
 
-	glfwTerminate();
+	//glfwTerminate();
 }
 
 // Debugging
@@ -240,6 +240,9 @@ void WorldSystem::mapSwitch(int map)
 	case 2:
 		current_map = map2;
 		break;
+	case 3:
+		current_map = map3;
+		break;
 	default:
 		current_map = map1;
 	}
@@ -258,7 +261,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 {
 	// Updating window title with points
 	std::stringstream title_ss;
-	if (current_map != map2) {
+	if (current_map != map3) {
 		title_ss << "Number of Enemies Until Next Level: " << (enemy_kill_goal - enemies_killed);
 	} else {
 		title_ss << "Final Boss";
@@ -652,13 +655,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				Deadly &deadly = registry.deadlys.get(entity);
 				Motion &enemy_motion = registry.motions.get(entity);
 
-				if (roll <= deadly.drop_chance && !registry.projectiles.has(entity))
+				if (roll <= deadly.drop_chance && !registry.projectiles.has(entity) && !registry.swarms.has(entity))
 				{
 					createExperience(renderer, enemy_motion.position, deadly.experience);
 				}
 
 				float roll_powerup = uniform_dist(rng);
-				if (roll_powerup <= POWERUP_DROP_CHANCE && !registry.projectiles.has(entity))
+				if (roll_powerup <= POWERUP_DROP_CHANCE && !registry.projectiles.has(entity) && !registry.swarms.has(entity))
 				{
 					PowerupType type = (PowerupType)randomInt(2); // Change this if more powerups
 					float multiplier = 1.f;
@@ -669,7 +672,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 						if (multiplier_roll < 7)
 							multiplier *= 1.5f;
 						else
-							multiplier *= 2.f;
+							multiplier *= 1.3f;
 					}
 					createTempPowerup(renderer, enemy_motion.position, type, multiplier, timer);
 				}
@@ -712,9 +715,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 				registry.remove_all_components_of(entity);
 				enemies_killed++;
-				if (enemies_killed >= enemy_kill_goal && current_map != map2)
+				if (enemies_killed >= enemy_kill_goal && current_map != map3)
 				{
-					mapSwitch(2);
+					if (current_map == map2) {
+						mapSwitch(3);
+					} else {
+						mapSwitch(2);
+					}
+					
 					return true;
 				}
 			}
@@ -1158,12 +1166,12 @@ void WorldSystem::handle_collisions(float step_seconds)
 				if (x_diff < 0 && abs(x_diff) > abs(y_diff) && motion_moving.velocity.x > 0)
 				{
 					newvelocity.x = 0.f;
-					newpos.x = motion_solid.position.x - (abs(motion_solid.scale.x / 2) + abs(motion_moving.scale.x / 2)) - 1;
+					newpos.x = registry.players.get(entity).last_pos.x;
 				}
 				if (x_diff > 0 && abs(x_diff) > abs(y_diff) && motion_moving.velocity.x < 0)
 				{
 					newvelocity.x = 0.f;
-					newpos.x = motion_solid.position.x + (abs(motion_solid.scale.x / 2) + abs(motion_moving.scale.x / 2)) + 1;
+					newpos.x = registry.players.get(entity).last_pos.x;
 				}
 				// do we need to check for collision again here ?
 
