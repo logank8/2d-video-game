@@ -1606,11 +1606,13 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	}
 
 	// Debugging
+	/*
 	if (key == GLFW_KEY_P)
 	{
 		if (action == GLFW_RELEASE)
 			debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
+	*/
 
 	// player key stuff starts here
 
