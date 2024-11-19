@@ -188,7 +188,7 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 {
 	this->renderer = renderer_arg;
 	// Playing background music indefinitely
-	Mix_PlayMusic(background_music, -1);
+	// Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
 	fps_counter_ms = FPS_COUNTER_MS;
 
@@ -217,9 +217,12 @@ void createHPBar(Entity enemy)
 									enemy_motion.position.y - abs(enemy_motion.scale.y) * 0.75f},
 								   {(100.f) * hp / max_hp, 10.f});
 		vec3 &color = registry.colors.emplace(hp_bar);
-		if (registry.bosses.has(enemy)) {
+		if (registry.bosses.has(enemy))
+		{
 			color = vec3(1.f, 0.f, 0.f);
-		} else {
+		}
+		else
+		{
 			color = vec3(0.f, 5.f, 0.f);
 		}
 	}
@@ -673,7 +676,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				}
 
 				// Check if final boss is dead then stop game
-				if (registry.bosses.has(entity)) {
+				if (registry.bosses.has(entity))
+				{
 					is_paused = true;
 					createText({window_width_px / 2 - 100, window_height_px / 2}, 1, "!!!You Win!!!", glm::vec3(1.f, 1.f, 1.f));
 				}
@@ -826,7 +830,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			animSet_enemy.current_animation = enemy_name + "enemy_run_f";
 			break;
 		case ENEMY_STATE::DEAD:
-			if (registry.bosses.has(e)) {
+			if (registry.bosses.has(e))
+			{
 				auto &render_rqst = registry.renderRequests.get(e);
 				render_rqst.used_sprite = SPRITE_ASSET_ID::FINAL_BOSS_DEATH;
 			}
@@ -867,6 +872,12 @@ void WorldSystem::restart_game()
 	current_speed = 1.f;
 
 	WorldSystem::is_paused = false;
+	WorldSystem::is_level_up = false;
+
+	while (registry.upgradeCards.entities.size() > 0)
+	{
+		registry.remove_all_components_of(registry.upgradeCards.entities.back());
+	}
 
 	enemies_killed = 0;
 
@@ -901,7 +912,8 @@ void WorldSystem::restart_game()
 			}
 
 			// Create final boss
-			if (current_map[i][j] == 30) {
+			if (current_map[i][j] == 30)
+			{
 				createBossEnemy(renderer, world_pos);
 			}
 		}
