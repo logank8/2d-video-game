@@ -186,7 +186,9 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 	health.hit_points = 2000.f;
 	health.max_hp = 2000.f;
 
-	registry.damages.emplace(entity);
+	auto &damage = registry.damages.emplace(entity);
+	damage.damage = 50.f;
+
 	registry.bosses.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
@@ -196,7 +198,7 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 0});
 
-	std::vector<int> idle_f_vec = {0, 1, 2, 3};
+	std::vector<int> idle_f_vec = {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17};
 	Animation idle_f = {
 		"final_boss_enemy_idle_f",
 		12,
@@ -217,10 +219,18 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 		SPRITE_ASSET_ID::FINAL_BOSS_DEATH,
 		die_vec};
 
+	std::vector<int> attack_f_vec = {0, 1, 2, 3, 4, 5, 6, 7};
+	Animation attack_f = {
+		"final_boss_enemy_attack_f",
+		10,
+		SPRITE_ASSET_ID::FINAL_BOSS_ATTACK,
+		attack_f_vec};
+
 	auto &animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;
 	animSet.animations[run_f.name] = run_f;
 	animSet.animations[die.name] = die;
+	animSet.animations[attack_f.name] = attack_f;
 	animSet.current_animation = idle_f.name;
 
 	return entity;

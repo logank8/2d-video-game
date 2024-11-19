@@ -261,6 +261,12 @@ struct DeathTimer
 	float counter_ms = 3000;
 };
 
+// A timer that will be associated to dying salmon
+struct AttackTimer
+{
+	float counter_ms = 700;
+};
+
 // Movement mechanic
 struct Dash
 {
@@ -369,7 +375,8 @@ enum class TEXTURE_ASSET_ID
 	RANGED_PROJECTILE = RANGED_ENEMY + 1,
 	FINAL_BOSS = RANGED_PROJECTILE + 1,
 	FINAL_BOSS_DEATH = FINAL_BOSS + 1,
-	HP_BAR = FINAL_BOSS_DEATH + 1,
+	FINAL_BOSS_ATTACK = FINAL_BOSS_DEATH + 1,
+	HP_BAR = FINAL_BOSS_ATTACK + 1,
 	HP_BAR_0 = HP_BAR + 1,
 	HP_BAR_1 = HP_BAR_0 + 1,
 	HP_BAR_2 = HP_BAR_1 + 1,
@@ -422,7 +429,8 @@ enum class SPRITE_ASSET_ID
 	RANGED_ENEMY = SLIME + 1,
 	FINAL_BOSS = RANGED_ENEMY + 1,
 	FINAL_BOSS_DEATH = FINAL_BOSS + 1,
-	GREY_CAT = FINAL_BOSS_DEATH + 1,
+	FINAL_BOSS_ATTACK = FINAL_BOSS_DEATH + 1,
+	GREY_CAT = FINAL_BOSS_ATTACK + 1,
 	ORANGE_CAT = GREY_CAT + 1,
 	STAMINA_BAR = ORANGE_CAT + 1,
 	COIN = STAMINA_BAR + 1,

@@ -573,6 +573,28 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	assert(registry.screenStates.components.size() <= 1);
 	ScreenState &screen = registry.screenStates.components[0];
 
+	float attack_counter_ms = 800.f;
+	for (Entity entity : registry.attackTimers.entities)
+	{
+		// progress timer
+		AttackTimer &counter = registry.attackTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if (counter.counter_ms < attack_counter_ms)
+		{
+			attack_counter_ms = counter.counter_ms;
+		}
+
+		// remove timer and reset final bosses enemy state if timer expires
+		if (counter.counter_ms < 0) {
+			registry.attackTimers.remove(entity);
+			if (registry.bosses.has(entity))
+			{
+				registry.deadlys.get(entity).state = ENEMY_STATE::IDLE;
+			}
+		}
+	}
+
+
 	float min_counter_ms = 3000.f;
 	for (Entity entity : registry.deathTimers.entities)
 	{
@@ -809,6 +831,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			animSet_enemy.current_animation = enemy_name + "enemy_idle_f";
 			break;
 		case ENEMY_STATE::RUN:
+			if (registry.bosses.has(e)) {
+				auto &render_rqst = registry.renderRequests.get(e);
+				render_rqst.used_sprite = SPRITE_ASSET_ID::FINAL_BOSS;
+			}
+
 			animSet_enemy.current_animation = enemy_name + "enemy_run_f";
 			break;
 		case ENEMY_STATE::DEAD:
@@ -823,6 +850,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				animSet_enemy.current_animation = enemy_name + "enemy_die";
 				animSet_enemy.current_frame = 0;
 			}
+			break;
+		case ENEMY_STATE::ATTACK:
+			if (registry.bosses.has(e)) {
+				auto &render_rqst = registry.renderRequests.get(e);
+				render_rqst.used_sprite = SPRITE_ASSET_ID::FINAL_BOSS_ATTACK;
+
+				animSet_enemy.current_animation = enemy_name + "enemy_attack_f";
+			}			
 			break;
 		default:
 			animSet_enemy.current_animation = enemy_name + "enemy_idle_f";
@@ -983,6 +1018,11 @@ void WorldSystem::handle_collisions(float step_seconds)
 							continue;
 					}
 
+					if (registry.bosses.has(entity_other)) {
+						registry.deadlys.get(entity_other).state = ENEMY_STATE::ATTACK;
+						registry.attackTimers.emplace(entity_other);
+					}
+
 					// player takes damage
 					player_hp -= registry.damages.get(entity_other).damage;
 					// avoid negative hp values for hp bar
@@ -994,8 +1034,10 @@ void WorldSystem::handle_collisions(float step_seconds)
 						// Motion& motion = registry.motions.get(hp_bar);
 						// motion.scale.x = HPBAR_BB_WIDTH * (player_hp / 100);
 						RenderRequest &hp_bar_render = registry.renderRequests.get(hp_bar);
-						if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_0)
+						if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_0 && registry.bosses.has(entity_other))
 						{
+							hp_bar_render.used_texture = static_cast<TEXTURE_ASSET_ID>(static_cast<int>(hp_bar_render.used_texture) - 2);
+						} else if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_0) {
 							hp_bar_render.used_texture = static_cast<TEXTURE_ASSET_ID>(static_cast<int>(hp_bar_render.used_texture) - 1);
 						}
 

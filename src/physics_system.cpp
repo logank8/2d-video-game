@@ -603,7 +603,7 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
     }
 
     // Move along path
-    if (registry.paths.has(enemy))
+    if (registry.paths.has(enemy) && registry.deadlys.get(enemy).state != ENEMY_STATE::ATTACK)
     {
         Path &path = registry.paths.get(enemy);
         if (path.points.size() > 1 && path.current_index < path.points.size() - 1)
