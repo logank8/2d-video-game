@@ -1535,14 +1535,15 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			float tutorial_header_x = window_width_px / 2 - 120;
 			float tutorial_header_y = 620;
 			glm::vec3 white = glm::vec3(1.f, 1.f, 1.f);
-			createText({tutorial_header_x, tutorial_header_y}, 1.0, "TUTORIAL", white);
+			createText({tutorial_header_x, tutorial_header_y}, 0.8f, "TUTORIAL", white);
 			std::vector<std::string> lines = read_file(PROJECT_SOURCE_DIR + std::string("data/tutorial/tutorial.txt"));
-			float y_spacer = 80.f;
+			float y_spacer = 40.f;
 			for (std::string line : lines)
 			{
+				line = line.substr(0, line.size() - 1);
 				// Render each line
-				createText({tutorial_header_x - 400.f, tutorial_header_y - y_spacer}, 0.6f, line, white);
-				y_spacer += 70.f;
+				createText({tutorial_header_x - 400.f, tutorial_header_y - y_spacer}, 0.5f, line, white);
+				y_spacer += 30.f;
 			}
 		}
 		else if (is_tutorial_on)
