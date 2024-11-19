@@ -194,7 +194,7 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 	fprintf(stderr, "Loaded music\n");
 	fps_counter_ms = FPS_COUNTER_MS;
 
-	current_map = map2;
+	current_map = map1;
 
 	// Set all states to default
 	restart_game();
