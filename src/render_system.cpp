@@ -30,9 +30,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			transform.scale(vec2(2.5f,1.6f));
 		} else if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG_2 || enemy.enemy_type == ENEMY_TYPES::SLOWING_CONTACT) {
 			transform.scale(vec2(2.4f, 2.2f));
-		} else if (enemy.enemy_type == ENEMY_TYPES::RANGED) {
+		} else if (enemy.enemy_type == ENEMY_TYPES::RANGED || enemy.enemy_type == ENEMY_TYPES::RANGED_HOMING) {
 			transform.scale(vec2(1.5, 2.7));
-		} else if (enemy.enemy_type == ENEMY_TYPES::PROJECTILE) {
+		} else if (registry.projectiles.has(entity)) {
 			transform.scale(vec2(5, 5));
 		} else if (enemy.enemy_type == ENEMY_TYPES::FINAL_BOSS) {
 			if (enemy.state != ENEMY_STATE::DEAD) {

@@ -107,6 +107,10 @@ Entity createSlowingEnemy(RenderSystem* renderer, vec2 position);
 
 Entity createRangedProjectile(RenderSystem *renderer, vec2 position);
 
+Entity createRangedHomingEnemy(RenderSystem* renderer, vec2 position);
+
+Entity createRangedHomingProjectile(RenderSystem* renderer, vec2 position);
+
 Entity createBasicAttackHitbox(RenderSystem *renderer, vec2 position, Entity player_entity);
 
 // a red line for debugging purposes
