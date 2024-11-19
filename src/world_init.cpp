@@ -720,7 +720,7 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, bool side_wall)
 	motion.position = pos;
 	motion.angle = (M_PI / 180) * sprite_rotate;
 	motion.velocity = {0.f, 0.f};
-	motion.scale = vec2({TILE_PX_SIZE * (100 / TILE_PX_SIZE), TILE_PX_SIZE * (100 / TILE_PX_SIZE)});
+	motion.scale = vec2({100, 100});
 
 	// Add wall to solid objects - player can't move through walls
 	registry.solidObjs.emplace(entity);

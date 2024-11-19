@@ -256,7 +256,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 {
 	// Updating window title with points
 	std::stringstream title_ss;
-	title_ss << "Points: " << points;
+	if (current_map != map2) {
+		title_ss << "Number of Enemies Until Next Level: " << (enemy_kill_goal - enemies_killed);
+	} else {
+		title_ss << "Final Boss";
+	}
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step

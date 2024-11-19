@@ -51,7 +51,7 @@ public:
 
 	int enemies_killed = 0;
 
-	int enemy_kill_goal = 10;
+	int enemy_kill_goal = 20;
 
 private:
 	// Input callback functions
