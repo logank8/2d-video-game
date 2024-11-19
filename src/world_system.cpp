@@ -1466,15 +1466,15 @@ vec2 WorldSystem::adjust_knockback_coordinates(int grid_x, int grid_y, int adjus
 	int y = adjust_y;
 	if (current_map[grid_y + y][grid_x + x] == 1 || (current_map[grid_y + y][grid_x + x] >= 3 && current_map[grid_y + y][grid_x + x] <= 8))
 	{
-		return vec2(adjust_x, adjust_y);
+		return vec2(x, y);
 	}
 	if (current_map[grid_y + y][grid_x] == 1 || (current_map[grid_y + y][grid_x] >= 3 && current_map[grid_y + y][grid_x] <= 8))
 	{
-		return vec2(0, adjust_y);
+		return vec2(0, y);
 	}
 	if (current_map[grid_y][grid_x + x] == 1 || (current_map[grid_y][grid_x + x] >= 3 && current_map[grid_y][grid_x + x] <= 8))
 	{
-		return vec2(adjust_x, 0);
+		return vec2(x, 0);
 	}
 	if (x > 0) {
 		x--;
@@ -1492,15 +1492,15 @@ vec2 WorldSystem::adjust_knockback_coordinates(int grid_x, int grid_y, int adjus
 	while (x != 0 && y != 0) {
 		if (current_map[grid_y + y][grid_x + x] == 1 || (current_map[grid_y + y][grid_x + x] >= 3 && current_map[grid_y + y][grid_x + x] <= 8))
 		{
-			return vec2(adjust_x, adjust_y);
+			return vec2(x, y);
 		}
 		if (current_map[grid_y + y][grid_x] == 1 || (current_map[grid_y + y][grid_x] >= 3 && current_map[grid_y + y][grid_x] <= 8))
 		{
-			return vec2(0, adjust_y);
+			return vec2(0, y);
 		}
 		if (current_map[grid_y][grid_x + x] == 1 || (current_map[grid_y][grid_x + x] >= 3 && current_map[grid_y][grid_x + x] <= 8))
 		{
-			return vec2(adjust_x, 0);
+			return vec2(x, 0);
 		}
 		if (x > 0) {
 			x--;
