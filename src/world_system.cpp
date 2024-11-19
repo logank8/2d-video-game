@@ -83,6 +83,8 @@ WorldSystem::~WorldSystem()
 
 	// Close the window
 	glfwDestroyWindow(window);
+
+	glfwTerminate();
 }
 
 // Debugging
@@ -602,7 +604,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 
 		// remove timer and reset final bosses enemy state if timer expires
-		if (counter.counter_ms < 0) {
+		if (counter.counter_ms < 0)
+		{
 			registry.attackTimers.remove(entity);
 			if (registry.bosses.has(entity))
 			{
@@ -610,7 +613,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			}
 		}
 	}
-
 
 	float min_counter_ms = 3000.f;
 	for (Entity entity : registry.deathTimers.entities)
@@ -849,7 +851,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			animSet_enemy.current_animation = enemy_name + "enemy_idle_f";
 			break;
 		case ENEMY_STATE::RUN:
-			if (registry.bosses.has(e)) {
+			if (registry.bosses.has(e))
+			{
 				auto &render_rqst = registry.renderRequests.get(e);
 				render_rqst.used_sprite = SPRITE_ASSET_ID::FINAL_BOSS;
 			}
@@ -871,12 +874,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			}
 			break;
 		case ENEMY_STATE::ATTACK:
-			if (registry.bosses.has(e)) {
+			if (registry.bosses.has(e))
+			{
 				auto &render_rqst = registry.renderRequests.get(e);
 				render_rqst.used_sprite = SPRITE_ASSET_ID::FINAL_BOSS_ATTACK;
 
 				animSet_enemy.current_animation = enemy_name + "enemy_attack_f";
-			}			
+			}
 			break;
 		default:
 			animSet_enemy.current_animation = enemy_name + "enemy_idle_f";
@@ -1048,7 +1052,8 @@ void WorldSystem::handle_collisions(float step_seconds)
 							continue;
 					}
 
-					if (registry.bosses.has(entity_other)) {
+					if (registry.bosses.has(entity_other))
+					{
 						registry.deadlys.get(entity_other).state = ENEMY_STATE::ATTACK;
 						registry.attackTimers.emplace(entity_other);
 					}
@@ -1067,7 +1072,9 @@ void WorldSystem::handle_collisions(float step_seconds)
 						if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_0 && registry.bosses.has(entity_other))
 						{
 							hp_bar_render.used_texture = static_cast<TEXTURE_ASSET_ID>(static_cast<int>(hp_bar_render.used_texture) - 2);
-						} else if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_0) {
+						}
+						else if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_0)
+						{
 							hp_bar_render.used_texture = static_cast<TEXTURE_ASSET_ID>(static_cast<int>(hp_bar_render.used_texture) - 1);
 						}
 

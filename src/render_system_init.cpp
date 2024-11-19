@@ -220,7 +220,7 @@ void RenderSystem::initializeSpriteSheets()
 	sprite_sheets[SPRITE_ASSET_ID::STAMINA_BAR] = {TEXTURE_ASSET_ID::STAMINA_BAR, 15, 1, 64, 16};
 	sprite_sheets[SPRITE_ASSET_ID::COIN] = {TEXTURE_ASSET_ID::COINS, 1, 10, 16, 16};
 	sprite_sheets[SPRITE_ASSET_ID::BEETLE] = {TEXTURE_ASSET_ID::BEETLE, 1, 2, 8, 8};
-	sprite_sheets[SPRITE_ASSET_ID::POWERUP] = { TEXTURE_ASSET_ID::POWERUP, 1, 1, 32, 32 };
+	sprite_sheets[SPRITE_ASSET_ID::POWERUP] = {TEXTURE_ASSET_ID::POWERUP, 1, 1, 32, 32};
 	sprite_sheets[SPRITE_ASSET_ID::GREY_CAT] = {TEXTURE_ASSET_ID::GREY_CAT, 10, 8, 64, 64};
 	sprite_sheets[SPRITE_ASSET_ID::ORANGE_CAT] = {TEXTURE_ASSET_ID::ORANGE_CAT, 10, 8, 64, 64};
 }
@@ -371,6 +371,12 @@ RenderSystem::~RenderSystem()
 	glDeleteTextures(1, &off_screen_render_buffer_color);
 	glDeleteRenderbuffers(1, &off_screen_render_buffer_depth);
 	gl_has_errors();
+
+	glDeleteBuffers(1, &vbo);
+	glDeleteBuffers(1, &m_font_vbo);
+	glDeleteVertexArrays(1, &vao);
+	glDeleteVertexArrays(1, &m_font_vao);
+	FT_Done_Face(face);
 
 	for (uint i = 0; i < effect_count; i++)
 	{
