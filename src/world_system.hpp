@@ -83,6 +83,7 @@ private:
 	Entity my_player;
 	Entity hp_bar;
 	Entity stamina_bar;
+	Entity camera;
 
 	PlayerController player_controller;
 
