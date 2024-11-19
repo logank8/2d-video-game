@@ -194,7 +194,7 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 	fprintf(stderr, "Loaded music\n");
 	fps_counter_ms = FPS_COUNTER_MS;
 
-	current_map = map1;
+	current_map = map2;
 
 	// Set all states to default
 	restart_game();
@@ -954,7 +954,17 @@ void WorldSystem::restart_game()
 				spawnable_tiles.push_back(vec2(i, j));
 			}
 
-			// Create final boss
+			
+		}
+	}
+
+	// Create final boss
+	for (int i = 0; i < current_map.size(); i++)
+	{
+		for (int j = 0; j < current_map[0].size(); j++)
+		{
+			vec2 world_pos = {(640 - (25 * 100)) + (j * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (i * TILE_SIZE) + (TILE_SIZE / 2)};
+
 			if (current_map[i][j] == 30)
 			{
 				createBossEnemy(renderer, world_pos);
