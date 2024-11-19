@@ -376,7 +376,6 @@ RenderSystem::~RenderSystem()
 	glDeleteBuffers(1, &m_font_vbo);
 	glDeleteVertexArrays(1, &vao);
 	glDeleteVertexArrays(1, &m_font_vao);
-	FT_Done_Face(face);
 
 	for (uint i = 0; i < effect_count; i++)
 	{
