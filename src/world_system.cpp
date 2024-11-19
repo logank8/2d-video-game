@@ -1295,18 +1295,18 @@ void WorldSystem::handle_collisions(float step_seconds)
 					{
 						if (abs(diff.x) < 50 && abs(diff.y) < 50)
 						{
-							adjust_x -= 1;
-							adjust_y -= 1;
+							adjust_x = -1;
+							adjust_y = -1;
 						}
 						else
 						{
 							if (abs(diff.x) > 50)
 							{
-								adjust_x -= 1;
+								adjust_x = -1;
 							}
 							if (abs(diff.y) > 50)
 							{
-								adjust_y -= 1;
+								adjust_y = -1;
 							}
 						}
 					}
@@ -1314,18 +1314,18 @@ void WorldSystem::handle_collisions(float step_seconds)
 					{
 						if (abs(diff.x) < 50 && abs(diff.y) < 50)
 						{
-							adjust_x += 1;
-							adjust_y -= 1;
+							adjust_x = 1;
+							adjust_y = -1;
 						}
 						else
 						{
 							if (abs(diff.x) > 50)
 							{
-								adjust_x += 2;
+								adjust_x = 2;
 							}
 							if (abs(diff.y) > 50)
 							{
-								adjust_y -= 1;
+								adjust_y = -1;
 							}
 						}
 					}
@@ -1333,18 +1333,18 @@ void WorldSystem::handle_collisions(float step_seconds)
 					{
 						if (abs(diff.x) < 50 && abs(diff.y) < 50)
 						{
-							adjust_x += 1;
-							adjust_y += 1;
+							adjust_x = 1;
+							adjust_y = 1;
 						}
 						else
 						{
 							if (abs(diff.x) > 50)
 							{
-								adjust_x += 2;
+								adjust_x = 2;
 							}
 							if (abs(diff.y) > 50)
 							{
-								adjust_y += 1;
+								adjust_y = 2;
 							}
 						}
 					}
@@ -1352,18 +1352,18 @@ void WorldSystem::handle_collisions(float step_seconds)
 					{
 						if (abs(diff.x) < 50 && abs(diff.y) < 50)
 						{
-							adjust_x -= 1;
-							adjust_y += 1;
+							adjust_x = -1;
+							adjust_y = 1;
 						}
 						else
 						{
 							if (abs(diff.x) > 50)
 							{
-								adjust_x -= 1;
+								adjust_x = -1;
 							}
 							if (abs(diff.y) > 50)
 							{
-								adjust_y += 1;
+								adjust_y = 2;
 							}
 						}
 					}
@@ -1462,18 +1462,60 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 vec2 WorldSystem::adjust_knockback_coordinates(int grid_x, int grid_y, int adjust_x, int adjust_y)
 {
-	if (current_map[grid_y + adjust_y][grid_x + adjust_x] != -1 && current_map[grid_y + adjust_y][grid_x + adjust_x] != 0 && current_map[grid_y + adjust_y][grid_x + adjust_x] != 2 && current_map[grid_y + adjust_y][grid_x + adjust_x] != 9 && !(current_map[grid_y + adjust_y][grid_x + adjust_x] >= 10 && current_map[grid_y + adjust_y][grid_x + adjust_x] <= 26))
+	int x = adjust_x;
+	int y = adjust_y;
+	if (current_map[grid_y + y][grid_x + x] == 1 || (current_map[grid_y + y][grid_x + x] >= 3 && current_map[grid_y + y][grid_x + x] <= 8))
 	{
 		return vec2(adjust_x, adjust_y);
 	}
-	if (current_map[grid_y + adjust_y][grid_x] != -1 && current_map[grid_y + adjust_y][grid_x] != 0 && current_map[grid_y + adjust_y][grid_x] != 2 && current_map[grid_y + adjust_y][grid_x] != 9 && !(current_map[grid_y + adjust_y][grid_x] >= 10 && current_map[grid_y + adjust_y][grid_x] <= 26))
+	if (current_map[grid_y + y][grid_x] == 1 || (current_map[grid_y + y][grid_x] >= 3 && current_map[grid_y + y][grid_x] <= 8))
 	{
 		return vec2(0, adjust_y);
 	}
-	if (current_map[grid_y][grid_x + adjust_x] != -1 && current_map[grid_y][grid_x + adjust_x] != 0 && current_map[grid_y][grid_x + adjust_x] != 2 && current_map[grid_y][grid_x + adjust_x] != 9 && !(current_map[grid_y][grid_x + adjust_x] >= 10 && current_map[grid_y][grid_x + adjust_x] <= 26))
+	if (current_map[grid_y][grid_x + x] == 1 || (current_map[grid_y][grid_x + x] >= 3 && current_map[grid_y][grid_x + x] <= 8))
 	{
 		return vec2(adjust_x, 0);
 	}
+	if (x > 0) {
+		x--;
+	}
+	else if (x < 0) {
+		x++;
+	}
+	if (y > 0) {
+		y--;
+	}
+	else if (y < 0) {
+		y++;
+	}
+
+	while (x != 0 && y != 0) {
+		if (current_map[grid_y + y][grid_x + x] == 1 || (current_map[grid_y + y][grid_x + x] >= 3 && current_map[grid_y + y][grid_x + x] <= 8))
+		{
+			return vec2(adjust_x, adjust_y);
+		}
+		if (current_map[grid_y + y][grid_x] == 1 || (current_map[grid_y + y][grid_x] >= 3 && current_map[grid_y + y][grid_x] <= 8))
+		{
+			return vec2(0, adjust_y);
+		}
+		if (current_map[grid_y][grid_x + x] == 1 || (current_map[grid_y][grid_x + x] >= 3 && current_map[grid_y][grid_x + x] <= 8))
+		{
+			return vec2(adjust_x, 0);
+		}
+		if (x > 0) {
+			x--;
+		}
+		else if (x < 0) {
+			x++;
+		}
+		if (y > 0) {
+			y--;
+		}
+		else if (y < 0) {
+			y++;
+		}
+	}
+	
 	return vec2(0, 0);
 }
 
