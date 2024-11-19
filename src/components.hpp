@@ -60,7 +60,7 @@ struct Player
 	float damage_multiplier = 2.0f;
 	float attack_duration_ms = 230.f;
 	float curr_attack_duration_ms = attack_duration_ms;
-	float knockback_strength = 0.3f;
+	float knockback_strength = 0.1f;
 
 	// Other
 	float collection_distance = 100.f;
@@ -244,7 +244,8 @@ struct UserInterface
 	vec2 scale = {10, 10};
 };
 
-struct HealthBuff {
+struct HealthBuff
+{
 	float factor = 1;
 	bool touching = false;
 };
@@ -320,7 +321,8 @@ enum PowerupType
 };
 
 // Current temporary powerup held by the player
-struct Powerup {
+struct Powerup
+{
 	PowerupType type;
 	float multiplier = 1; // Only in case of damage and speed boost
 	float timer = 10000;
@@ -340,6 +342,10 @@ struct UpgradeCard
 struct SelectedCard
 {
 	vec2 scale;
+};
+
+struct Camera
+{
 };
 
 /**

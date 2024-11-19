@@ -103,13 +103,13 @@ Entity createContactFast(RenderSystem *renderer, vec2 position);
 
 Entity createRangedEnemy(RenderSystem *renderer, vec2 position);
 
-Entity createSlowingEnemy(RenderSystem* renderer, vec2 position);
+Entity createSlowingEnemy(RenderSystem *renderer, vec2 position);
 
 Entity createRangedProjectile(RenderSystem *renderer, vec2 position);
 
-Entity createRangedHomingEnemy(RenderSystem* renderer, vec2 position);
+Entity createRangedHomingEnemy(RenderSystem *renderer, vec2 position);
 
-Entity createRangedHomingProjectile(RenderSystem* renderer, vec2 position);
+Entity createRangedHomingProjectile(RenderSystem *renderer, vec2 position);
 
 Entity createBasicAttackHitbox(RenderSystem *renderer, vec2 position, Entity player_entity);
 
@@ -131,10 +131,9 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos, int type);
 // a slime patch
 Entity createSlimePatch(RenderSystem *renderer, vec2 pos);
 
+Entity createSmoke(RenderSystem *renderer, vec2 pos);
 
-Entity createSmoke(RenderSystem* renderer, vec2 pos);
-
-Entity createEffect(RenderSystem* renderer, vec2 pos, float lifespan_ms, EFFECT_TYPE type);
+Entity createEffect(RenderSystem *renderer, vec2 pos, float lifespan_ms, EFFECT_TYPE type);
 
 Entity createStaminaBar(RenderSystem *renderer, vec2 pos);
 // a experience
@@ -146,8 +145,10 @@ Entity createSwarmMember(RenderSystem *renderer, vec2 pos, float separation, flo
 
 using OnClickCallback = std::function<void()>;
 
-Entity createTempPowerup(RenderSystem* renderer, vec2 pos, PowerupType type, float multiplier, float timer);
+Entity createTempPowerup(RenderSystem *renderer, vec2 pos, PowerupType type, float multiplier, float timer);
 
 Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, TEXTURE_ASSET_ID texture_id, std::string title, std::string description, OnClickCallback onClick);
 
-Entity createHealthBuff(RenderSystem* renderer, vec2 pos);
+Entity createHealthBuff(RenderSystem *renderer, vec2 pos);
+
+Entity createCamera(RenderSystem *renderer, vec2 pos);

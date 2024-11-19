@@ -455,62 +455,62 @@ Entity createRangedProjectile(RenderSystem *renderer, vec2 position)
 	return entity;
 }
 
-Entity createRangedHomingEnemy(RenderSystem* renderer, vec2 position)
+Entity createRangedHomingEnemy(RenderSystem *renderer, vec2 position)
 {
 	// Reserve en entity
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initialize the position, scale, and physics components
-	auto& motion = registry.motions.emplace(entity);
+	auto &motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 50.f, 50.f };
+	motion.velocity = {50.f, 50.f};
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ RANGED_BB_WIDTH, RANGED_BB_HEIGHT });
+	motion.scale = vec2({RANGED_BB_WIDTH, RANGED_BB_HEIGHT});
 
 	// Create an (empty) Bug component to be able to refer to all bug
-	auto& enemy = registry.deadlys.emplace(entity);
+	auto &enemy = registry.deadlys.emplace(entity);
 	enemy.enemy_type = ENEMY_TYPES::RANGED_HOMING;
 	registry.healths.emplace(entity);
 	registry.damages.emplace(entity);
 	registry.ranged.emplace(entity);
-	auto& color = registry.colors.emplace(entity);
+	auto &color = registry.colors.emplace(entity);
 	color = vec3(1.f, 0, 0);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
 		 SPRITE_ASSET_ID::RANGED_ENEMY,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 0 });
+		 0});
 
-	std::vector<int> idle_f_vec = { 0, 1, 2, 3, 4 };
+	std::vector<int> idle_f_vec = {0, 1, 2, 3, 4};
 	Animation idle_f = {
 		"rangedenemy_idle_f",
 		12,
 		SPRITE_ASSET_ID::RANGED_ENEMY,
-		idle_f_vec };
+		idle_f_vec};
 
-	std::vector<int> run_f_vec = { 8, 9, 10, 11, 12, 13, 14, 15 };
+	std::vector<int> run_f_vec = {8, 9, 10, 11, 12, 13, 14, 15};
 	Animation run_f = {
 		"rangedenemy_run_f",
 		10,
 		SPRITE_ASSET_ID::RANGED_ENEMY,
-		run_f_vec };
+		run_f_vec};
 
-	std::vector<int> die_vec = { 32, 33, 34, 35, 36 };
+	std::vector<int> die_vec = {32, 33, 34, 35, 36};
 	Animation die = {
 		"rangedenemy_die",
 		7,
 		SPRITE_ASSET_ID::RANGED_ENEMY,
-		die_vec };
+		die_vec};
 
-	auto& animSet = registry.animationSets.emplace(entity);
+	auto &animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;
 	animSet.animations[run_f.name] = run_f;
 	animSet.animations[die.name] = die;
@@ -519,103 +519,103 @@ Entity createRangedHomingEnemy(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
-Entity createRangedHomingProjectile(RenderSystem* renderer, vec2 position)
+Entity createRangedHomingProjectile(RenderSystem *renderer, vec2 position)
 {
 	// Reserve en entity
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initialize the position, scale, and physics components
-	auto& motion = registry.motions.emplace(entity);
+	auto &motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0, 0 };
+	motion.velocity = {0, 0};
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -PROJ_SIZE, PROJ_SIZE });
+	motion.scale = vec2({-PROJ_SIZE, PROJ_SIZE});
 
 	// Create an (empty) Bug component to be able to refer to all bug
-	auto& enemy = registry.deadlys.emplace(entity);
+	auto &enemy = registry.deadlys.emplace(entity);
 	enemy.enemy_type = ENEMY_TYPES::HOMING_PROJECTILE;
-	auto& damage = registry.damages.emplace(entity);
+	auto &damage = registry.damages.emplace(entity);
 	damage.damage = 25.f;
-	auto& health = registry.healths.emplace(entity);
+	auto &health = registry.healths.emplace(entity);
 	health.hit_points = 1.f;
 	registry.projectiles.emplace(entity);
-	auto& color = registry.colors.emplace(entity);
+	auto &color = registry.colors.emplace(entity);
 	color = vec3(1.f, 0, 0);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::RANGED_PROJECTILE,
+		{TEXTURE_ASSET_ID::RANGED_PROJECTILE,
 		 SPRITE_ASSET_ID::SPRITE_COUNT,
 		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
+		 GEOMETRY_BUFFER_ID::SPRITE});
 
 	return entity;
 }
 
-Entity createSlowingEnemy(RenderSystem* renderer, vec2 position)
+Entity createSlowingEnemy(RenderSystem *renderer, vec2 position)
 {
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initialize the motion
-	auto& motion = registry.motions.emplace(entity);
+	auto &motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 200.f, 200.f };
+	motion.velocity = {200.f, 200.f};
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ EEL_BB_WIDTH * sign(motion.velocity.x), EEL_BB_HEIGHT });
+	motion.scale = vec2({EEL_BB_WIDTH * sign(motion.velocity.x), EEL_BB_HEIGHT});
 
 	// create an empty Eel component to be able to refer to all eels
-	Deadly& deadly = registry.deadlys.emplace(entity);
+	Deadly &deadly = registry.deadlys.emplace(entity);
 	deadly.enemy_type = ENEMY_TYPES::SLOWING_CONTACT;
 	registry.healths.emplace(entity);
-	auto& damage = registry.damages.emplace(entity);
+	auto &damage = registry.damages.emplace(entity);
 	// TODO: adjust	 damage amounts
 	damage.damage = 25.0;
-	auto& color = registry.colors.emplace(entity);
+	auto &color = registry.colors.emplace(entity);
 	color = vec3(0, 0, 50.f);
-	auto& slows = registry.slows.emplace(entity);
+	auto &slows = registry.slows.emplace(entity);
 	slows.speed_dec = 0.5;
 	slows.duration = 1000.f;
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
 		 SPRITE_ASSET_ID::SLIME,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 1 });
+		 1});
 
-	std::vector<int> idle_f_vec = { 0, 1 };
+	std::vector<int> idle_f_vec = {0, 1};
 	Animation idle_f = {
 		"fastenemy_idle_f",
 		2,
 		SPRITE_ASSET_ID::SLIME,
-		idle_f_vec };
+		idle_f_vec};
 
-	std::vector<int> run_f_vec = { 10, 11, 12, 13, 14 };
+	std::vector<int> run_f_vec = {10, 11, 12, 13, 14};
 	Animation run_f = {
 		"fastenemy_run_f",
 		8,
 		SPRITE_ASSET_ID::SLIME,
-		run_f_vec };
+		run_f_vec};
 
-	std::vector<int> die_vec = { 1, 2, 3, 4, 4 };
+	std::vector<int> die_vec = {1, 2, 3, 4, 4};
 	Animation die = {
 		"fastenemy_die",
 		7,
 		SPRITE_ASSET_ID::SLIME,
-		die_vec };
+		die_vec};
 
-	auto& animSet = registry.animationSets.emplace(entity);
+	auto &animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;
 	animSet.animations[run_f.name] = run_f;
 	animSet.animations[die.name] = die;
@@ -772,75 +772,112 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos, int type)
 	TEXTURE_ASSET_ID texture;
 
 	// Selecting asset and scale based on furniture type
-	if (type == 2) {
+	if (type == 2)
+	{
 		motion.scale = vec2({PLANT_BB_WIDTH, PLANT_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::PLANT;
-	} else if (type == 9) {
+	}
+	else if (type == 9)
+	{
 		motion.scale = vec2({COAT_RACK_BB_WIDTH, COAT_RACK_BB_HEIGHT});
 		motion.position.y += 50.f;
 		texture = TEXTURE_ASSET_ID::COAT_RACK;
-	} else if (type == 10) {
+	}
+	else if (type == 10)
+	{
 		motion.scale = vec2({LONG_TABLE_BB_WIDTH, LONG_TABLE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::FURNITURE;
-	} else if (type == 11) {
+	}
+	else if (type == 11)
+	{
 		motion.scale = vec2({CHAIR_FRONT_BB_WIDTH, CHAIR_FRONT_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::CHAIR_FRONT;
-	} else if (type == 12) {
+	}
+	else if (type == 12)
+	{
 		motion.scale = vec2({CHAIR_BACK_BB_WIDTH, CHAIR_BACK_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::CHAIR_BACK;
 		motion.position.y -= 20;
-	} else if (type == 13) {
+	}
+	else if (type == 13)
+	{
 		motion.scale = vec2({CHAIR_SIDE_BB_WIDTH, CHAIR_SIDE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::CHAIR_SIDE;
-	} else if (type == 14) {
+	}
+	else if (type == 14)
+	{
 		motion.scale = vec2({-CHAIR_SIDE_BB_WIDTH, CHAIR_SIDE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::CHAIR_SIDE;
-	} else if (type == 15) {
+	}
+	else if (type == 15)
+	{
 		motion.scale = vec2({KITCHEN_COUNTER_1_BB_WIDTH, KITCHEN_COUNTER_1_BB_HEIGHT});
 		motion.position.x += 50;
 		motion.position.y += 17;
 		texture = TEXTURE_ASSET_ID::KITCHEN_COUNTER_1;
-	} else if (type == 16) {
+	}
+	else if (type == 16)
+	{
 		motion.scale = vec2({KITCHEN_COUNTER_2_BB_WIDTH, KITCHEN_COUNTER_2_BB_HEIGHT});
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::KITCHEN_COUNTER_2;
-	} else if (type == 17) {
+	}
+	else if (type == 17)
+	{
 		motion.scale = vec2({FRIDGE_BB_WIDTH, FRIDGE_BB_HEIGHT});
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::FRIDGE;
-	} else if (type == 18) {
+	}
+	else if (type == 18)
+	{
 		motion.scale = vec2({STOVE_BB_WIDTH, STOVE_BB_HEIGHT});
 		motion.position.y += 17;
 		texture = TEXTURE_ASSET_ID::STOVE;
-	} else if (type == 19) {
+	}
+	else if (type == 19)
+	{
 		motion.scale = vec2({BOOK_CASE_BB_WIDTH, BOOK_CASE_BB_HEIGHT});
 		motion.position.x += 50;
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::BOOK_CASE;
-	} else if (type == 20) {
+	}
+	else if (type == 20)
+	{
 		motion.scale = vec2({COFFEE_TABLE_BB_WIDTH, COFFEE_TABLE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::COFFEE_TABLE;
-	} else if (type == 21) {
+	}
+	else if (type == 21)
+	{
 		motion.scale = vec2({COUCH_BB_WIDTH, COUCH_BB_HEIGHT});
 		motion.position.x += 50;
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::COUCH;
-	} else if (type == 22) {
+	}
+	else if (type == 22)
+	{
 		motion.scale = vec2({DRESSER_BB_WIDTH, DRESSER_BB_HEIGHT});
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::DRESSER;
-	} else if (type == 23) {
+	}
+	else if (type == 23)
+	{
 		motion.scale = vec2({GRANDFATHER_CLOCK_BB_WIDTH, GRANDFATHER_CLOCK_BB_HEIGHT});
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::GRANDFATHER_CLOCK;
-	} else if (type == 24) {
+	}
+	else if (type == 24)
+	{
 		motion.scale = vec2({LAMP_BB_WIDTH, LAMP_BB_HEIGHT});
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::LAMP;
-	} else if (type == 25) {
+	}
+	else if (type == 25)
+	{
 		motion.scale = vec2({ROUND_TABLE_BB_WIDTH, ROUND_TABLE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::ROUND_TABLE;
-	} else if (type == 26) {
+	}
+	else if (type == 26)
+	{
 		motion.scale = vec2({SIDE_TABLE_BB_WIDTH, SIDE_TABLE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::SIDE_TABLE;
 	}
@@ -849,9 +886,9 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos, int type)
 	registry.solidObjs.emplace(entity);
 	registry.renderRequests.insert(
 		entity, {texture,
-				SPRITE_ASSET_ID::SPRITE_COUNT,
-				EFFECT_ASSET_ID::TEXTURED,
-				GEOMETRY_BUFFER_ID::SPRITE});	
+				 SPRITE_ASSET_ID::SPRITE_COUNT,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE});
 
 	return entity;
 }
@@ -924,35 +961,30 @@ Entity createExperience(RenderSystem *renderer, vec2 pos, int experience)
 	return entity;
 }
 
-
-Entity createSmoke(RenderSystem* renderer, vec2 pos) {
+Entity createSmoke(RenderSystem *renderer, vec2 pos)
+{
 	auto entity = Entity();
 	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Setting initial motion values
-	Motion& motion = registry.motions.emplace(entity);
+	Motion &motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.scale = vec2({ 10, 10});
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2({10, 10});
 
-	registry.effects.insert(entity, {
-		0.f, 
-		400.f, 
-		motion.scale.x,
-		motion.scale.y,
-		EFFECT_TYPE::SMOKE
-	});
+	registry.effects.insert(entity, {0.f,
+									 400.f,
+									 motion.scale.x,
+									 motion.scale.y,
+									 EFFECT_TYPE::SMOKE});
 
 	registry.renderRequests.insert(
-		entity, {
-			TEXTURE_ASSET_ID::SMOKE_PARTICLE,
-			SPRITE_ASSET_ID::SPRITE_COUNT,
-			EFFECT_ASSET_ID::SMOKE,
-			GEOMETRY_BUFFER_ID::SPRITE
-		}
-	);
+		entity, {TEXTURE_ASSET_ID::SMOKE_PARTICLE,
+				 SPRITE_ASSET_ID::SPRITE_COUNT,
+				 EFFECT_ASSET_ID::SMOKE,
+				 GEOMETRY_BUFFER_ID::SPRITE});
 
 	return entity;
 }
@@ -1159,8 +1191,8 @@ Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, 
 
 	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
-  
-  auto &ui = registry.userInterfaces.emplace(entity);
+
+	auto &ui = registry.userInterfaces.emplace(entity);
 	ui.angle = 0.f;
 	ui.position = pos;
 	ui.scale = vec2({0.5, -1.25});
@@ -1179,99 +1211,110 @@ Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, 
 
 	vec2 screen_pos = screenToNDC(pos + (ui.scale / vec2(2.0f, 2.0f)) - vec2(ui.scale.x - 0.05f, UPGRADE_CARD_TITLE_Y));
 	upgradeCardComponent.name = createText(screen_pos, 0.65f, title, vec3(0.9f, 0.9f, 0.9f));
-  
-  return entity;
+
+	return entity;
 }
 
-Entity createTempPowerup(RenderSystem* renderer, vec2 pos, PowerupType type, float multiplier, float timer) {
+Entity createTempPowerup(RenderSystem *renderer, vec2 pos, PowerupType type, float multiplier, float timer)
+{
 	auto entity = Entity();
 
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
-	Motion& motion = registry.motions.emplace(entity);
+	Motion &motion = registry.motions.emplace(entity);
 	motion.position = pos;
-	motion.velocity = { 0.f, 0.f };
+	motion.velocity = {0.f, 0.f};
 	motion.scale = vec2(32, 32);
 
 	registry.eatables.emplace(entity);
 
-	Powerup& powerup = registry.powerups.emplace(entity);
+	Powerup &powerup = registry.powerups.emplace(entity);
 
 	powerup.type = type;
 	powerup.timer = timer;
 
-	if (type == PowerupType::DAMAGE_BOOST || type == PowerupType::SPEED_BOOST) {
+	if (type == PowerupType::DAMAGE_BOOST || type == PowerupType::SPEED_BOOST)
+	{
 		powerup.multiplier = multiplier;
 	}
 
 	registry.renderRequests.insert(
 		entity,
-		{ 
-		 TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
 		 SPRITE_ASSET_ID::POWERUP,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 0
-		});
+		 0});
 
 	return entity;
 }
 
 // random color sprite cat
-Entity createHealthBuff(RenderSystem* renderer, vec2 pos) {
+Entity createHealthBuff(RenderSystem *renderer, vec2 pos)
+{
 	auto entity = Entity();
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Setting initial motion values
-	Motion& motion = registry.motions.emplace(entity);
+	Motion &motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.scale = vec2({ PLANT_BB_WIDTH, PLANT_BB_HEIGHT});
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2({PLANT_BB_WIDTH, PLANT_BB_HEIGHT});
 
 	SPRITE_ASSET_ID sprite = SPRITE_ASSET_ID::GREY_CAT;
 	std::string sprite_name = "";
 
 	int type = rand() % 2;
 
-	switch (type) {
-		case 0:
-			sprite = SPRITE_ASSET_ID::GREY_CAT;
-			sprite_name = "greycat";
-			
-			break;
-		default:
-			sprite = SPRITE_ASSET_ID::ORANGE_CAT;
-			sprite_name = "orangecat";
+	switch (type)
+	{
+	case 0:
+		sprite = SPRITE_ASSET_ID::GREY_CAT;
+		sprite_name = "greycat";
+
+		break;
+	default:
+		sprite = SPRITE_ASSET_ID::ORANGE_CAT;
+		sprite_name = "orangecat";
 	}
 
 	registry.healthBuffs.emplace(entity);
 
 	// create an empty component for the furniture as a solid object
 	registry.renderRequests.insert(
-		entity, {
-			TEXTURE_ASSET_ID::TEXTURE_COUNT,
-			sprite,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE,
-			0
-		}
-	);
+		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
+				 sprite,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 0});
 
 	std::vector<int> idle_f_vec = {0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 16, 17, 18, 19};
 	Animation idle_f = {
 		sprite_name + "_idle_f",
-		10, 
+		10,
 		sprite,
-		idle_f_vec
-	};
+		idle_f_vec};
 
-	auto& animSet = registry.animationSets.emplace(entity);
+	auto &animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;
 	animSet.current_animation = idle_f.name;
 
+	return entity;
+}
+
+Entity createCamera(RenderSystem *renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	Camera &camera = registry.cameras.emplace(entity);
+
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2(32, 32);
 
 	return entity;
 }
