@@ -61,7 +61,7 @@ void PlayerController::set_world(WorldSystem *world)
 }
 
 void PlayerController::step(float elapsed_ms_since_last_update)
-{ 
+{
     // Handle Player Attacks
     auto &attackRegistry = registry.playerAttacks;
     for (Entity entity : attackRegistry.entities)
@@ -106,7 +106,7 @@ void PlayerController::step(float elapsed_ms_since_last_update)
         {
             if (!player.is_moving)
             {
-                player.state = PLAYER_STATE::IDLE; 
+                player.state = PLAYER_STATE::IDLE;
             }
             else
             {
@@ -121,13 +121,14 @@ void PlayerController::step(float elapsed_ms_since_last_update)
             if (player.is_moving && !player.is_attacking)
             {
                 player.last_direction = snapToClosestAxis(player.move_direction);
-                if (player.slowed_duration_ms <= 0) {
+                if (player.slowed_duration_ms <= 0)
+                {
                     pmotion.velocity = glm::normalize(player.move_direction) * pmotion.speed;
                 }
-                else {
+                else
+                {
                     pmotion.velocity = glm::normalize(player.move_direction) * pmotion.speed * player.slowed_amount;
                 }
-                
             }
             else
             {
@@ -510,12 +511,12 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
         }
     }
 
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-    {
-        world->set_level_up_state(true);
+    // if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+    // {
+    //     world->set_level_up_state(true);
 
-        displayUpgradeCards();
-    }
+    //     displayUpgradeCards();
+    // }
 
     if (world->is_level_up && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
