@@ -210,11 +210,11 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 		SPRITE_ASSET_ID::FINAL_BOSS,
 		run_f_vec};
 
-	std::vector<int> die_vec = {0, 1, 2, 3};
+	std::vector<int> die_vec = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 	Animation die = {
 		"final_boss_enemy_die",
-		7,
-		SPRITE_ASSET_ID::FINAL_BOSS,
+		10,
+		SPRITE_ASSET_ID::FINAL_BOSS_DEATH,
 		die_vec};
 
 	auto &animSet = registry.animationSets.emplace(entity);

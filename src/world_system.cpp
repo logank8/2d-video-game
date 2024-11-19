@@ -797,6 +797,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			animSet_enemy.current_animation = enemy_name + "enemy_run_f";
 			break;
 		case ENEMY_STATE::DEAD:
+			if (registry.bosses.has(e)) {
+				auto &render_rqst = registry.renderRequests.get(e);
+				render_rqst.used_sprite = SPRITE_ASSET_ID::FINAL_BOSS_DEATH;
+			}
+
 			// seems fine
 			if (animSet_enemy.current_animation != enemy_name + "enemy_die")
 			{
