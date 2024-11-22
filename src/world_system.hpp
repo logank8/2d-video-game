@@ -68,6 +68,8 @@ private:
 
 	vec2 adjust_knockback_coordinates(int grid_x, int grid_y, int adjust_x, int adjust_y);
 
+	void spawn_nearby_tile(vec2 curr_tile, std::vector<ENEMY_TYPES>& enemy_types);
+
 	// OpenGL window handle
 	GLFWwindow *window;
 

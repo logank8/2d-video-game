@@ -255,7 +255,8 @@ Entity createContactSlow(RenderSystem *renderer, vec2 position)
 	motion.scale = vec2({ENEMY_1_BB_WIDTH * sign(motion.velocity.x), ENEMY_1_BB_HEIGHT});
 
 	// Create an (empty) Bug component to be able to refer to all bug
-	registry.deadlys.emplace(entity);
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.enemy_type = ENEMY_TYPES::CONTACT_DMG;
 	registry.healths.emplace(entity);
 	registry.damages.emplace(entity);
 	registry.renderRequests.insert(

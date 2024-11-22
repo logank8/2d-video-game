@@ -41,6 +41,9 @@ bool is_tutorial_on = false;
 bool WorldSystem::is_paused = false;
 bool WorldSystem::is_level_up = false;
 
+// For testing purposes only
+int map_counter = 1;
+
 PhysicsSystem physics;
 
 void windowMinimizedCallback(GLFWwindow *window, int iconified)
@@ -256,6 +259,43 @@ std::string floatToString1DP(double value)
 	return out.str();
 }
 
+void WorldSystem::spawn_nearby_tile(vec2 curr_tile, std::vector<ENEMY_TYPES>& enemy_types) {
+	const int dx[] = { -1, -1, -1,  0, 0,  1, 1, 1 };
+	const int dy[] = { -1,  0,  1, -1, 1, -1, 0, 1 };
+
+	// Assuming i,j is your current position
+	for (int dir = 0; dir < 8; dir++) {
+		if (enemy_types.size() == 0) {
+			break;
+		}
+		int new_i = curr_tile.x + dx[dir];
+		int new_j = curr_tile.y + dy[dir];
+
+		// Bounds checking to avoid array out of bounds
+		if (new_i >= 0 && new_i < current_map[0].size() &&
+			new_j >= 0 && new_j < current_map.size()) {
+			if (current_map[new_j][new_i] == 1 || (current_map[new_j][new_i] >= 3 && current_map[new_j][new_i] <= 8)) {
+				vec2 world_pos = { (640 - (25 * 100)) + (new_i * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (new_j * TILE_SIZE) + (TILE_SIZE / 2) };
+				ENEMY_TYPES enemy_type = enemy_types.back();
+				switch (enemy_type) {
+					case ENEMY_TYPES::CONTACT_DMG:
+						createContactSlow(renderer, world_pos);
+						break;
+					case ENEMY_TYPES::CONTACT_DMG_2:
+						createContactFast(renderer, world_pos);
+						break;
+					case ENEMY_TYPES::RANGED:
+						createRangedEnemy(renderer, world_pos);
+						break;
+					default:
+						break;
+				}
+				enemy_types.pop_back();
+			}
+		}
+	}
+}
+
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update)
 {
@@ -421,9 +461,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				else
 				{
 
-					createContactSlow(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createContactSlow(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+					createContactSlow(renderer, world_pos);
+					std::vector<ENEMY_TYPES> additional_enemies = { ENEMY_TYPES::CONTACT_DMG };
+					spawn_nearby_tile(vec2(i, j), additional_enemies);
 				}
+				createContactSlow(renderer, world_pos);
+				std::vector<ENEMY_TYPES> additional_enemies = { ENEMY_TYPES::CONTACT_DMG };
+				spawn_nearby_tile(vec2(i, j), additional_enemies);
 				tile_vec.push_back(vec2(i, j));
 			}
 			if (current_map[j][i] == 4 && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
@@ -432,20 +476,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				if (encounter == 0)
 				{
 
-					createContactSlow(renderer, vec2(world_pos.x, world_pos.y - TILE_SIZE));
-					createContactFast(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+					createContactSlow(renderer, world_pos);
+					std::vector<ENEMY_TYPES> additional_enemies = { ENEMY_TYPES::CONTACT_DMG_2 };
+					spawn_nearby_tile(vec2(i, j), additional_enemies);
 				}
 				else if (encounter == 1)
 				{
 
-					createContactFast(renderer, vec2(world_pos.x, world_pos.y - TILE_SIZE));
-					createContactFast(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+					createContactFast(renderer, world_pos);
+					std::vector<ENEMY_TYPES> additional_enemies = { ENEMY_TYPES::CONTACT_DMG_2 };
+					spawn_nearby_tile(vec2(i, j), additional_enemies);
 				}
 				else
 				{
-					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y + TILE_SIZE));
-					createContactSlow(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createContactSlow(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
+					createRangedEnemy(renderer, world_pos);
+					std::vector<ENEMY_TYPES> additional_enemies = { ENEMY_TYPES::CONTACT_DMG, ENEMY_TYPES::CONTACT_DMG };
+					spawn_nearby_tile(vec2(i, j), additional_enemies);
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
@@ -454,22 +500,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				int encounter = rand() % 3;
 				if (encounter == 0)
 				{
-					createContactFast(renderer, vec2(world_pos.x, world_pos.y));
-					createRangedEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createRangedEnemy(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
+					createContactFast(renderer, world_pos);
+					std::vector<ENEMY_TYPES> additional_enemies = { ENEMY_TYPES::RANGED, ENEMY_TYPES::RANGED };
+					spawn_nearby_tile(vec2(i, j), additional_enemies);
 				}
 				else if (encounter == 1)
 				{
-					createContactSlow(renderer, vec2(world_pos.x, world_pos.y));
-					createContactFast(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createContactFast(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
+					createContactSlow(renderer, world_pos);
+					std::vector<ENEMY_TYPES> additional_enemies = { ENEMY_TYPES::CONTACT_DMG_2, ENEMY_TYPES::CONTACT_DMG_2 };
+					spawn_nearby_tile(vec2(i, j), additional_enemies);
 				}
 				else
 				{
-					createRangedEnemy(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createContactFast(renderer, vec2(world_pos.x, world_pos.y + TILE_SIZE));
-					createContactSlow(renderer, vec2(world_pos.x - TILE_SIZE, world_pos.y));
-					createContactSlow(renderer, vec2(world_pos.x + TILE_SIZE, world_pos.y));
+					createRangedEnemy(renderer, world_pos);
+					std::vector<ENEMY_TYPES> additional_enemies = { ENEMY_TYPES::CONTACT_DMG_2, ENEMY_TYPES::CONTACT_DMG, ENEMY_TYPES::CONTACT_DMG };
+					spawn_nearby_tile(vec2(i, j), additional_enemies);
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
@@ -1064,7 +1109,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 			{
 				float &player_hp = registry.healths.get(entity).hit_points;
 				Player &player = registry.players.get(entity);
-				if (!player.invulnerable && !registry.deathTimers.has(entity_other))
+				if (!player.invulnerable && !registry.deathTimers.has(entity_other) && !player.god_mode)
 				{
 					if (registry.powerups.has(entity))
 					{
@@ -1656,6 +1701,28 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 					hp_bar_render.used_texture = static_cast<TEXTURE_ASSET_ID>(static_cast<int>(hp_bar_render.used_texture) + 1);
 				}
 			}
+		}
+	}
+
+
+	// Toggle god mode 
+	// For testing purposes only
+	if (key == GLFW_KEY_G && action == GLFW_RELEASE)
+	{
+		player.god_mode = !player.god_mode;
+	}
+	
+	// Switch to next map
+	// For testing purposes only
+	if (key == GLFW_KEY_M && action == GLFW_RELEASE)
+	{
+		map_counter++;
+		if (map_counter == 4) {
+			map_counter = 1;
+			mapSwitch(map_counter);
+		}
+		else {
+			mapSwitch(map_counter);
 		}
 	}
 
