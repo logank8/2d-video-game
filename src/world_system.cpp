@@ -327,7 +327,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	vec2 player_pos = motions_registry.get(my_player).position;
 	vec2 world_origin = vec2(-1860, -3760);
 
-	registry.list_all_components();
 
 	// Camera follows player
 	auto &cameraMotion = motions_registry.get(camera);

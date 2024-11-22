@@ -36,7 +36,7 @@ void main()
 	vec3 viewPos1 = 2 * viewPos;
 
 	// ambient calculation
-	float lightStrength = 0.35;
+	float lightStrength = 0.2;
 	vec3 ambient = lightStrength * vec3(1.0, 1.0, 1.0);
 	// ambient done
 
@@ -50,7 +50,7 @@ void main()
 
 	vec3 diffuse = diff * vec3(1.0, 1.0, 1.0);
 
-	float specularStrength = 0.1;
+	float specularStrength = 0.01;
 
 	vec3 viewDir = normalize(viewPos1 - fragPos);
 	vec3 reflectDir = reflect(-lightDir, norm);
