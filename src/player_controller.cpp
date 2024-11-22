@@ -64,12 +64,15 @@ void PlayerController::step(float elapsed_ms_since_last_update)
 {
     // Handle Player Attacks
     auto &attackRegistry = registry.playerAttacks;
+
     for (Entity entity : attackRegistry.entities)
     {
         auto &attack = attackRegistry.get(entity);
+        auto &animSet = registry.animationSets.get(entity);
 
         attack.duration_ms -= elapsed_ms_since_last_update;
-        if (attack.duration_ms < 0.0f || attack.has_hit)
+
+        if (animSet.current_frame == animSet.animations[animSet.current_animation].sprite_indices.size() - 1)
         {
             registry.remove_all_components_of(entity);
         }
@@ -504,19 +507,19 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
         {
             vec2 player_pos = registry.motions.get(*my_player).position;
             vec2 attack_direction = player.attack_direction;
-
-            createBasicAttackHitbox(renderer, player_pos + (attack_direction * vec2(75, 75)), *my_player);
             player.last_direction = attack_direction;
             player.is_attacking = true;
+            createBasicAttackHitbox(renderer, player_pos + (attack_direction * vec2(70, 70)), *my_player);
         }
     }
 
-    // if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-    // {
-    //     world->set_level_up_state(true);
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+    {
+        // world->set_level_up_state(true);
 
-    //     displayUpgradeCards();
-    // }
+        // displayUpgradeCards();
+        debugging.in_debug_mode = !debugging.in_debug_mode;
+    }
 
     if (world->is_level_up && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {

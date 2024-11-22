@@ -103,7 +103,6 @@ struct Deadly
 // anything that is deadly to the player
 struct FinalBoss
 {
-
 };
 
 struct Effect
@@ -214,6 +213,9 @@ struct Motion
 	vec2 velocity = {0, 0};
 	vec2 scale = {10, 10};
 	float speed = 30.0f; // To control player speed
+
+	vec2 renderScale = {1, 1};
+	vec2 renderPositionOffset = {0, 0};
 };
 
 // Stucture to store collision information
@@ -425,7 +427,8 @@ enum class TEXTURE_ASSET_ID
 	CARD = POWERUP + 1,
 	GREY_CAT = CARD + 1,
 	ORANGE_CAT = GREY_CAT + 1,
-	TEXTURE_COUNT = ORANGE_CAT + 1
+	SLASH = ORANGE_CAT + 1,
+	TEXTURE_COUNT = SLASH + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -444,7 +447,8 @@ enum class SPRITE_ASSET_ID
 	COIN = STAMINA_BAR + 1,
 	BEETLE = COIN + 1,
 	POWERUP = BEETLE + 1,
-	SPRITE_COUNT = POWERUP + 1
+	SLASH = POWERUP + 1,
+	SPRITE_COUNT = SLASH + 1
 };
 const int sprite_count = (int)SPRITE_ASSET_ID::SPRITE_COUNT;
 

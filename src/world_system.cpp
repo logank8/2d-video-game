@@ -87,7 +87,7 @@ WorldSystem::~WorldSystem()
 	// Close the window
 	glfwDestroyWindow(window);
 
-	//glfwTerminate();
+	// glfwTerminate();
 }
 
 // Debugging
@@ -259,13 +259,16 @@ std::string floatToString1DP(double value)
 	return out.str();
 }
 
-void WorldSystem::spawn_nearby_tile(vec2 curr_tile, std::vector<ENEMY_TYPES>& enemy_types) {
-	const int dx[] = { -1, -1, -1,  0, 0,  1, 1, 1 };
-	const int dy[] = { -1,  0,  1, -1, 1, -1, 0, 1 };
+void WorldSystem::spawn_nearby_tile(vec2 curr_tile, std::vector<ENEMY_TYPES> &enemy_types)
+{
+	const int dx[] = {-1, -1, -1, 0, 0, 1, 1, 1};
+	const int dy[] = {-1, 0, 1, -1, 1, -1, 0, 1};
 
 	// Assuming i,j is your current position
-	for (int dir = 0; dir < 8; dir++) {
-		if (enemy_types.size() == 0) {
+	for (int dir = 0; dir < 8; dir++)
+	{
+		if (enemy_types.size() == 0)
+		{
 			break;
 		}
 		int new_i = curr_tile.x + dx[dir];
@@ -273,22 +276,25 @@ void WorldSystem::spawn_nearby_tile(vec2 curr_tile, std::vector<ENEMY_TYPES>& en
 
 		// Bounds checking to avoid array out of bounds
 		if (new_i >= 0 && new_i < current_map[0].size() &&
-			new_j >= 0 && new_j < current_map.size()) {
-			if (current_map[new_j][new_i] == 1 || (current_map[new_j][new_i] >= 3 && current_map[new_j][new_i] <= 8)) {
-				vec2 world_pos = { (640 - (25 * 100)) + (new_i * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (new_j * TILE_SIZE) + (TILE_SIZE / 2) };
+			new_j >= 0 && new_j < current_map.size())
+		{
+			if (current_map[new_j][new_i] == 1 || (current_map[new_j][new_i] >= 3 && current_map[new_j][new_i] <= 8))
+			{
+				vec2 world_pos = {(640 - (25 * 100)) + (new_i * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (new_j * TILE_SIZE) + (TILE_SIZE / 2)};
 				ENEMY_TYPES enemy_type = enemy_types.back();
-				switch (enemy_type) {
-					case ENEMY_TYPES::CONTACT_DMG:
-						createContactSlow(renderer, world_pos);
-						break;
-					case ENEMY_TYPES::CONTACT_DMG_2:
-						createContactFast(renderer, world_pos);
-						break;
-					case ENEMY_TYPES::RANGED:
-						createRangedEnemy(renderer, world_pos);
-						break;
-					default:
-						break;
+				switch (enemy_type)
+				{
+				case ENEMY_TYPES::CONTACT_DMG:
+					createContactSlow(renderer, world_pos);
+					break;
+				case ENEMY_TYPES::CONTACT_DMG_2:
+					createContactFast(renderer, world_pos);
+					break;
+				case ENEMY_TYPES::RANGED:
+					createRangedEnemy(renderer, world_pos);
+					break;
+				default:
+					break;
 				}
 				enemy_types.pop_back();
 			}
@@ -301,9 +307,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 {
 	// Updating window title with points
 	std::stringstream title_ss;
-	if (current_map != map3) {
+	if (current_map != map3)
+	{
 		title_ss << "Number of Enemies Until Next Level: " << (enemy_kill_goal - enemies_killed);
-	} else {
+	}
+	else
+	{
 		title_ss << "Final Boss";
 	}
 	glfwSetWindowTitle(window, title_ss.str().c_str());
@@ -462,11 +471,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				{
 
 					createContactSlow(renderer, world_pos);
-					std::vector<ENEMY_TYPES> additional_enemies = { ENEMY_TYPES::CONTACT_DMG };
+					std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG};
 					spawn_nearby_tile(vec2(i, j), additional_enemies);
 				}
 				createContactSlow(renderer, world_pos);
-				std::vector<ENEMY_TYPES> additional_enemies = { ENEMY_TYPES::CONTACT_DMG };
+				std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG};
 				spawn_nearby_tile(vec2(i, j), additional_enemies);
 				tile_vec.push_back(vec2(i, j));
 			}
@@ -477,20 +486,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				{
 
 					createContactSlow(renderer, world_pos);
-					std::vector<ENEMY_TYPES> additional_enemies = { ENEMY_TYPES::CONTACT_DMG_2 };
+					std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG_2};
 					spawn_nearby_tile(vec2(i, j), additional_enemies);
 				}
 				else if (encounter == 1)
 				{
 
 					createContactFast(renderer, world_pos);
-					std::vector<ENEMY_TYPES> additional_enemies = { ENEMY_TYPES::CONTACT_DMG_2 };
+					std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG_2};
 					spawn_nearby_tile(vec2(i, j), additional_enemies);
 				}
 				else
 				{
 					createRangedEnemy(renderer, world_pos);
-					std::vector<ENEMY_TYPES> additional_enemies = { ENEMY_TYPES::CONTACT_DMG, ENEMY_TYPES::CONTACT_DMG };
+					std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG, ENEMY_TYPES::CONTACT_DMG};
 					spawn_nearby_tile(vec2(i, j), additional_enemies);
 				}
 				tile_vec.push_back(vec2(i, j));
@@ -501,19 +510,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				if (encounter == 0)
 				{
 					createContactFast(renderer, world_pos);
-					std::vector<ENEMY_TYPES> additional_enemies = { ENEMY_TYPES::RANGED, ENEMY_TYPES::RANGED };
+					std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::RANGED, ENEMY_TYPES::RANGED};
 					spawn_nearby_tile(vec2(i, j), additional_enemies);
 				}
 				else if (encounter == 1)
 				{
 					createContactSlow(renderer, world_pos);
-					std::vector<ENEMY_TYPES> additional_enemies = { ENEMY_TYPES::CONTACT_DMG_2, ENEMY_TYPES::CONTACT_DMG_2 };
+					std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG_2, ENEMY_TYPES::CONTACT_DMG_2};
 					spawn_nearby_tile(vec2(i, j), additional_enemies);
 				}
 				else
 				{
 					createRangedEnemy(renderer, world_pos);
-					std::vector<ENEMY_TYPES> additional_enemies = { ENEMY_TYPES::CONTACT_DMG_2, ENEMY_TYPES::CONTACT_DMG, ENEMY_TYPES::CONTACT_DMG };
+					std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG_2, ENEMY_TYPES::CONTACT_DMG, ENEMY_TYPES::CONTACT_DMG};
 					spawn_nearby_tile(vec2(i, j), additional_enemies);
 				}
 				tile_vec.push_back(vec2(i, j));
@@ -762,12 +771,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				enemies_killed++;
 				if (enemies_killed >= enemy_kill_goal && current_map != map3)
 				{
-					if (current_map == map2) {
+					if (current_map == map2)
+					{
 						mapSwitch(3);
-					} else {
+					}
+					else
+					{
 						mapSwitch(2);
 					}
-					
+
 					return true;
 				}
 			}
@@ -1006,8 +1018,6 @@ void WorldSystem::restart_game()
 			{
 				spawnable_tiles.push_back(vec2(i, j));
 			}
-
-			
 		}
 	}
 
@@ -1314,7 +1324,9 @@ void WorldSystem::handle_collisions(float step_seconds)
 		}
 		else if (registry.playerAttacks.has(entity))
 		{
-			if (registry.deadlys.has(entity_other) && registry.healths.has(entity_other) && registry.motions.has(entity_other))
+			auto &playerAttacks = registry.playerAttacks.get(entity);
+
+			if (registry.deadlys.has(entity_other) && registry.healths.has(entity_other) && registry.motions.has(entity_other) && !playerAttacks.has_hit)
 			{
 				Health &deadly_health = registry.healths.get(entity_other);
 				Damage &damage = registry.damages.get(entity);
@@ -1497,8 +1509,6 @@ void WorldSystem::handle_collisions(float step_seconds)
 						createSmoke(renderer, {enemy_motion.position.x, enemy_motion.position.y});
 					}
 				}
-
-				registry.playerAttacks.get(entity).has_hit = true;
 			}
 		}
 	}
@@ -1507,6 +1517,12 @@ void WorldSystem::handle_collisions(float step_seconds)
 	{
 		Motion &player_motion = registry.motions.get(my_player);
 		player_motion.speed = 300.f;
+	}
+
+	for (Entity entity : registry.playerAttacks.entities)
+	{
+		auto &attackComponent = registry.playerAttacks.get(entity);
+		attackComponent.has_hit = true;
 	}
 
 	// Remove all collisions from this simulation step
@@ -1529,20 +1545,25 @@ vec2 WorldSystem::adjust_knockback_coordinates(int grid_x, int grid_y, int adjus
 	{
 		return vec2(x, 0);
 	}
-	if (x > 0) {
+	if (x > 0)
+	{
 		x--;
 	}
-	else if (x < 0) {
+	else if (x < 0)
+	{
 		x++;
 	}
-	if (y > 0) {
+	if (y > 0)
+	{
 		y--;
 	}
-	else if (y < 0) {
+	else if (y < 0)
+	{
 		y++;
 	}
 
-	while (x != 0 && y != 0) {
+	while (x != 0 && y != 0)
+	{
 		if (current_map[grid_y + y][grid_x + x] == 1 || (current_map[grid_y + y][grid_x + x] >= 3 && current_map[grid_y + y][grid_x + x] <= 8))
 		{
 			return vec2(x, y);
@@ -1555,20 +1576,24 @@ vec2 WorldSystem::adjust_knockback_coordinates(int grid_x, int grid_y, int adjus
 		{
 			return vec2(x, 0);
 		}
-		if (x > 0) {
+		if (x > 0)
+		{
 			x--;
 		}
-		else if (x < 0) {
+		else if (x < 0)
+		{
 			x++;
 		}
-		if (y > 0) {
+		if (y > 0)
+		{
 			y--;
 		}
-		else if (y < 0) {
+		else if (y < 0)
+		{
 			y++;
 		}
 	}
-	
+
 	return vec2(0, 0);
 }
 
@@ -1704,24 +1729,25 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		}
 	}
 
-
-	// Toggle god mode 
+	// Toggle god mode
 	// For testing purposes only
 	if (key == GLFW_KEY_G && action == GLFW_RELEASE)
 	{
 		player.god_mode = !player.god_mode;
 	}
-	
+
 	// Switch to next map
 	// For testing purposes only
 	if (key == GLFW_KEY_M && action == GLFW_RELEASE)
 	{
 		map_counter++;
-		if (map_counter == 4) {
+		if (map_counter == 4)
+		{
 			map_counter = 1;
 			mapSwitch(map_counter);
 		}
-		else {
+		else
+		{
 			mapSwitch(map_counter);
 		}
 	}

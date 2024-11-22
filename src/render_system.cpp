@@ -15,8 +15,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	// specification for more info Incrementally updates transformation matrix,
 	// thus ORDER IS IMPORTANT
 	Transform transform;
-	transform.translate(motion.position);
-	transform.scale(motion.scale);
+	transform.translate(motion.position + motion.renderPositionOffset);
+	transform.scale(motion.scale * motion.renderScale);
 	transform.rotate(motion.angle);
 
 	// adjusting for discrepancies in texture vs. bb size
@@ -43,12 +43,19 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		else if (registry.projectiles.has(entity))
 		{
 			transform.scale(vec2(5, 5));
-		} else if (enemy.enemy_type == ENEMY_TYPES::FINAL_BOSS) {
-			if (enemy.state == ENEMY_STATE::DEAD) {
+		}
+		else if (enemy.enemy_type == ENEMY_TYPES::FINAL_BOSS)
+		{
+			if (enemy.state == ENEMY_STATE::DEAD)
+			{
 				transform.scale(vec2(1.3, 1));
-			} else if (enemy.state == ENEMY_STATE::ATTACK) {
+			}
+			else if (enemy.state == ENEMY_STATE::ATTACK)
+			{
 				transform.scale(vec2(4, 1));
-			} else {
+			}
+			else
+			{
 				transform.scale(vec2(1.5, 1.5));
 			}
 		}

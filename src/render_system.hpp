@@ -37,56 +37,56 @@ class RenderSystem
 
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, texture_count> texture_paths = {
-			textures_path("Slime.png"),
-			textures_path("Skeleton.png"),
-			textures_path("adventurer.png"),
-			textures_path("mini_golem.png"),
-			textures_path("bubble_closed.png"), // ranged projectile
-			textures_path("boss_run.png"),
-			textures_path("boss_death.png"),
-			textures_path("boss_attack.png"),
-			textures_path("health_bar.png"),
-			textures_path("hp_bar/hp_bar_0.png"), // empty
-			textures_path("hp_bar/hp_bar_1.png"), // 1
-			textures_path("hp_bar/hp_bar_2.png"), // 2
-			textures_path("hp_bar/hp_bar_3.png"), // 3
-			textures_path("hp_bar/hp_bar_4.png"), // 4
-			textures_path("hp_bar/hp_bar_5.png"), // 5
-			textures_path("hp_bar/hp_bar_6.png"), // 6
-			textures_path("hp_bar/hp_bar_7.png"), // 7
-			textures_path("hp_bar/hp_bar_full.png"), // full
-			textures_path("plant.png"),
-			textures_path("long_table.png"),
-			textures_path("Coat_Rack.png"),
-			textures_path("Chair_Front.png"),
-			textures_path("Chair_Back.png"),
-			textures_path("Chair_Side.png"),
-			textures_path("Kitchen_Counter_1.png"),
-			textures_path("Kitchen_Counter_2.png"),
-			textures_path("Fridge.png"),
-			textures_path("Stove.png"),
-			textures_path("Book_Case.png"),
-			textures_path("Coffee_Table.png"),
-			textures_path("Couch.png"),
-			textures_path("Dresser.png"),
-			textures_path("Grandfather_Clock.png"),
-			textures_path("Lamp.png"),
-			textures_path("Round_Table.png"),
-			textures_path("Side_Table.png"),
-			textures_path("wall.png"),
-			textures_path("side_wall.png"),
-			textures_path("player.png"),
-			textures_path("heart.png"),
-			textures_path("smoke_particle.png"),
-			textures_path("dash.png"),
-			textures_path("stamina_regen.png"),
-			textures_path("coins.png"),
-			textures_path("beetle.png"),
-			textures_path("powerup.png"),
-			textures_path("card.png"),
-			textures_path("grey_cat.png"),
-			textures_path("orange_cat.png")
-	};
+		textures_path("Slime.png"),
+		textures_path("Skeleton.png"),
+		textures_path("adventurer.png"),
+		textures_path("mini_golem.png"),
+		textures_path("bubble_closed.png"), // ranged projectile
+		textures_path("boss_run.png"),
+		textures_path("boss_death.png"),
+		textures_path("boss_attack.png"),
+		textures_path("health_bar.png"),
+		textures_path("hp_bar/hp_bar_0.png"),	 // empty
+		textures_path("hp_bar/hp_bar_1.png"),	 // 1
+		textures_path("hp_bar/hp_bar_2.png"),	 // 2
+		textures_path("hp_bar/hp_bar_3.png"),	 // 3
+		textures_path("hp_bar/hp_bar_4.png"),	 // 4
+		textures_path("hp_bar/hp_bar_5.png"),	 // 5
+		textures_path("hp_bar/hp_bar_6.png"),	 // 6
+		textures_path("hp_bar/hp_bar_7.png"),	 // 7
+		textures_path("hp_bar/hp_bar_full.png"), // full
+		textures_path("plant.png"),
+		textures_path("long_table.png"),
+		textures_path("Coat_Rack.png"),
+		textures_path("Chair_Front.png"),
+		textures_path("Chair_Back.png"),
+		textures_path("Chair_Side.png"),
+		textures_path("Kitchen_Counter_1.png"),
+		textures_path("Kitchen_Counter_2.png"),
+		textures_path("Fridge.png"),
+		textures_path("Stove.png"),
+		textures_path("Book_Case.png"),
+		textures_path("Coffee_Table.png"),
+		textures_path("Couch.png"),
+		textures_path("Dresser.png"),
+		textures_path("Grandfather_Clock.png"),
+		textures_path("Lamp.png"),
+		textures_path("Round_Table.png"),
+		textures_path("Side_Table.png"),
+		textures_path("wall.png"),
+		textures_path("side_wall.png"),
+		textures_path("player.png"),
+		textures_path("heart.png"),
+		textures_path("smoke_particle.png"),
+		textures_path("dash.png"),
+		textures_path("stamina_regen.png"),
+		textures_path("coins.png"),
+		textures_path("beetle.png"),
+		textures_path("powerup.png"),
+		textures_path("card.png"),
+		textures_path("grey_cat.png"),
+		textures_path("orange_cat.png"),
+		textures_path("slash.png")};
 
 	std::array<GLuint, effect_count> effects;
 	// Make sure these paths remain in sync with the associated enumerators.
@@ -98,8 +98,7 @@ class RenderSystem
 		shader_path("water"),
 		shader_path("font"),
 		shader_path("dash"),
-		shader_path("smoke")
-	};
+		shader_path("smoke")};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;

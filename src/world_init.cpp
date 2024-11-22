@@ -255,7 +255,7 @@ Entity createContactSlow(RenderSystem *renderer, vec2 position)
 	motion.scale = vec2({ENEMY_1_BB_WIDTH * sign(motion.velocity.x), ENEMY_1_BB_HEIGHT});
 
 	// Create an (empty) Bug component to be able to refer to all bug
-	Deadly& deadly = registry.deadlys.emplace(entity);
+	Deadly &deadly = registry.deadlys.emplace(entity);
 	deadly.enemy_type = ENEMY_TYPES::CONTACT_DMG;
 	registry.healths.emplace(entity);
 	registry.damages.emplace(entity);
@@ -636,10 +636,57 @@ Entity createBasicAttackHitbox(RenderSystem *renderer, vec2 position, Entity pla
 
 	auto &player = registry.players.get(player_entity);
 
-	motion.scale = vec2({BASIC_ATTACK_WIDTH, BASIC_ATTACK_HEIGHT});
+	motion.scale = vec2({100, 100});
+	motion.renderScale = vec2(1.5, 1.5);
+	motion.renderPositionOffset = player.attack_direction * vec2(-50, -50);
 
 	auto &damage = registry.damages.emplace(entity);
 	damage.damage = 25.f * player.damage_multiplier;
+
+	registry.renderRequests.insert(
+		entity,
+		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 SPRITE_ASSET_ID::SLASH,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 0});
+	std::vector<int> u_vec = {0, 1, 2, 3};
+	Animation up = {
+		"up_attack",
+		15,
+		SPRITE_ASSET_ID::SLASH,
+		u_vec};
+	std::vector<int> s_vec = {5, 6, 7, 8};
+	Animation side = {
+		"s_attack",
+		15,
+		SPRITE_ASSET_ID::SLASH,
+		s_vec};
+	std::vector<int> d_vec = {9, 10, 11, 12};
+	Animation down = {
+		"d_attack",
+		15,
+		SPRITE_ASSET_ID::SLASH,
+		d_vec};
+
+	auto &animSet = registry.animationSets.emplace(entity);
+	animSet.animations[up.name] = up;
+	animSet.animations[down.name] = down;
+	animSet.animations[side.name] = side;
+
+	if (player.attack_direction == vec2{0, -1})
+	{
+		animSet.current_animation = up.name;
+	}
+	else if (player.attack_direction == vec2{0, 1})
+	{
+		animSet.current_animation = down.name;
+	}
+	else
+	{
+		animSet.current_animation = side.name;
+		motion.scale.x *= player.attack_direction.x;
+	}
 
 	registry.playerAttacks.emplace(entity);
 
