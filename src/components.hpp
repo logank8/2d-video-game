@@ -50,6 +50,7 @@ struct Player
 	float invulnerable_duration_ms = 2000.f;
 	vec2 last_pos = {0, 0};
 	float dash_cooldown_ms = 3000.f;
+	float dash_time = 100.f;
 	float curr_dash_cooldown_ms = dash_cooldown_ms;
 	bool is_dash_up = true;
 	float slowed_duration_ms = 0.f;
@@ -62,7 +63,7 @@ struct Player
 	float damage_multiplier = 2.0f;
 	float attack_duration_ms = 230.f;
 	float curr_attack_duration_ms = attack_duration_ms;
-	float knockback_strength = 0.1f;
+	float knockback_strength = 0.08;
 
 	// Other
 	float collection_distance = 100.f;

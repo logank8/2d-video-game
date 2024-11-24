@@ -388,7 +388,7 @@ void PlayerController::on_key(int key, int action, int mod)
     Motion &pmotion = registry.motions.get(*my_player);
     Player &player = registry.players.get(*my_player);
 
-    if (!registry.deathTimers.has(*my_player) && (player.is_dash_up || (!player.is_dash_up && (player.curr_dash_cooldown_ms < 2900.f))))
+    if (!registry.deathTimers.has(*my_player) && (player.is_dash_up || (!player.is_dash_up && (player.curr_dash_cooldown_ms < (player.dash_cooldown_ms - player.dash_time)))))
     {
         if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D)
         {

@@ -841,7 +841,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 			// Player done dashing
 		}
-		else if (player.curr_dash_cooldown_ms < 2900.f)
+		else if (player.curr_dash_cooldown_ms < (player.dash_cooldown_ms - player.dash_time))
 		{
 			registry.motions.get(my_player).speed = 300.f;
 			registry.lightUps.remove(my_player);
@@ -853,13 +853,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		else
 		{
 			registry.motions.get(my_player).speed = 2000.f;
+			// TODO: add a thing to counter speed boost here
 			if (!registry.lightUps.has(my_player))
 			{
 				registry.lightUps.emplace(my_player);
 			}
 			for (int i = 0; i < 5; i++)
 			{
-				int bound = 2900 + (i * 20);
+				int bound = (player.dash_cooldown_ms - player.dash_time) + (i * (player.dash_time / 5));
 				if (player.curr_dash_cooldown_ms < bound && player.curr_dash_cooldown_ms + elapsed_ms_since_last_update > bound)
 				{
 					// TODO: modify this a little bit to make dash shadows fully even

@@ -17,7 +17,8 @@ Entity createPlayer(RenderSystem *renderer, vec2 pos)
 	motion.position = pos;
 	motion.scale = vec2({PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT});
 
-	registry.players.emplace(entity);
+	Player& player = registry.players.emplace(entity);
+	player.dash_cooldown_ms = PLAYER_DASH_SEC * 1000.f;
 	registry.renderRequests.insert(
 		entity,
 		{
@@ -1128,9 +1129,10 @@ Entity createStaminaBar(RenderSystem *renderer, vec2 pos)
 		full_vec};
 
 	std::vector<int> regen_vec = {0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 11, 12, 13, 14};
+	// edit here ? idk 
 	Animation regen = {
 		"staminabar_regen",
-		8,
+		int(regen_vec.size() / int(PLAYER_DASH_SEC)),
 		SPRITE_ASSET_ID::STAMINA_BAR,
 		regen_vec};
 

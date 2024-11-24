@@ -86,6 +86,8 @@ const float BASIC_ATTACK_HEIGHT = 100.f;
 
 const float UPGRADE_CARD_TITLE_Y = 0.2f;
 
+const float PLAYER_DASH_SEC = 3.f;
+
 // the player
 Entity createPlayer(RenderSystem *renderer, vec2 pos);
 
