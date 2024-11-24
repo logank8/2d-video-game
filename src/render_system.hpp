@@ -45,16 +45,7 @@ class RenderSystem
 		textures_path("boss_run.png"),
 		textures_path("boss_death.png"),
 		textures_path("boss_attack.png"),
-		textures_path("health_bar.png"),
-		textures_path("hp_bar/hp_bar_0.png"),	 // empty
-		textures_path("hp_bar/hp_bar_1.png"),	 // 1
-		textures_path("hp_bar/hp_bar_2.png"),	 // 2
-		textures_path("hp_bar/hp_bar_3.png"),	 // 3
-		textures_path("hp_bar/hp_bar_4.png"),	 // 4
-		textures_path("hp_bar/hp_bar_5.png"),	 // 5
-		textures_path("hp_bar/hp_bar_6.png"),	 // 6
-		textures_path("hp_bar/hp_bar_7.png"),	 // 7
-		textures_path("hp_bar/hp_bar_full.png"), // full
+		textures_path("hp_bar.png"),
 		textures_path("plant.png"),
 		textures_path("long_table.png"),
 		textures_path("Coat_Rack.png"),

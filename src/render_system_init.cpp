@@ -224,6 +224,7 @@ void RenderSystem::initializeSpriteSheets()
 	sprite_sheets[SPRITE_ASSET_ID::GREY_CAT] = {TEXTURE_ASSET_ID::GREY_CAT, 10, 8, 64, 64};
 	sprite_sheets[SPRITE_ASSET_ID::ORANGE_CAT] = {TEXTURE_ASSET_ID::ORANGE_CAT, 10, 8, 64, 64};
 	sprite_sheets[SPRITE_ASSET_ID::SLASH] = {TEXTURE_ASSET_ID::SLASH, 1, 13, 48, 48};
+	sprite_sheets[SPRITE_ASSET_ID::HP_BAR] = {TEXTURE_ASSET_ID::HP_BAR, 9, 1, 64, 16};
 }
 
 void RenderSystem::initializeGlEffects()

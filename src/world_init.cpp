@@ -126,10 +126,95 @@ Entity createHPBar(RenderSystem *renderer, vec2 pos)
 
 	registry.renderRequests.insert(
 		entity,
-		{TEXTURE_ASSET_ID::HP_BAR_FULL,
-		 SPRITE_ASSET_ID::SPRITE_COUNT,
+		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 SPRITE_ASSET_ID::HP_BAR,
 		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE});
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 0});
+
+	std::vector<int> full_vec = {0};
+	Animation full = {
+		"hpbar_8",
+		15,
+		SPRITE_ASSET_ID::HP_BAR,
+		full_vec
+	};
+
+	std::vector<int> seven_vec = {1};
+	Animation seven = {
+		"hpbar_7",
+		15,
+		SPRITE_ASSET_ID::HP_BAR,
+		seven_vec
+	};
+
+	std::vector<int> six_vec = {2};
+	Animation six = {
+		"hpbar_6",
+		15,
+		SPRITE_ASSET_ID::HP_BAR,
+		six_vec
+	};
+
+	std::vector<int> five_vec = {3};
+	Animation five = {
+		"hpbar_5",
+		15,
+		SPRITE_ASSET_ID::HP_BAR,
+		five_vec
+	};
+
+	std::vector<int> four_vec = {4};
+	Animation four = {
+		"hpbar_4",
+		15,
+		SPRITE_ASSET_ID::HP_BAR,
+		four_vec
+	};
+
+	std::vector<int> three_vec = {5};
+	Animation three = {
+		"hpbar_3",
+		15,
+		SPRITE_ASSET_ID::HP_BAR,
+		three_vec
+	};
+
+	std::vector<int> two_vec = {6};
+	Animation two = {
+		"hpbar_2",
+		15,
+		SPRITE_ASSET_ID::HP_BAR,
+		two_vec
+	};
+
+	std::vector<int> one_vec = {7};
+	Animation one = {
+		"hpbar_1",
+		15,
+		SPRITE_ASSET_ID::HP_BAR,
+		one_vec
+	};
+
+	std::vector<int> empty_vec = {8};
+	Animation empty = {
+		"hpbar_0",
+		15,
+		SPRITE_ASSET_ID::HP_BAR,
+		empty_vec
+	};
+
+	auto &animSet = registry.animationSets.emplace(entity);
+	animSet.animations[full.name] = full;
+	animSet.animations[seven.name] = seven;
+	animSet.animations[six.name] = six;
+	animSet.animations[five.name] = five;
+	animSet.animations[four.name] = four;
+	animSet.animations[three.name] = three;
+	animSet.animations[two.name] = two;
+	animSet.animations[one.name] = one;
+	animSet.animations[empty.name] = empty;
+
 
 	return entity;
 }

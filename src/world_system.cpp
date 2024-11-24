@@ -648,7 +648,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 	}
 
-	// Processing the salmon state
+	// Processing the screen state
 	assert(registry.screenStates.components.size() <= 1);
 	ScreenState &screen = registry.screenStates.components[0];
 
@@ -1146,16 +1146,12 @@ void WorldSystem::handle_collisions(float step_seconds)
 						// Motion& motion = registry.motions.get(hp_bar);
 						// motion.scale.x = HPBAR_BB_WIDTH * (player_hp / 100);
 						RenderRequest &hp_bar_render = registry.renderRequests.get(hp_bar);
-						if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_0 && registry.bosses.has(entity_other))
-						{
-							hp_bar_render.used_texture = static_cast<TEXTURE_ASSET_ID>(static_cast<int>(hp_bar_render.used_texture) - 2);
-						}
-						else if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_0)
-						{
-							hp_bar_render.used_texture = static_cast<TEXTURE_ASSET_ID>(static_cast<int>(hp_bar_render.used_texture) - 1);
-						}
+						// Total HP bar is 200
+						int hp_level = int(player_hp / 25);
+						// set current animation to hpbar_[hp_level]
+						std::string new_anim = "hpbar_" + std::to_string(hp_level);
 
-						// motion.position.x += HPBAR_BB_WIDTH * (player_hp / 400);
+						registry.animationSets.get(hp_bar).current_animation = new_anim;
 					}
 
 					if (registry.deadlys.get(entity_other).enemy_type == ENEMY_TYPES::SLOWING_CONTACT)
@@ -1631,9 +1627,12 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE)
 	{
-		WorldSystem::is_paused = !WorldSystem::is_paused;
 		ScreenState &screen = registry.screenStates.components[0];
-		screen.paused = !screen.paused;
+		if (!screen.paused) {
+			pause();
+		} else {
+			unpause();
+		}
 	}
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_F)
@@ -1648,10 +1647,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		// if the game is already paused then this shouldn't work
 		if (!WorldSystem::is_paused)
 		{
-			WorldSystem::is_paused = true;
-			screen.paused = true;
-			is_tutorial_on = true;
-			screen.darken_screen_factor = 0.9;
+			pause();
 			float tutorial_header_x = window_width_px / 2 - 120;
 			float tutorial_header_y = 620;
 			glm::vec3 white = glm::vec3(1.f, 1.f, 1.f);
@@ -1668,10 +1664,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		}
 		else if (is_tutorial_on)
 		{
-			WorldSystem::is_paused = false;
-			is_tutorial_on = false;
-			screen.paused = false;
-			screen.darken_screen_factor = 0.0;
+			unpause();
 		}
 	}
 
@@ -1719,12 +1712,16 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 					std::cout << "player regained health" << std::endl;
 					p_health.hit_points += min(buff.factor * 25.f, 200.f - p_health.hit_points);
 					createEffect(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);
+				
+					// Total HP bar is 200
+					int hp_level = int(p_health.hit_points / 25);
+					// set current animation to hpbar_[hp_level]
+					std::string new_anim = "hpbar_" + std::to_string(hp_level);
+
+					registry.animationSets.get(hp_bar).current_animation = new_anim;
 				}
 
-				if (hp_bar_render.used_texture != TEXTURE_ASSET_ID::HP_BAR_FULL)
-				{
-					hp_bar_render.used_texture = static_cast<TEXTURE_ASSET_ID>(static_cast<int>(hp_bar_render.used_texture) + 1);
-				}
+				
 			}
 		}
 	}
@@ -1814,7 +1811,7 @@ void WorldSystem::set_level_up_state(bool state)
 
 	ScreenState &screen = registry.screenStates.components[0];
 	if (state)
-	{
+	{ // TODO: can we change this to pause function ?
 		screen.darken_screen_factor = 0.0;
 		screen.paused = true;
 		std::cout << "Game paused due to level up" << std::endl;
