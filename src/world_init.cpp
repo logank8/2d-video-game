@@ -722,8 +722,11 @@ Entity createBasicAttackHitbox(RenderSystem *renderer, vec2 position, Entity pla
 
 	auto &player = registry.players.get(player_entity);
 
-	motion.scale = vec2({100, 100});
-	motion.renderScale = vec2(1.5, 1.5);
+	motion.scale = vec2({player.attack_size, player.attack_size});
+	float new_scale = 1.5f + ((250.f - player.attack_size) / 300.f) * (1.75f - 1.4f);
+
+	std::cout << new_scale << std::endl;
+	motion.renderScale = vec2(new_scale, new_scale);
 	motion.renderPositionOffset = player.attack_direction * vec2(-50, -50);
 
 	auto &damage = registry.damages.emplace(entity);

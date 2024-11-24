@@ -64,6 +64,7 @@ struct Player
 	float attack_duration_ms = 230.f;
 	float curr_attack_duration_ms = attack_duration_ms;
 	float knockback_strength = 0.08;
+	float attack_size = 100.f;
 
 	// Other
 	float collection_distance = 100.f;
