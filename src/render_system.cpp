@@ -593,22 +593,31 @@ void RenderSystem::draw()
 	// Draw all textured meshes that have a position and size component
 	std::vector<Entity> uiEntities;
 
-	for (Entity entity : registry.renderRequests.entities)
-	{
-		if (registry.userInterfaces.has(entity))
-		{
-			uiEntities.push_back(entity);
-			continue;
-		}
-		if (!registry.motions.has(entity))
-			continue;
+	// separate by layer - visible_layers establishes order, inclusion
+	std::vector<RENDER_LAYER> visible_layers = {RENDER_LAYER::FLOOR, RENDER_LAYER::LAYER_COUNT};
 
-		if (registry.texts.has(entity))
-			continue;
-		// Note, its not very efficient to access elements indirectly via the entity
-		// albeit iterating through all Sprites in sequence. A good point to optimize
-		drawTexturedMesh(entity, projection_2D);
+	for  (RENDER_LAYER layer : visible_layers) {
+		for (Entity entity : registry.renderRequests.entities)
+		{
+			if (registry.renderRequests.get(entity).layer != layer) {
+				continue;
+			}
+			if (registry.userInterfaces.has(entity))
+			{
+				uiEntities.push_back(entity);
+				continue;
+			}
+			if (!registry.motions.has(entity))
+				continue;
+
+			if (registry.texts.has(entity))
+				continue;
+			// Note, its not very efficient to access elements indirectly via the entity
+			// albeit iterating through all Sprites in sequence. A good point to optimize
+			drawTexturedMesh(entity, projection_2D);
+		}
 	}
+	
 
 	for (Entity entity : uiEntities)
 	{

@@ -35,6 +35,12 @@ enum class EFFECT_TYPE
 	DASH = SMOKE + 1
 };
 
+enum class RENDER_LAYER
+{
+	FLOOR = 0,
+	LAYER_COUNT = FLOOR + 1
+};
+
 // Player component
 struct Player
 {
@@ -487,6 +493,7 @@ struct RenderRequest
 	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 	int sprite_index = -1;
+	RENDER_LAYER layer = RENDER_LAYER::LAYER_COUNT;
 };
 
 struct Animation
