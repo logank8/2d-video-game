@@ -48,8 +48,17 @@ PhysicsSystem physics;
 
 void windowMinimizedCallback(GLFWwindow *window, int iconified)
 {
-	if (iconified)
+	if (iconified) {
+		
+		if (registry.screenStates.components.size() != 0) {
+			ScreenState &screen = registry.screenStates.components[0];
+			screen.paused = true;
+			screen.darken_screen_factor = 0.9;
+		}
 		WorldSystem::is_paused = true;
+	}
+		
+		
 }
 
 void windowFocusCallback(GLFWwindow *window, int focused)
@@ -57,7 +66,13 @@ void windowFocusCallback(GLFWwindow *window, int focused)
 	if (!focused)
 	{
 		WorldSystem::is_paused = true;
-	}
+		if (registry.screenStates.components.size() != 0) {
+			ScreenState &screen = registry.screenStates.components[0];
+			screen.paused = true;
+			screen.darken_screen_factor = 0.9;
+		}
+	} 
+
 }
 
 // create the underwater world
@@ -305,6 +320,7 @@ void WorldSystem::spawn_nearby_tile(vec2 curr_tile, std::vector<ENEMY_TYPES> &en
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update)
 {
+
 	// Updating window title with points
 	std::stringstream title_ss;
 	if (current_map != map3)
@@ -762,7 +778,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				// Check if final boss is dead then stop game
 				if (registry.bosses.has(entity))
 				{
-					is_paused = true;
+					screen.paused = true;
 					createText({window_width_px / 2 - 100, window_height_px / 2}, 1, "!!!You Win!!!", glm::vec3(1.f, 1.f, 1.f));
 				}
 
@@ -979,7 +995,8 @@ void WorldSystem::restart_game()
 	// Reset the game speed
 	current_speed = 1.f;
 
-	WorldSystem::is_paused = false;
+	ScreenState &screen = registry.screenStates.components[0];
+	screen.paused = false;
 	WorldSystem::is_level_up = false;
 
 	while (registry.upgradeCards.entities.size() > 0)
@@ -1616,6 +1633,7 @@ std::vector<std::string> read_file(std::string filepath)
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod)
 {
+	ScreenState &screen = registry.screenStates.components[0];
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R)
 	{
@@ -1627,12 +1645,16 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE)
 	{
-		ScreenState &screen = registry.screenStates.components[0];
+		
 		if (!screen.paused) {
 			pause();
 		} else {
 			unpause();
 		}
+	}
+	
+	if (screen.paused) {
+		return;
 	}
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_F)
@@ -1643,9 +1665,8 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	// Tutorial
 	if (action == GLFW_RELEASE && key == GLFW_KEY_T)
 	{
-		ScreenState &screen = registry.screenStates.components[0];
 		// if the game is already paused then this shouldn't work
-		if (!WorldSystem::is_paused)
+		if (!screen.paused)
 		{
 			pause();
 			float tutorial_header_x = window_width_px / 2 - 120;
@@ -1685,7 +1706,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	if (key == GLFW_KEY_SPACE)
 	{
-		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player) && (!is_paused) && player.is_dash_up)
+		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player) && (!screen.paused) && player.is_dash_up)
 		{
 			pmotion.speed = 5500.f;
 			player.is_dash_up = false;
@@ -1749,7 +1770,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		}
 	}
 
-	if (!WorldSystem::is_paused)
+	if (!screen.paused)
 		player_controller.on_key(key, action, mod);
 
 	// Control the current speed with `<` `>`
@@ -1801,6 +1822,8 @@ void WorldSystem::unpause()
 		screen.darken_screen_factor = 0.0;
 		screen.paused = false;
 		is_paused = false;
+		registry.players.get(my_player).is_moving = false;
+		registry.players.get(my_player).move_direction = vec2(0, 0);
 		std::cout << "Game unpaused" << std::endl;
 	}
 }
