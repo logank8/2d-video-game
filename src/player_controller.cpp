@@ -442,6 +442,16 @@ void PlayerController::on_key(int key, int action, int mod)
             }
         }
     }
+
+    if (key == GLFW_KEY_0 && action == GLFW_PRESS)
+    {
+        player.attack_size += 50.f;
+    }
+
+    if (key == GLFW_KEY_1 && action == GLFW_PRESS)
+    {
+        player.attack_size -= std::max(0.f, player.attack_size - 50.f);
+    }
 }
 
 vec2 mousePosToNormalizedDevice(vec2 mouse_position)
@@ -468,7 +478,7 @@ void PlayerController::on_mouse_move(vec2 mouse_position)
 
             vec2 mouse_position_ndc = mousePosToNormalizedDevice(mouse_position);
 
-            // std::cout << mouse_position_ndc.x << ',' << mouse_position_ndc.y << std::endl;
+            // std::cout << mouse_position_ndc.x << ',' << mouse_position_ndc.y <s< std::endl;
 
             if (mouse_position_ndc.x >= ui.position.x - (ui.scale.x / 2) && mouse_position_ndc.x <= ui.position.x + (ui.scale.x / 2) &&
                 mouse_position_ndc.y >= ui.position.y - (-ui.scale.y / 2) && mouse_position_ndc.y <= ui.position.y + (-ui.scale.y / 2))
@@ -509,7 +519,8 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
             vec2 attack_direction = player.attack_direction;
             player.last_direction = attack_direction;
             player.is_attacking = true;
-            createBasicAttackHitbox(renderer, player_pos + (attack_direction * vec2(70, 70)), *my_player);
+            vec2 attack_offset = vec2(player.attack_size / 2, player.attack_size / 2);
+            createBasicAttackHitbox(renderer, player_pos + (attack_direction * attack_offset), *my_player);
         }
     }
 
