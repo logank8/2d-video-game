@@ -1863,7 +1863,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			stamina_anim.current_animation = "staminabar_depleting";
 
 			player.invulnerable = true;
-			player.invulnerable_duration_ms = 150.f;
+			player.invulnerable_duration_ms = player.dash_time + 50.f;
 		}
 	}
 
