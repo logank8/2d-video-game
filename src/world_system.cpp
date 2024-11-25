@@ -102,6 +102,22 @@ void WorldSystem::stateSwitch(GameState new_state) {
 			createText(vec2(465, 420), 0.8f, "PRESS R TO RESTART", vec3(1.0f, 1.0f, 1.0f));	
 			createText(vec2(400, 350), 0.8f, "PRESS ESC TO EXIT TO MENU", vec3(1.0f, 1.0f, 1.0f));
 			break;
+		case (GameState::MENU):
+			// guaranteed to be coming from GAME_OVER or PAUSED
+			while (registry.userInterfaces.entities.size() > 0) {
+				registry.remove_all_components_of(registry.userInterfaces.entities.back());
+			}
+			while (registry.motions.entities.size() > 0) {
+				registry.remove_all_components_of(registry.motions.entities.back());
+			}
+			restart_world();
+			is_paused = false;
+			screen.state = GameState::MENU;
+			screen.darken_screen_factor = 0.0f;
+			
+			createMenuScreen(renderer);
+			createElevatorButtons(renderer, 3);
+			break;
 		default:
 			return;
 	}
@@ -1771,6 +1787,10 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		return;
 	}
 
+	if (screen.state == GameState::MENU) {
+		return;
+	}
+
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R)
 	{
@@ -1797,8 +1817,11 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) 
 	{
-		// if game over or paused: switch state to game over
-		// but rn will just exit
+		// if game over or paused, player is able to exit to menu
+		if (screen.state == GameState::PAUSED || screen.state == GameState::GAME_OVER) {
+			stateSwitch(GameState::MENU);
+			return;
+		}
 	}
 	
 	if (screen.state == GameState::PAUSED) {
@@ -1953,19 +1976,19 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 void WorldSystem::on_mouse_move(vec2 mouse_position)
 {
 	ScreenState& screen = registry.screenStates.components[0];
-	if (screen.state == GameState::START) {
-		return;
+	if (screen.state == GameState::GAME) {
+		player_controller.on_mouse_move(mouse_position);
 	}
-	player_controller.on_mouse_move(mouse_position);
+	
 }
 
 void WorldSystem::on_mouse_button(int button, int action, int mods)
 {
 	ScreenState& screen = registry.screenStates.components[0];
-	if (screen.state == GameState::START) {
-		return;
+	if (screen.state == GameState::GAME) {
+		player_controller.on_mouse_button(button, action, mods);
 	}
-	player_controller.on_mouse_button(button, action, mods);
+	
 }
 
 std::vector<std::vector<int>> WorldSystem::get_current_map()

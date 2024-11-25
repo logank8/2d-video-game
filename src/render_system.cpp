@@ -550,12 +550,11 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 
 	// darkened mode turns OFF when enemy kill goal is reached
-	// this is a pretty messy solution , will fix later
+	// TODO: this is a pretty messy solution , c fix later
 	GLuint darkenedmode_uloc = glGetUniformLocation(water_program, "darkenedmode");
 
 	if (registry.deadlys.size() == 0) {
 		glUniform1i(darkenedmode_uloc, 1);
-		std::cout << "darkened mode OFF" << std::endl;
 	} else {
 		glUniform1i(darkenedmode_uloc, 0);
 	}

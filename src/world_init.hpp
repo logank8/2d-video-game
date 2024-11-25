@@ -158,3 +158,11 @@ Entity createCamera(RenderSystem *renderer, vec2 pos);
 Entity createDoor(RenderSystem *renderer, vec2 pos);
 
 Entity createStartScreen(RenderSystem *renderer);
+
+Entity createMenuScreen(RenderSystem *renderer);
+
+void createElevatorButtons(RenderSystem *renderer, int num_levels);
+
+Entity createLevelButton(RenderSystem *renderer, vec2 pos, int level);
+
+Entity createExitButton(RenderSystem *renderer, vec2 pos);

@@ -1505,11 +1505,12 @@ Entity createStartScreen(RenderSystem *renderer) {
 	auto entity = Entity();
 
 
+	
 	Motion &motion = registry.motions.emplace(entity);
 	motion.position = {window_width_px / 2, window_height_px / 2};
 	motion.velocity = {0.f, 0.f};
 	motion.scale = vec2(0.1, 0.1);
-
+	
 
 	UserInterface& ui = registry.userInterfaces.emplace(entity);
 	ui.angle = 0.f;
@@ -1524,6 +1525,86 @@ Entity createStartScreen(RenderSystem *renderer) {
 				 GEOMETRY_BUFFER_ID::SPRITE,
 				 -1,
 				 RENDER_LAYER::DEFAULT_LAYER});
+
+	return entity;
+}
+
+Entity createMenuScreen(RenderSystem *renderer) {
+	auto entity = Entity();
+
+	UserInterface& ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = {0, 0};
+	ui.scale = vec2({2.0, -2.0});
+
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::MENU_SCREEN,
+				 SPRITE_ASSET_ID::SPRITE_COUNT,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 -1,
+				 RENDER_LAYER::FLOOR});
+
+	return entity;
+}
+
+
+void createElevatorButtons(RenderSystem *renderer, int num_levels) {
+
+	vec2 top_pos = {0.3f, 0.4f};
+
+	for (int i = 1; i <= num_levels + 1; i++) {
+		if (i > num_levels) {
+			createExitButton(renderer, vec2(top_pos.x + 0.2, top_pos.y - (0.25 * i) - 0.1));
+			return;
+		}
+
+		createLevelButton(renderer, vec2(top_pos.x, top_pos.y - (0.25 * i)), i);
+	}
+}
+
+Entity createLevelButton(RenderSystem *renderer, vec2 pos, int level) {
+	auto entity = Entity();
+	
+	// add to motions as well - check for collisions with mouse or something ? 
+
+	UserInterface& ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = pos;
+	ui.scale = vec2({0.1, -0.15});
+
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::LEVEL_BUTTON,
+				 SPRITE_ASSET_ID::SPRITE_COUNT,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 -1,
+				 RENDER_LAYER::DEFAULT_LAYER});
+
+	// add text here ? idk
+
+	return entity;
+}
+
+Entity createExitButton(RenderSystem *renderer, vec2 pos) {
+	auto entity = Entity();
+
+	UserInterface& ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = pos;
+	ui.scale = vec2({0.2, -0.2});
+
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::EXIT_BUTTON,
+				 SPRITE_ASSET_ID::SPRITE_COUNT,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 -1,
+				 RENDER_LAYER::DEFAULT_LAYER});
+
 
 	return entity;
 }
