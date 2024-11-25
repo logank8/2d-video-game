@@ -17,18 +17,16 @@ Entity createPlayer(RenderSystem *renderer, vec2 pos)
 	motion.position = pos;
 	motion.scale = vec2({PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT});
 
-	Player& player = registry.players.emplace(entity);
+	Player &player = registry.players.emplace(entity);
 	player.dash_cooldown_ms = PLAYER_DASH_SEC * 1000.f;
 	registry.renderRequests.insert(
 		entity,
-		{
-			TEXTURE_ASSET_ID::TEXTURE_COUNT,
-			SPRITE_ASSET_ID::PLAYER,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE,
-			1, // Sprite index  => 0 INDEXED (L->R, T->B)
-			RENDER_LAYER::CREATURES
-		});
+		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 SPRITE_ASSET_ID::PLAYER,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 1, // Sprite index  => 0 INDEXED (L->R, T->B)
+		 RENDER_LAYER::CREATURES});
 
 	// Initialize animations
 	std::vector<int> run_s_vec = {24, 25, 26, 27, 28, 29};
@@ -138,72 +136,63 @@ Entity createHPBar(RenderSystem *renderer, vec2 pos)
 		"hpbar_8",
 		15,
 		SPRITE_ASSET_ID::HP_BAR,
-		full_vec
-	};
+		full_vec};
 
 	std::vector<int> seven_vec = {1};
 	Animation seven = {
 		"hpbar_7",
 		15,
 		SPRITE_ASSET_ID::HP_BAR,
-		seven_vec
-	};
+		seven_vec};
 
 	std::vector<int> six_vec = {2};
 	Animation six = {
 		"hpbar_6",
 		15,
 		SPRITE_ASSET_ID::HP_BAR,
-		six_vec
-	};
+		six_vec};
 
 	std::vector<int> five_vec = {3};
 	Animation five = {
 		"hpbar_5",
 		15,
 		SPRITE_ASSET_ID::HP_BAR,
-		five_vec
-	};
+		five_vec};
 
 	std::vector<int> four_vec = {4};
 	Animation four = {
 		"hpbar_4",
 		15,
 		SPRITE_ASSET_ID::HP_BAR,
-		four_vec
-	};
+		four_vec};
 
 	std::vector<int> three_vec = {5};
 	Animation three = {
 		"hpbar_3",
 		15,
 		SPRITE_ASSET_ID::HP_BAR,
-		three_vec
-	};
+		three_vec};
 
 	std::vector<int> two_vec = {6};
 	Animation two = {
 		"hpbar_2",
 		15,
 		SPRITE_ASSET_ID::HP_BAR,
-		two_vec
-	};
+		two_vec};
 
 	std::vector<int> one_vec = {7};
 	Animation one = {
 		"hpbar_1",
 		15,
 		SPRITE_ASSET_ID::HP_BAR,
-		one_vec
-	};
+		one_vec};
 
 	std::vector<int> empty_vec = {8};
 	Animation empty = {
 		"hpbar_0",
 		15,
 		SPRITE_ASSET_ID::HP_BAR,
-		empty_vec
-	};
+		empty_vec};
 
 	auto &animSet = registry.animationSets.emplace(entity);
 	animSet.animations[full.name] = full;
@@ -215,7 +204,6 @@ Entity createHPBar(RenderSystem *renderer, vec2 pos)
 	animSet.animations[two.name] = two;
 	animSet.animations[one.name] = one;
 	animSet.animations[empty.name] = empty;
-
 
 	return entity;
 }
@@ -734,8 +722,6 @@ Entity createBasicAttackHitbox(RenderSystem *renderer, vec2 position, Entity pla
 
 	motion.scale = vec2({player.attack_size, player.attack_size});
 	float new_scale = 1.5f + ((250.f - player.attack_size) / 300.f) * (1.75f - 1.4f);
-
-	std::cout << new_scale << std::endl;
 	motion.renderScale = vec2(new_scale, new_scale);
 	motion.renderPositionOffset = player.attack_direction * vec2(-50, -50);
 
@@ -811,6 +797,25 @@ Entity createLine(vec2 position, vec2 scale)
 	motion.scale = scale;
 
 	registry.debugComponents.emplace(entity);
+	return entity;
+}
+
+Entity createUILine(vec2 position, vec2 scale)
+{
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
+				 SPRITE_ASSET_ID::SPRITE_COUNT,
+				 EFFECT_ASSET_ID::COLOURED,
+				 GEOMETRY_BUFFER_ID::DEBUG_LINE});
+
+	auto &uiComponent = registry.userInterfaces.emplace(entity);
+	uiComponent.position = position;
+	uiComponent.scale = scale;
+
+	registry.debugComponents.emplace(entity);
+
 	return entity;
 }
 
@@ -1237,7 +1242,7 @@ Entity createStaminaBar(RenderSystem *renderer, vec2 pos)
 		full_vec};
 
 	std::vector<int> regen_vec = {0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 11, 12, 13, 14};
-	// edit here ? idk 
+	// edit here ? idk
 	Animation regen = {
 		"staminabar_regen",
 		int(regen_vec.size() / int(PLAYER_DASH_SEC)),
@@ -1477,7 +1482,7 @@ Entity createCamera(RenderSystem *renderer, vec2 pos)
 	return entity;
 }
 
-Entity createDoor(RenderSystem *renderer, vec2 pos) 
+Entity createDoor(RenderSystem *renderer, vec2 pos)
 {
 	auto entity = Entity();
 
@@ -1501,22 +1506,19 @@ Entity createDoor(RenderSystem *renderer, vec2 pos)
 	return entity;
 }
 
-Entity createStartScreen(RenderSystem *renderer) {
+Entity createStartScreen(RenderSystem *renderer)
+{
 	auto entity = Entity();
 
-
-	
 	Motion &motion = registry.motions.emplace(entity);
 	motion.position = {window_width_px / 2, window_height_px / 2};
 	motion.velocity = {0.f, 0.f};
 	motion.scale = vec2(0.1, 0.1);
-	
 
-	UserInterface& ui = registry.userInterfaces.emplace(entity);
+	UserInterface &ui = registry.userInterfaces.emplace(entity);
 	ui.angle = 0.f;
 	ui.position = {0, 0};
 	ui.scale = vec2({2.0, -2.0});
-
 
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::START_SCREEN,
@@ -1529,14 +1531,14 @@ Entity createStartScreen(RenderSystem *renderer) {
 	return entity;
 }
 
-Entity createMenuScreen(RenderSystem *renderer) {
+Entity createMenuScreen(RenderSystem *renderer)
+{
 	auto entity = Entity();
 
-	UserInterface& ui = registry.userInterfaces.emplace(entity);
+	UserInterface &ui = registry.userInterfaces.emplace(entity);
 	ui.angle = 0.f;
 	ui.position = {0, 0};
 	ui.scale = vec2({2.0, -2.0});
-
 
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::MENU_SCREEN,
@@ -1549,13 +1551,15 @@ Entity createMenuScreen(RenderSystem *renderer) {
 	return entity;
 }
 
-
-void createElevatorButtons(RenderSystem *renderer, int num_levels) {
+void createElevatorButtons(RenderSystem *renderer, int num_levels)
+{
 
 	vec2 top_pos = {0.3f, 0.4f};
 
-	for (int i = 1; i <= num_levels + 1; i++) {
-		if (i > num_levels) {
+	for (int i = 1; i <= num_levels + 1; i++)
+	{
+		if (i > num_levels)
+		{
 			createExitButton(renderer, vec2(top_pos.x + 0.2, top_pos.y - (0.25 * i) - 0.1));
 			return;
 		}
@@ -1564,16 +1568,16 @@ void createElevatorButtons(RenderSystem *renderer, int num_levels) {
 	}
 }
 
-Entity createLevelButton(RenderSystem *renderer, vec2 pos, int level) {
+Entity createLevelButton(RenderSystem *renderer, vec2 pos, int level)
+{
 	auto entity = Entity();
-	
-	// add to motions as well - check for collisions with mouse or something ? 
 
-	UserInterface& ui = registry.userInterfaces.emplace(entity);
+	// add to motions as well - check for collisions with mouse or something ?
+
+	UserInterface &ui = registry.userInterfaces.emplace(entity);
 	ui.angle = 0.f;
 	ui.position = pos;
 	ui.scale = vec2({0.1, -0.15});
-
 
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::LEVEL_BUTTON,
@@ -1588,14 +1592,14 @@ Entity createLevelButton(RenderSystem *renderer, vec2 pos, int level) {
 	return entity;
 }
 
-Entity createExitButton(RenderSystem *renderer, vec2 pos) {
+Entity createExitButton(RenderSystem *renderer, vec2 pos)
+{
 	auto entity = Entity();
 
-	UserInterface& ui = registry.userInterfaces.emplace(entity);
+	UserInterface &ui = registry.userInterfaces.emplace(entity);
 	ui.angle = 0.f;
 	ui.position = pos;
 	ui.scale = vec2({0.2, -0.2});
-
 
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::EXIT_BUTTON,
@@ -1604,7 +1608,6 @@ Entity createExitButton(RenderSystem *renderer, vec2 pos) {
 				 GEOMETRY_BUFFER_ID::SPRITE,
 				 -1,
 				 RENDER_LAYER::DEFAULT_LAYER});
-
 
 	return entity;
 }

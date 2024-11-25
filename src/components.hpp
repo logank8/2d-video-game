@@ -177,7 +177,7 @@ struct Ground
 };
 
 // Door component
-struct Door 
+struct Door
 {
 	bool touching = true;
 };

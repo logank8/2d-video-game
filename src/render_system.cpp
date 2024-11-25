@@ -124,7 +124,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		gl_has_errors();
 
-
 		assert(in_texcoord_loc >= 0);
 
 		glEnableVertexAttribArray(in_position_loc);
@@ -261,10 +260,10 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	if (registry.colors.has(entity))
 	{
-		
+
 		if (registry.players.has(entity) && registry.players.get(entity).invulnerable)
 		{
-			Player& player = registry.players.get(entity);
+			Player &player = registry.players.get(entity);
 			if (!(!player.is_dash_up && player.curr_dash_cooldown_ms >= (player.dash_cooldown_ms - (player.dash_time + 50.f))))
 			{
 				color = vec3(1, 0, 0);
@@ -379,7 +378,6 @@ void RenderSystem::drawScreenSpaceObject(Entity entity)
 
 		glUniform1f(time_passed_uloc, ms_passed);
 		glUniform1f(lifespan_uloc, lifespan);
-		
 
 		if (render_request.used_sprite == SPRITE_ASSET_ID::SPRITE_COUNT || render_request.sprite_index == -1)
 		{
@@ -411,6 +409,18 @@ void RenderSystem::drawScreenSpaceObject(Entity entity)
 			GLuint uv_scale_loc = glGetUniformLocation(program, "uv_scale");
 			glUniform2f(uv_scale_loc, (u1 - u0), (v1 - v0));
 		}
+	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::COLOURED)
+	{
+		GLint colorLocation = glGetUniformLocation(program, "color");
+		vec3 colour = vec3(0.0f, 1.0f, 0.0f);
+
+		if (registry.colors.has(entity))
+		{
+			colour = registry.colors.get(entity);
+		}
+
+		glUniform3f(colorLocation, colour.x, colour.y, colour.z);
 	}
 
 	GLint size = 0;
@@ -553,12 +563,14 @@ void RenderSystem::drawToScreen()
 	// TODO: this is a pretty messy solution , c fix later
 	GLuint darkenedmode_uloc = glGetUniformLocation(water_program, "darkenedmode");
 
-	if (registry.deadlys.size() == 0) {
+	if (registry.deadlys.size() == 0)
+	{
 		glUniform1i(darkenedmode_uloc, 1);
-	} else {
+	}
+	else
+	{
 		glUniform1i(darkenedmode_uloc, 0);
 	}
-
 
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)
@@ -618,7 +630,8 @@ void RenderSystem::draw()
 	// separate by layer - visible_layers establishes order, inclusion
 	std::vector<RENDER_LAYER> visible_layers = {RENDER_LAYER::FLOOR, RENDER_LAYER::EFFECTS, RENDER_LAYER::CREATURES, RENDER_LAYER::OBSTACLES, RENDER_LAYER::DEFAULT_LAYER, RENDER_LAYER::UI_LAYER};
 
-	for  (RENDER_LAYER layer : visible_layers) {
+	for (RENDER_LAYER layer : visible_layers)
+	{
 		for (Entity entity : registry.renderRequests.entities)
 		{
 			if (registry.userInterfaces.has(entity) && layer == RENDER_LAYER::UI_LAYER)
@@ -626,10 +639,11 @@ void RenderSystem::draw()
 				uiEntities.push_back(entity);
 				continue;
 			}
-			if (registry.renderRequests.get(entity).layer != layer) {
+			if (registry.renderRequests.get(entity).layer != layer)
+			{
 				continue;
 			}
-			
+
 			if (!registry.motions.has(entity))
 				continue;
 
@@ -640,11 +654,10 @@ void RenderSystem::draw()
 			drawTexturedMesh(entity, projection_2D);
 		}
 	}
-	
 
 	for (Entity entity : uiEntities)
 	{
-	 	drawScreenSpaceObject(entity);
+		drawScreenSpaceObject(entity);
 	}
 
 	// Truely render to the screen

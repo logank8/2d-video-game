@@ -118,6 +118,9 @@ Entity createBasicAttackHitbox(RenderSystem *renderer, vec2 position, Entity pla
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
 
+// line in screen space
+Entity createUILine(vec2 position, vec2 size);
+
 // a egg
 Entity createEgg(vec2 pos, vec2 size);
 

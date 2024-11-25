@@ -336,11 +336,14 @@ void PlayerController::step(float elapsed_ms_since_last_update)
 
                 // temporary increase
                 player.toNextLevel += 5;
+                world->create_experience_bar();
             }
 
             registry.remove_all_components_of(entity);
         }
     }
+
+    world->create_experience_bar();
 }
 
 const float CARD_PADDING = -0.6f;

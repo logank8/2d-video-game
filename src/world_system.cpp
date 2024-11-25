@@ -47,7 +47,8 @@ int map_counter = 1;
 
 PhysicsSystem physics;
 
-void pauseMenuText() {
+void pauseMenuText()
+{
 	// need to figure out how to clear powerup texts when paused or something
 	createText(vec2(475, 450), 0.8f, "PRESS P TO UNPAUSE", vec3(1.0f, 1.0f, 1.0f));
 	createText(vec2(410, 370), 0.8f, "PRESS ESC TO EXIT TO MENU", vec3(1.0f, 1.0f, 1.0f));
@@ -56,10 +57,12 @@ void pauseMenuText() {
 
 void windowMinimizedCallback(GLFWwindow *window, int iconified)
 {
-	if (iconified) {
-		
-		if (registry.screenStates.components.size() != 0) {
-			
+	if (iconified)
+	{
+
+		if (registry.screenStates.components.size() != 0)
+		{
+
 			ScreenState &screen = registry.screenStates.components[0];
 			screen.state = GameState::PAUSED;
 			screen.darken_screen_factor = 0.9;
@@ -67,8 +70,6 @@ void windowMinimizedCallback(GLFWwindow *window, int iconified)
 		}
 		WorldSystem::is_paused = true;
 	}
-		
-		
 }
 
 void windowFocusCallback(GLFWwindow *window, int focused)
@@ -76,50 +77,55 @@ void windowFocusCallback(GLFWwindow *window, int focused)
 	if (!focused)
 	{
 		WorldSystem::is_paused = true;
-		if (registry.screenStates.components.size() != 0) {
+		if (registry.screenStates.components.size() != 0)
+		{
 			ScreenState &screen = registry.screenStates.components[0];
 			screen.state = GameState::PAUSED;
 			screen.darken_screen_factor = 0.9;
 			pauseMenuText();
 		}
-	} 
-
+	}
 }
 
-void WorldSystem::stateSwitch(GameState new_state) {
+void WorldSystem::stateSwitch(GameState new_state)
+{
 	// need to assert size
 	ScreenState &screen = registry.screenStates.components[0];
 
-	switch (new_state) {
-		case (GameState::GAME_OVER):
-			// game over - we are guaranteed to be coming from GameState::GAME
-			screen.state = GameState::GAME_OVER;
-			while (registry.userInterfaces.entities.size() > 0) {
-				registry.remove_all_components_of(registry.userInterfaces.entities.back());
-			}
-			is_paused = false;
-			createText(vec2(490, 550), 1.4f, "GAME OVER", vec3(1.0f, 0.f, 0.f));	
-			createText(vec2(465, 420), 0.8f, "PRESS R TO RESTART", vec3(1.0f, 1.0f, 1.0f));	
-			createText(vec2(400, 350), 0.8f, "PRESS ESC TO EXIT TO MENU", vec3(1.0f, 1.0f, 1.0f));
-			break;
-		case (GameState::MENU):
-			// guaranteed to be coming from GAME_OVER or PAUSED
-			while (registry.userInterfaces.entities.size() > 0) {
-				registry.remove_all_components_of(registry.userInterfaces.entities.back());
-			}
-			while (registry.motions.entities.size() > 0) {
-				registry.remove_all_components_of(registry.motions.entities.back());
-			}
-			restart_world();
-			is_paused = false;
-			screen.state = GameState::MENU;
-			screen.darken_screen_factor = 0.0f;
-			
-			createMenuScreen(renderer);
-			createElevatorButtons(renderer, 3);
-			break;
-		default:
-			return;
+	switch (new_state)
+	{
+	case (GameState::GAME_OVER):
+		// game over - we are guaranteed to be coming from GameState::GAME
+		screen.state = GameState::GAME_OVER;
+		while (registry.userInterfaces.entities.size() > 0)
+		{
+			registry.remove_all_components_of(registry.userInterfaces.entities.back());
+		}
+		is_paused = false;
+		createText(vec2(490, 550), 1.4f, "GAME OVER", vec3(1.0f, 0.f, 0.f));
+		createText(vec2(465, 420), 0.8f, "PRESS R TO RESTART", vec3(1.0f, 1.0f, 1.0f));
+		createText(vec2(400, 350), 0.8f, "PRESS ESC TO EXIT TO MENU", vec3(1.0f, 1.0f, 1.0f));
+		break;
+	case (GameState::MENU):
+		// guaranteed to be coming from GAME_OVER or PAUSED
+		while (registry.userInterfaces.entities.size() > 0)
+		{
+			registry.remove_all_components_of(registry.userInterfaces.entities.back());
+		}
+		while (registry.motions.entities.size() > 0)
+		{
+			registry.remove_all_components_of(registry.motions.entities.back());
+		}
+		restart_world();
+		is_paused = false;
+		screen.state = GameState::MENU;
+		screen.darken_screen_factor = 0.0f;
+
+		createMenuScreen(renderer);
+		createElevatorButtons(renderer, 3);
+		break;
+	default:
+		return;
 	}
 }
 
@@ -252,7 +258,8 @@ GLFWwindow *WorldSystem::create_window()
 	return window;
 }
 
-void WorldSystem::restart_world() {
+void WorldSystem::restart_world()
+{
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 	printf("Restarting\n");
@@ -311,6 +318,18 @@ void createHPBar(Entity enemy)
 			color = vec3(0.f, 5.f, 0.f);
 		}
 	}
+}
+
+void WorldSystem::create_experience_bar()
+{
+	auto &player = registry.players.get(my_player);
+	auto &pmotion = registry.motions.get(my_player);
+
+	float progress = std::min((float)player.experience / player.toNextLevel, 1.0f);
+
+	experience_bar = createUILine(vec2(-1.0f, -1.0f), vec2(progress * 4.0, 0.15f));
+	vec3 &color = registry.colors.emplace(experience_bar);
+	color = vec3(0.325f, 0.478f, 0.902f);
 }
 
 void WorldSystem::mapSwitch(int map)
@@ -389,12 +408,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	assert(registry.screenStates.components.size() <= 1);
 	ScreenState &screen = registry.screenStates.components[0];
 
-	if (screen.state == GameState::START) {
+	if (screen.state == GameState::START)
+	{
 		glfwSetWindowTitle(window, "Eviction of the Damned");
 		return true;
 	}
 
-	if (screen.state == GameState::GAME_OVER) {
+	if (screen.state == GameState::GAME_OVER)
+	{
 		glfwSetWindowTitle(window, "GAME OVER");
 		return true;
 	}
@@ -420,7 +441,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 	vec2 player_pos = motions_registry.get(my_player).position;
 	vec2 world_origin = vec2(-1860, -3760);
-
 
 	// Camera follows player
 	auto &cameraMotion = motions_registry.get(camera);
@@ -519,7 +539,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 			if (current_map[j][i] == 0)
 			{
-				if (i == door_positions[0][0] && j == door_positions[0][1] && goal_reached) {
+				if (i == door_positions[0][0] && j == door_positions[0][1] && goal_reached)
+				{
 					createDoor(renderer, world_pos);
 				}
 				createWalls(renderer, world_pos, false);
@@ -745,7 +766,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 	}
 
-
 	float attack_counter_ms = 800.f;
 	for (Entity entity : registry.attackTimers.entities)
 	{
@@ -866,11 +886,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				enemies_killed++;
 				if (enemies_killed >= enemy_kill_goal && current_map != map3)
 				{
-					for (Entity enemy : registry.deadlys.entities) {
+					for (Entity enemy : registry.deadlys.entities)
+					{
 						registry.healths.get(enemy).hit_points = 0;
 						registry.deadlys.get(enemy).state = ENEMY_STATE::DEAD;
 
-						if (!registry.deathTimers.has(enemy)) {
+						if (!registry.deathTimers.has(enemy))
+						{
 							DeathTimer &death = registry.deathTimers.emplace(enemy);
 							death.counter_ms = 440.4f;
 						}
@@ -891,11 +913,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	//  if salmon is not dying - let lights effect on screen
 	if (!registry.deathTimers.has(my_player))
 	{
-		if (!goal_reached) {
+		if (!goal_reached)
+		{
 			lightflicker_counter_ms += elapsed_ms_since_last_update;
 		}
-		
-		if (lightflicker_counter_ms >= LIGHT_FLICKER_RATE )
+
+		if (lightflicker_counter_ms >= LIGHT_FLICKER_RATE)
 		{
 			screen.darken_screen_factor = 0.4;
 			lightflicker_counter_ms = 0;
@@ -1094,8 +1117,6 @@ void WorldSystem::restart_game()
 	// clear spawnable_tiles on map switch
 	spawnable_tiles.clear();
 
-	
-
 	// create a slime patches and create spawnable tiles vector
 	for (int i = 0; i < current_map.size(); i++)
 	{
@@ -1141,9 +1162,7 @@ void WorldSystem::restart_game()
 	registry.cameras.clear();
 	camera = createCamera(renderer, vec2(window_width_px / 2, window_height_px / 2));
 
-
 	std::cout << "mid creation" << std::endl;
-
 
 	lightflicker_counter_ms = 1000;
 	tile_vec.clear();
@@ -1185,6 +1204,8 @@ void WorldSystem::restart_game()
 	// set pause correctly
 	is_paused = true;
 	unpause();
+	// create experience bar
+	create_experience_bar();
 }
 
 // utility functions for dash mvmnt implementation
@@ -1416,7 +1437,8 @@ void WorldSystem::handle_collisions(float step_seconds)
 				hb.touching = true;
 			}
 
-			if (registry.doors.has(entity_other)) {
+			if (registry.doors.has(entity_other))
+			{
 				Door &door = registry.doors.get(entity_other);
 				door.touching = true;
 			}
@@ -1545,9 +1567,10 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 					if (registry.motions.has(entity_other) && (adjusted_tile == 1 || (adjusted_tile >= 3 && adjusted_tile <= 8)))
 					{
-						vec2 grid_kockback_pos = {(640 - (25 * 100)) + ((grid_x + adjust.x) * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + ((grid_y + adjust.y) * TILE_SIZE) + (TILE_SIZE / 2) };
+						vec2 grid_kockback_pos = {(640 - (25 * 100)) + ((grid_x + adjust.x) * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + ((grid_y + adjust.y) * TILE_SIZE) + (TILE_SIZE / 2)};
 						vec2 new_diff = grid_kockback_pos - registry.motions.get(my_player).position;
-						if (length(new_diff) > length(diff)) {
+						if (length(new_diff) > length(diff))
+						{
 							enemy_motion.position = grid_kockback_pos;
 							physics.update_enemy_movement(entity_other, step_seconds);
 							if (registry.pathTimers.has(entity_other))
@@ -1598,27 +1621,32 @@ vec2 WorldSystem::adjust_knockback_coordinates(int grid_x, int grid_y, int adjus
 {
 	int x = adjust_x;
 	int y = adjust_y;
-	if (grid_y + y > (int)current_map.size()) {
+	if (grid_y + y > (int)current_map.size())
+	{
 		y = current_map.size() - grid_y - 1;
 	}
-	else if (grid_y + y < 0) {
+	else if (grid_y + y < 0)
+	{
 		y = 0;
 	}
 
-	if (grid_x + x > (int)current_map[0].size()) {
+	if (grid_x + x > (int)current_map[0].size())
+	{
 		x = current_map[0].size() - grid_x - 1;
 	}
-	else if (grid_x + x < 0) {
+	else if (grid_x + x < 0)
+	{
 		x = 0;
 	}
-	
+
 	vec2 player_pos = registry.motions.get(my_player).position;
 	do
 	{
 		if (current_map[grid_y + y][grid_x + x] == 1 || (current_map[grid_y + y][grid_x + x] >= 3 && current_map[grid_y + y][grid_x + x] <= 8))
 		{
-			vec2 pos = { (640 - (25 * 100)) + ((grid_x + x) * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + ((grid_y + y) * TILE_SIZE) + (TILE_SIZE / 2) };
-			if (knockback_through_wall_check(vec2(grid_x + x, grid_y + y), player_pos)) {
+			vec2 pos = {(640 - (25 * 100)) + ((grid_x + x) * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + ((grid_y + y) * TILE_SIZE) + (TILE_SIZE / 2)};
+			if (knockback_through_wall_check(vec2(grid_x + x, grid_y + y), player_pos))
+			{
 				return vec2(x, y);
 			}
 		}
@@ -1633,8 +1661,9 @@ vec2 WorldSystem::adjust_knockback_coordinates(int grid_x, int grid_y, int adjus
 		}
 		if (current_map[grid_y + y][grid_x + temp_x] == 1 || (current_map[grid_y + y][grid_x + temp_x] >= 3 && current_map[grid_y + y][grid_x + temp_x] <= 8))
 		{
-			vec2 pos = { (640 - (25 * 100)) + ((grid_x + temp_x) * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + ((grid_y + y) * TILE_SIZE) + (TILE_SIZE / 2) };
-			if (knockback_through_wall_check(vec2(grid_x + temp_x, grid_y + y), player_pos)) {
+			vec2 pos = {(640 - (25 * 100)) + ((grid_x + temp_x) * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + ((grid_y + y) * TILE_SIZE) + (TILE_SIZE / 2)};
+			if (knockback_through_wall_check(vec2(grid_x + temp_x, grid_y + y), player_pos))
+			{
 				return vec2(temp_x, y);
 			}
 		}
@@ -1649,8 +1678,9 @@ vec2 WorldSystem::adjust_knockback_coordinates(int grid_x, int grid_y, int adjus
 		}
 		if (current_map[grid_y + temp_y][grid_x + x] == 1 || (current_map[grid_y + temp_y][grid_x + x] >= 3 && current_map[grid_y + temp_y][grid_x + x] <= 8))
 		{
-			vec2 pos = { (640 - (25 * 100)) + ((grid_x + x) * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + ((grid_y + temp_y) * TILE_SIZE) + (TILE_SIZE / 2) };
-			if (knockback_through_wall_check(vec2(grid_x + x, grid_y + temp_y), player_pos)) {
+			vec2 pos = {(640 - (25 * 100)) + ((grid_x + x) * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + ((grid_y + temp_y) * TILE_SIZE) + (TILE_SIZE / 2)};
+			if (knockback_through_wall_check(vec2(grid_x + x, grid_y + temp_y), player_pos))
+			{
 				return vec2(x, temp_y);
 			}
 		}
@@ -1675,7 +1705,7 @@ vec2 WorldSystem::adjust_knockback_coordinates(int grid_x, int grid_y, int adjus
 	return vec2(0, 0);
 }
 
-bool WorldSystem::knockback_through_wall_check(const vec2& start, const vec2& end)
+bool WorldSystem::knockback_through_wall_check(const vec2 &start, const vec2 &end)
 {
 	const float GRID_OFFSET_X = (640 - (25 * TILE_SIZE)) - TILE_SIZE / 2;
 	const float GRID_OFFSET_Y = (640 - (44 * TILE_SIZE)) - TILE_SIZE / 2;
@@ -1752,7 +1782,6 @@ bool WorldSystem::knockback_through_wall_check(const vec2& start, const vec2& en
 	return current_map[y][x] == 1 || (current_map[y][x] >= 3 && current_map[y][x] <= 8);
 }
 
-
 // Should the game be over ?
 bool WorldSystem::is_over() const
 {
@@ -1779,52 +1808,62 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	ScreenState &screen = registry.screenStates.components[0];
 
 	// Press any key to start
-	if (screen.state == GameState::START) {
-		if (action == GLFW_RELEASE) {
+	if (screen.state == GameState::START)
+	{
+		if (action == GLFW_RELEASE)
+		{
 			stateSwitch(GameState::GAME);
 			restart_game();
 		}
 		return;
 	}
 
-	if (screen.state == GameState::MENU) {
+	if (screen.state == GameState::MENU)
+	{
 		return;
 	}
 
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R)
 	{
-		if (screen.state == GameState::GAME_OVER) {
+		if (screen.state == GameState::GAME_OVER)
+		{
 			int w, h;
 			glfwGetWindowSize(window, &w, &h);
 			restart_game();
 		}
 	}
 
-	if (screen.state == GameState::GAME_OVER) {
+	if (screen.state == GameState::GAME_OVER)
+	{
 		return;
 	}
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P)
 	{
-		
-		if (screen.state != GameState::PAUSED) {
+
+		if (screen.state != GameState::PAUSED)
+		{
 			pause();
-		} else {
+		}
+		else
+		{
 			unpause();
 		}
 	}
 
-	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) 
+	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE)
 	{
 		// if game over or paused, player is able to exit to menu
-		if (screen.state == GameState::PAUSED || screen.state == GameState::GAME_OVER) {
+		if (screen.state == GameState::PAUSED || screen.state == GameState::GAME_OVER)
+		{
 			stateSwitch(GameState::MENU);
 			return;
 		}
 	}
-	
-	if (screen.state == GameState::PAUSED) {
+
+	if (screen.state == GameState::PAUSED)
+	{
 		return;
 	}
 
@@ -1904,7 +1943,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 					std::cout << "player regained health" << std::endl;
 					p_health.hit_points += min(buff.factor * 25.f, 200.f - p_health.hit_points);
 					createEffect(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);
-				
+
 					// Total HP bar is 200
 					int hp_level = int(p_health.hit_points / 25);
 					// set current animation to hpbar_[hp_level]
@@ -1912,14 +1951,14 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 					registry.animationSets.get(hp_bar).current_animation = new_anim;
 				}
-
-				
 			}
 		}
 
-		for (Entity e : registry.doors.entities) {
+		for (Entity e : registry.doors.entities)
+		{
 			Door &door = registry.doors.get(e);
-			if (door.touching) {
+			if (door.touching)
+			{
 				if (current_map == map2)
 				{
 					mapSwitch(3);
@@ -1975,20 +2014,20 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 void WorldSystem::on_mouse_move(vec2 mouse_position)
 {
-	ScreenState& screen = registry.screenStates.components[0];
-	if (screen.state == GameState::GAME) {
+	ScreenState &screen = registry.screenStates.components[0];
+	if (screen.state == GameState::GAME)
+	{
 		player_controller.on_mouse_move(mouse_position);
 	}
-	
 }
 
 void WorldSystem::on_mouse_button(int button, int action, int mods)
 {
-	ScreenState& screen = registry.screenStates.components[0];
-	if (screen.state == GameState::GAME) {
+	ScreenState &screen = registry.screenStates.components[0];
+	if (screen.state == GameState::GAME)
+	{
 		player_controller.on_mouse_button(button, action, mods);
 	}
-	
 }
 
 std::vector<std::vector<int>> WorldSystem::get_current_map()
