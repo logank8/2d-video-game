@@ -124,6 +124,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		gl_has_errors();
 
+
 		assert(in_texcoord_loc >= 0);
 
 		glEnableVertexAttribArray(in_position_loc);
@@ -547,6 +548,19 @@ void RenderSystem::drawToScreen()
 	glUniform3f(view_pos_uloc, 0, 0, 1.0);
 
 	gl_has_errors();
+
+	// darkened mode turns OFF when enemy kill goal is reached
+	// this is a pretty messy solution , will fix later
+	GLuint darkenedmode_uloc = glGetUniformLocation(water_program, "darkenedmode");
+
+	if (registry.deadlys.size() == 0) {
+		glUniform1i(darkenedmode_uloc, 1);
+		std::cout << "darkened mode OFF" << std::endl;
+	} else {
+		glUniform1i(darkenedmode_uloc, 0);
+	}
+
+
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)
 	GLint in_position_loc = glGetAttribLocation(water_program, "in_position");

@@ -52,7 +52,8 @@ public:
 	int enemies_killed = 0;
 
 	int enemy_kill_goal = 6;
-
+	
+	bool goal_reached = false;
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -61,12 +62,15 @@ private:
 
 	void mapSwitch(int map);
 
+	void spawnDoor();
+
 	void stateSwitch(GameState new_state);
 
 	int randomInt(int n);
 
 	// restart level
 	void restart_game();
+	void restart_world();
 
 	vec2 adjust_knockback_coordinates(int grid_x, int grid_y, int adjust_x, int adjust_y);
 
@@ -101,6 +105,8 @@ private:
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+
+	const std::vector<std::vector<int>> door_positions = {{25, 0}, {25, 2}};
 
 	const std::vector<std::vector<int>> map1 = {
 		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},

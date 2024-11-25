@@ -6,6 +6,8 @@ uniform float darken_screen_factor;
 uniform vec3 viewPos;
 uniform int paused;
 
+uniform int darkenedmode;
+
 in vec2 texcoord;
 in vec3 normal;
 in vec3 fragPos; // range [-1, 1]
@@ -37,6 +39,9 @@ void main()
 
 	// ambient calculation
 	float lightStrength = 0.2;
+	if (darkenedmode == 1) {
+		lightStrength = 0.4;
+	}
 	vec3 ambient = lightStrength * vec3(1.0, 1.0, 1.0);
 	// ambient done
 
@@ -47,6 +52,7 @@ void main()
 	
 	// calculating diffuse component
 	float diff = max((dot(norm, lightDir)), 0.0);
+	
 
 	vec3 diffuse = diff * vec3(1.0, 1.0, 1.0);
 

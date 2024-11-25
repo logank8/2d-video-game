@@ -154,3 +154,7 @@ Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, 
 Entity createHealthBuff(RenderSystem *renderer, vec2 pos);
 
 Entity createCamera(RenderSystem *renderer, vec2 pos);
+
+Entity createDoor(RenderSystem *renderer, vec2 pos);
+
+Entity createStartScreen(RenderSystem *renderer);

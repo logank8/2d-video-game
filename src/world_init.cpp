@@ -1476,3 +1476,54 @@ Entity createCamera(RenderSystem *renderer, vec2 pos)
 
 	return entity;
 }
+
+Entity createDoor(RenderSystem *renderer, vec2 pos) 
+{
+	auto entity = Entity();
+
+	Camera &camera = registry.cameras.emplace(entity);
+
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = {pos.x, pos.y - 25};
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2(150, 150);
+
+	registry.doors.emplace(entity);
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::DOOR,
+				 SPRITE_ASSET_ID::SPRITE_COUNT,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 -1,
+				 RENDER_LAYER::DEFAULT_LAYER});
+
+	return entity;
+}
+
+Entity createStartScreen(RenderSystem *renderer) {
+	auto entity = Entity();
+
+
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = {window_width_px / 2, window_height_px / 2};
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2(0.1, 0.1);
+
+
+	UserInterface& ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = {0, 0};
+	ui.scale = vec2({2.0, -2.0});
+
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::START_SCREEN,
+				 SPRITE_ASSET_ID::SPRITE_COUNT,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 -1,
+				 RENDER_LAYER::DEFAULT_LAYER});
+
+	return entity;
+}

@@ -22,7 +22,6 @@ const size_t CONTACT_FAST_SPAWN_DELAY_MS = 2000 * 3;
 // const size_t MAX_NUM_RANGED_ENEMY = 1;
 const size_t RANGED_ENEMY_SPAWN_DELAY_MS = 5000 * 3;
 const size_t RANGED_ENEMY_PROJECTILE_DELAY_MS = 3000;
-const size_t MAX_NUM_ENEMIES = 50;
 
 const int TILE_SIZE = 100;
 std::vector<vec2> tile_vec;
@@ -41,12 +40,15 @@ bool is_tutorial_on = false;
 bool WorldSystem::is_paused = false;
 bool WorldSystem::is_level_up = false;
 
+size_t max_num_enemies = 50;
+
 // For testing purposes only
 int map_counter = 1;
 
 PhysicsSystem physics;
 
 void pauseMenuText() {
+	// need to figure out how to clear powerup texts when paused or something
 	createText(vec2(475, 450), 0.8f, "PRESS P TO UNPAUSE", vec3(1.0f, 1.0f, 1.0f));
 	createText(vec2(410, 370), 0.8f, "PRESS ESC TO EXIT TO MENU", vec3(1.0f, 1.0f, 1.0f));
 	createText(vec2(245, 300), 0.6f, "(If you exit to menu your progress in the level will be lost!)", vec3(1.0f, 1.0f, 1.0f));
@@ -234,6 +236,20 @@ GLFWwindow *WorldSystem::create_window()
 	return window;
 }
 
+void WorldSystem::restart_world() {
+	// Debugging for memory/component leaks
+	registry.list_all_components();
+	printf("Restarting\n");
+
+	// Reset the game speed
+	current_speed = 1.f;
+	is_level_up = false;
+
+	current_map = map1;
+
+	camera = createCamera(renderer, vec2(window_width_px / 2, window_height_px / 2));
+}
+
 void WorldSystem::init(RenderSystem *renderer_arg)
 {
 	this->renderer = renderer_arg;
@@ -244,8 +260,13 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 
 	current_map = map1;
 
+	ScreenState &screen = registry.screenStates.components[0];
+	screen.state = GameState::START;
+
+	createStartScreen(renderer);
+
 	// Set all states to default
-	restart_game();
+	restart_world();
 }
 
 // Create an HP bar for an enemy
@@ -353,6 +374,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	// Processing the screen state
 	assert(registry.screenStates.components.size() <= 1);
 	ScreenState &screen = registry.screenStates.components[0];
+
+	if (screen.state == GameState::START) {
+		glfwSetWindowTitle(window, "Eviction of the Damned");
+		return true;
+	}
 
 	if (screen.state == GameState::GAME_OVER) {
 		glfwSetWindowTitle(window, "GAME OVER");
@@ -479,6 +505,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 			if (current_map[j][i] == 0)
 			{
+				if (i == door_positions[0][0] && j == door_positions[0][1] && goal_reached) {
+					createDoor(renderer, world_pos);
+				}
 				createWalls(renderer, world_pos, false);
 				tile_vec.push_back(vec2(i, j));
 			}
@@ -508,7 +537,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				tile_vec.push_back(vec2(i, j));
 			}
 
-			if (current_map[j][i] == 3 && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
+			if (current_map[j][i] == 3 && registry.deadlys.entities.size() < max_num_enemies)
 			{
 				int encounter = rand() % 3;
 				if (encounter == 0)
@@ -532,7 +561,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				spawn_nearby_tile(vec2(i, j), additional_enemies);
 				tile_vec.push_back(vec2(i, j));
 			}
-			if (current_map[j][i] == 4 && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
+			if (current_map[j][i] == 4 && registry.deadlys.entities.size() < max_num_enemies)
 			{
 				int encounter = rand() % 3;
 				if (encounter == 0)
@@ -557,7 +586,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				}
 				tile_vec.push_back(vec2(i, j));
 			}
-			if (current_map[j][i] == 5 && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
+			if (current_map[j][i] == 5 && registry.deadlys.entities.size() < max_num_enemies)
 			{
 				int encounter = rand() % 3;
 				if (encounter == 0)
@@ -588,7 +617,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				tile_vec.push_back(vec2(i, j));
 			}
 
-			if (current_map[j][i] == 8 && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
+			if (current_map[j][i] == 8 && registry.deadlys.entities.size() < max_num_enemies)
 			{
 				Entity swarm_leader = createSwarm(renderer, world_pos, 0.55f, 0.05f, 0.00005f);
 				Motion &swarm_motion = motions_registry.get(swarm_leader);
@@ -606,7 +635,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	// TODO: spawn frequencies and spawn radius to be adjusted
 	//  Spawn Level 1 type enemy: slow with contact damage
 	next_contact_slow_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (next_contact_slow_spawn < 0.f && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
+	if (next_contact_slow_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
 	{
 		next_contact_slow_spawn = (CONTACT_SLOW_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_SLOW_SPAWN_DELAY_MS / 2);
 		vec2 contact_slow_pos;
@@ -625,7 +654,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 	// Spawn Level 2 type enemy: fast with contact damage
 	next_contact_fast_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (next_contact_fast_spawn < 0.f && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
+	if (next_contact_fast_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
 	{
 		next_contact_fast_spawn = (CONTACT_FAST_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_FAST_SPAWN_DELAY_MS / 2);
 		vec2 contact_fast_pos;
@@ -650,7 +679,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 	// Spawn Level 3 type enemy: slow ranged enemy
 	next_ranged_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (next_ranged_spawn < 0.f && registry.deadlys.entities.size() < MAX_NUM_ENEMIES)
+	if (next_ranged_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
 	{
 		next_ranged_spawn = (RANGED_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_SPAWN_DELAY_MS / 2);
 		vec2 ranged_pos;
@@ -755,17 +784,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					Animation anim = animSet_enemy.animations[animSet_enemy.current_animation];
 				}
 
+				// might need to move enemy kill count stuff here to stop powerup drop - kind of useless at last enemey kill
+
 				float roll = uniform_dist(rng);
 				Deadly &deadly = registry.deadlys.get(entity);
 				Motion &enemy_motion = registry.motions.get(entity);
 
-				if (roll <= deadly.drop_chance && !registry.projectiles.has(entity) && !registry.swarms.has(entity))
+				if (roll <= deadly.drop_chance && !registry.projectiles.has(entity) && !registry.swarms.has(entity) && !goal_reached)
 				{
 					createExperience(renderer, enemy_motion.position, deadly.experience);
 				}
 
 				float roll_powerup = uniform_dist(rng);
-				if (roll_powerup <= POWERUP_DROP_CHANCE && !registry.projectiles.has(entity) && !registry.swarms.has(entity))
+				if (roll_powerup <= POWERUP_DROP_CHANCE && !registry.projectiles.has(entity) && !registry.swarms.has(entity) && !goal_reached)
 				{
 					PowerupType type = (PowerupType)randomInt(2); // Change this if more powerups
 					float multiplier = 1.f;
@@ -821,6 +852,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				enemies_killed++;
 				if (enemies_killed >= enemy_kill_goal && current_map != map3)
 				{
+					for (Entity enemy : registry.deadlys.entities) {
+						registry.healths.get(enemy).hit_points = 0;
+						registry.deadlys.get(enemy).state = ENEMY_STATE::DEAD;
+
+						if (!registry.deathTimers.has(enemy)) {
+							DeathTimer &death = registry.deathTimers.emplace(enemy);
+							death.counter_ms = 440.4f;
+						}
+					}
+					max_num_enemies = 0;
+					goal_reached = true;
+					
+					/*
 					if (current_map == map2)
 					{
 						mapSwitch(3);
@@ -829,6 +873,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					{
 						mapSwitch(2);
 					}
+					*/
 
 					return true;
 				}
@@ -843,8 +888,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	//  if salmon is not dying - let lights effect on screen
 	if (!registry.deathTimers.has(my_player))
 	{
-		lightflicker_counter_ms += elapsed_ms_since_last_update;
-		if (lightflicker_counter_ms >= LIGHT_FLICKER_RATE)
+		if (!goal_reached) {
+			lightflicker_counter_ms += elapsed_ms_since_last_update;
+		}
+		
+		if (lightflicker_counter_ms >= LIGHT_FLICKER_RATE )
 		{
 			screen.darken_screen_factor = 0.4;
 			lightflicker_counter_ms = 0;
@@ -1023,16 +1071,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 // Reset the world state to its initial state
 void WorldSystem::restart_game()
 {
-	// Debugging for memory/component leaks
-	registry.list_all_components();
-	printf("Restarting\n");
-
-	// Reset the game speed
-	current_speed = 1.f;
-
-	ScreenState &screen = registry.screenStates.components[0];
-	screen.state = GameState::GAME;
-	WorldSystem::is_level_up = false;
+	restart_world();
 
 	enemies_killed = 0;
 
@@ -1051,6 +1090,8 @@ void WorldSystem::restart_game()
 
 	// clear spawnable_tiles on map switch
 	spawnable_tiles.clear();
+
+	
 
 	// create a slime patches and create spawnable tiles vector
 	for (int i = 0; i < current_map.size(); i++)
@@ -1094,7 +1135,12 @@ void WorldSystem::restart_game()
 	player_controller.set_renderer(renderer);
 	player_controller.set_world(this);
 
-	camera = createCamera(renderer, registry.motions.get(my_player).position);
+	registry.cameras.clear();
+	camera = createCamera(renderer, vec2(window_width_px / 2, window_height_px / 2));
+
+
+	std::cout << "mid creation" << std::endl;
+
 
 	lightflicker_counter_ms = 1000;
 	tile_vec.clear();
@@ -1132,6 +1178,10 @@ void WorldSystem::restart_game()
 
 	vec2 stamina_bar_pos = {-0.74f, 0.7f};
 	stamina_bar = createStaminaBar(renderer, stamina_bar_pos);
+
+	// set pause correctly
+	is_paused = true;
+	unpause();
 }
 
 // utility functions for dash mvmnt implementation
@@ -1719,6 +1769,16 @@ std::vector<std::string> read_file(std::string filepath)
 void WorldSystem::on_key(int key, int, int action, int mod)
 {
 	ScreenState &screen = registry.screenStates.components[0];
+
+	// Press any key to start
+	if (screen.state == GameState::START) {
+		if (action == GLFW_RELEASE) {
+			stateSwitch(GameState::GAME);
+			restart_game();
+		}
+		return;
+	}
+
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R)
 	{
@@ -1885,11 +1945,19 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 void WorldSystem::on_mouse_move(vec2 mouse_position)
 {
+	ScreenState& screen = registry.screenStates.components[0];
+	if (screen.state != GameState::GAME) {
+		return;
+	}
 	player_controller.on_mouse_move(mouse_position);
 }
 
 void WorldSystem::on_mouse_button(int button, int action, int mods)
 {
+	ScreenState& screen = registry.screenStates.components[0];
+	if (screen.state != GameState::GAME) {
+		return;
+	}
 	player_controller.on_mouse_button(button, action, mods);
 }
 

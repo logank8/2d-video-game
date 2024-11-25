@@ -176,6 +176,12 @@ struct Ground
 {
 };
 
+// Door component
+struct Door 
+{
+
+};
+
 // Ground component
 struct Sticky
 {
@@ -440,7 +446,9 @@ enum class TEXTURE_ASSET_ID
 	GREY_CAT = CARD + 1,
 	ORANGE_CAT = GREY_CAT + 1,
 	SLASH = ORANGE_CAT + 1,
-	TEXTURE_COUNT = SLASH + 1
+	DOOR = SLASH + 1,
+	START_SCREEN = DOOR + 1,
+	TEXTURE_COUNT = START_SCREEN + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
