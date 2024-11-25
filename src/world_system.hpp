@@ -70,6 +70,8 @@ private:
 
 	void spawn_nearby_tile(vec2 curr_tile, std::vector<ENEMY_TYPES>& enemy_types);
 
+	bool knockback_through_wall_check(const vec2& start, const vec2& end);
+
 	// OpenGL window handle
 	GLFWwindow *window;
 

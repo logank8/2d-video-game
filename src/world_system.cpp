@@ -1365,8 +1365,8 @@ void WorldSystem::handle_collisions(float step_seconds)
 				if (!registry.projectiles.has(entity_other) && deadly_health.hit_points > 0)
 				{
 					vec2 kockback_pos = enemy_motion.position + (diff * player.knockback_strength);
-					int grid_x = static_cast<int>((kockback_pos.x - (640 - (25 * TILE_SIZE))) / TILE_SIZE);
-					int grid_y = static_cast<int>((kockback_pos.y - (640 - (44 * TILE_SIZE))) / TILE_SIZE);
+					int grid_x = static_cast<int>((kockback_pos.x - (640 - (25 * TILE_SIZE)) - TILE_SIZE / 2) / TILE_SIZE);
+					int grid_y = static_cast<int>((kockback_pos.y - (640 - (44 * TILE_SIZE)) - TILE_SIZE / 2) / TILE_SIZE);
 					int adjust_x = 0;
 					int adjust_y = 0;
 					if (diff.x < 0 && diff.y < 0)
@@ -1448,54 +1448,13 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 					vec2 adjust = adjust_knockback_coordinates(grid_x, grid_y, adjust_x, adjust_y);
 
-					if (registry.motions.has(entity_other))
-					{
-						vec2 grid_kockback_pos = {(640 - (25 * 100)) + ((grid_x + adjust.x) * TILE_SIZE), (640 - (44 * 100)) + ((grid_y + adjust.y) * TILE_SIZE)};
-						vec2 new_diff = grid_kockback_pos - pmotion.position;
-						bool accept_zero_adjust = true;
-						if (adjust.x == 0 && adjust.y == 0)
-						{
-							if (diff.x < 0)
-							{
-								if (new_diff.x > diff.x)
-								{
-									accept_zero_adjust = false;
-								}
-							}
-							else
-							{
-								if (new_diff.x < diff.x)
-								{
-									accept_zero_adjust = false;
-								}
-							}
+					int adjusted_tile = current_map[grid_y + adjust.y][grid_x + adjust.x];
 
-							if (diff.y < 0)
-							{
-								if (new_diff.y > diff.y)
-								{
-									accept_zero_adjust = false;
-								}
-							}
-							else
-							{
-								if (new_diff.y < diff.y)
-								{
-									accept_zero_adjust = false;
-								}
-							}
-							if (accept_zero_adjust)
-							{
-								enemy_motion.position = grid_kockback_pos;
-								physics.update_enemy_movement(entity_other, step_seconds);
-								if (registry.pathTimers.has(entity_other))
-								{
-									registry.pathTimers.get(entity_other).timer = -1.f;
-								}
-							}
-						}
-						else
-						{
+					if (registry.motions.has(entity_other) && (adjusted_tile == 1 || (adjusted_tile >= 3 && adjusted_tile <= 8)))
+					{
+						vec2 grid_kockback_pos = {(640 - (25 * 100)) + ((grid_x + adjust.x) * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + ((grid_y + adjust.y) * TILE_SIZE) + (TILE_SIZE / 2) };
+						vec2 new_diff = grid_kockback_pos - registry.motions.get(my_player).position;
+						if (length(new_diff) > length(diff)) {
 							enemy_motion.position = grid_kockback_pos;
 							physics.update_enemy_movement(entity_other, step_seconds);
 							if (registry.pathTimers.has(entity_other))
@@ -1546,48 +1505,61 @@ vec2 WorldSystem::adjust_knockback_coordinates(int grid_x, int grid_y, int adjus
 {
 	int x = adjust_x;
 	int y = adjust_y;
-	if (current_map[grid_y + y][grid_x + x] == 1 || (current_map[grid_y + y][grid_x + x] >= 3 && current_map[grid_y + y][grid_x + x] <= 8))
-	{
-		return vec2(x, y);
+	if (grid_y + y > (int)current_map.size()) {
+		y = current_map.size() - grid_y - 1;
 	}
-	if (current_map[grid_y + y][grid_x] == 1 || (current_map[grid_y + y][grid_x] >= 3 && current_map[grid_y + y][grid_x] <= 8))
-	{
-		return vec2(0, y);
-	}
-	if (current_map[grid_y][grid_x + x] == 1 || (current_map[grid_y][grid_x + x] >= 3 && current_map[grid_y][grid_x + x] <= 8))
-	{
-		return vec2(x, 0);
-	}
-	if (x > 0)
-	{
-		x--;
-	}
-	else if (x < 0)
-	{
-		x++;
-	}
-	if (y > 0)
-	{
-		y--;
-	}
-	else if (y < 0)
-	{
-		y++;
+	else if (grid_y + y < 0) {
+		y = 0;
 	}
 
-	while (x != 0 && y != 0)
+	if (grid_x + x > (int)current_map[0].size()) {
+		x = current_map[0].size() - grid_x - 1;
+	}
+	else if (grid_x + x < 0) {
+		x = 0;
+	}
+	
+	vec2 player_pos = registry.motions.get(my_player).position;
+	do
 	{
 		if (current_map[grid_y + y][grid_x + x] == 1 || (current_map[grid_y + y][grid_x + x] >= 3 && current_map[grid_y + y][grid_x + x] <= 8))
 		{
-			return vec2(x, y);
+			vec2 pos = { (640 - (25 * 100)) + ((grid_x + x) * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + ((grid_y + y) * TILE_SIZE) + (TILE_SIZE / 2) };
+			if (knockback_through_wall_check(vec2(grid_x + x, grid_y + y), player_pos)) {
+				return vec2(x, y);
+			}
 		}
-		if (current_map[grid_y + y][grid_x] == 1 || (current_map[grid_y + y][grid_x] >= 3 && current_map[grid_y + y][grid_x] <= 8))
+		int temp_x = x;
+		if (temp_x > 0)
 		{
-			return vec2(0, y);
+			temp_x--;
 		}
-		if (current_map[grid_y][grid_x + x] == 1 || (current_map[grid_y][grid_x + x] >= 3 && current_map[grid_y][grid_x + x] <= 8))
+		else if (temp_x < 0)
 		{
-			return vec2(x, 0);
+			temp_x++;
+		}
+		if (current_map[grid_y + y][grid_x + temp_x] == 1 || (current_map[grid_y + y][grid_x + temp_x] >= 3 && current_map[grid_y + y][grid_x + temp_x] <= 8))
+		{
+			vec2 pos = { (640 - (25 * 100)) + ((grid_x + temp_x) * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + ((grid_y + y) * TILE_SIZE) + (TILE_SIZE / 2) };
+			if (knockback_through_wall_check(vec2(grid_x + temp_x, grid_y + y), player_pos)) {
+				return vec2(temp_x, y);
+			}
+		}
+		int temp_y = y;
+		if (temp_y > 0)
+		{
+			temp_y--;
+		}
+		else if (temp_y < 0)
+		{
+			temp_y++;
+		}
+		if (current_map[grid_y + temp_y][grid_x + x] == 1 || (current_map[grid_y + temp_y][grid_x + x] >= 3 && current_map[grid_y + temp_y][grid_x + x] <= 8))
+		{
+			vec2 pos = { (640 - (25 * 100)) + ((grid_x + x) * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + ((grid_y + temp_y) * TILE_SIZE) + (TILE_SIZE / 2) };
+			if (knockback_through_wall_check(vec2(grid_x + x, grid_y + temp_y), player_pos)) {
+				return vec2(x, temp_y);
+			}
 		}
 		if (x > 0)
 		{
@@ -1605,10 +1577,88 @@ vec2 WorldSystem::adjust_knockback_coordinates(int grid_x, int grid_y, int adjus
 		{
 			y++;
 		}
-	}
+	} while (x != 0 && y != 0);
 
 	return vec2(0, 0);
 }
+
+bool WorldSystem::knockback_through_wall_check(const vec2& start, const vec2& end)
+{
+	const float GRID_OFFSET_X = (640 - (25 * TILE_SIZE)) - TILE_SIZE / 2;
+	const float GRID_OFFSET_Y = (640 - (44 * TILE_SIZE)) - TILE_SIZE / 2;
+
+	// Convert to grid coordinates
+	int x2 = static_cast<int>((end.x - GRID_OFFSET_X) / TILE_SIZE);
+	int y2 = static_cast<int>((end.y - GRID_OFFSET_Y) / TILE_SIZE);
+
+	int dx = abs(x2 - start.x);
+	int dy = abs(y2 - start.y);
+	int x = start.x;
+	int y = start.y;
+
+	// Determine step direction
+	int x_step = (start.x < x2) ? 1 : -1;
+	int y_step = (start.y < y2) ? 1 : -1;
+
+	int err;
+
+	// Choose which axis to move along
+	if (dx > dy)
+	{
+		err = dx / 2;
+		while (x != x2)
+		{
+			if (y < 0 || x < 0 || y >= current_map.size() || x >= current_map[0].size())
+			{
+				return false;
+			}
+
+			if (!(current_map[y][x] == 1 || (current_map[y][x] >= 3 && current_map[y][x] <= 8)))
+			{
+				return false;
+			}
+
+			err -= dy;
+			if (err < 0)
+			{
+				y += y_step;
+				err += dx;
+			}
+			x += x_step;
+		}
+	}
+	else
+	{
+		err = dy / 2;
+		while (y != y2)
+		{
+			if (y < 0 || x < 0 || y >= current_map.size() || x >= current_map[0].size())
+			{
+				return false;
+			}
+
+			if (!(current_map[y][x] == 1 || (current_map[y][x] >= 3 && current_map[y][x] <= 8)))
+			{
+				return false;
+			}
+
+			err -= dx;
+			if (err < 0)
+			{
+				x += x_step;
+				err += dy;
+			}
+			y += y_step;
+		}
+	}
+
+	if (y < 0 || x < 0 || y >= current_map.size() || x >= current_map[0].size())
+	{
+		return false;
+	}
+	return current_map[y][x] == 1 || (current_map[y][x] >= 3 && current_map[y][x] <= 8);
+}
+
 
 // Should the game be over ?
 bool WorldSystem::is_over() const

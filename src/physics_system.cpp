@@ -582,11 +582,10 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
     {
         // adjust pathfinding coordinates if knocked back recently
         if ((grid_x != raw_x || grid_y != raw_y)) {
-            int adjusted_x = static_cast<int>((enemy_motion.position.x - (640 - (25 * TILE_SIZE))) / TILE_SIZE);
-            int adjusted_y = static_cast<int>((enemy_motion.position.y - (640 - (44 * TILE_SIZE))) / TILE_SIZE);
+            int adjusted_x = (static_cast<int>(enemy_motion.position.x) - (640 - (25 * TILE_SIZE))) / TILE_SIZE;
+            int adjusted_y = (static_cast<int>(enemy_motion.position.y) - (640 - (44 * TILE_SIZE))) / TILE_SIZE;
             enemy_motion.position = { (640 - (25 * 100)) + (adjusted_x * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (adjusted_y * TILE_SIZE) + (TILE_SIZE / 2) };
             timer.timer = 0.f;
-
         }
 
         std::vector<vec2> new_path = find_path(motion, player_motion);
