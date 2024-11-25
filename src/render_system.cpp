@@ -538,7 +538,7 @@ void RenderSystem::drawToScreen()
 
 	// Pause uniform 0-1 switch
 	GLuint paused_uloc = glGetUniformLocation(water_program, "paused");
-	int pause = screen.paused ? 1 : 0;
+	int pause = (screen.state != GameState::GAME) ? 1 : 0;
 	glUniform1i(paused_uloc, pause);
 
 	// Pass lighting variables

@@ -61,6 +61,8 @@ private:
 
 	void mapSwitch(int map);
 
+	void stateSwitch(GameState new_state);
+
 	int randomInt(int n);
 
 	// restart level

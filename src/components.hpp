@@ -246,11 +246,20 @@ struct Debug
 };
 extern Debug debugging;
 
+enum GameState
+{
+	START = 0,
+	PAUSED = START + 1,
+	GAME = PAUSED + 1,
+	MENU = GAME + 1,
+	GAME_OVER = MENU + 1
+};
+
 // Sets the brightness of the screen
 struct ScreenState
 {
 	float darken_screen_factor = -1;
-	bool paused = false;
+	GameState state = START;
 };
 
 struct UserInterface

@@ -46,14 +46,22 @@ int map_counter = 1;
 
 PhysicsSystem physics;
 
+void pauseMenuText() {
+	createText(vec2(475, 450), 0.8f, "PRESS P TO UNPAUSE", vec3(1.0f, 1.0f, 1.0f));
+	createText(vec2(410, 370), 0.8f, "PRESS ESC TO EXIT TO MENU", vec3(1.0f, 1.0f, 1.0f));
+	createText(vec2(245, 300), 0.6f, "(If you exit to menu your progress in the level will be lost!)", vec3(1.0f, 1.0f, 1.0f));
+}
+
 void windowMinimizedCallback(GLFWwindow *window, int iconified)
 {
 	if (iconified) {
 		
 		if (registry.screenStates.components.size() != 0) {
+			
 			ScreenState &screen = registry.screenStates.components[0];
-			screen.paused = true;
+			screen.state = GameState::PAUSED;
 			screen.darken_screen_factor = 0.9;
+			pauseMenuText();
 		}
 		WorldSystem::is_paused = true;
 	}
@@ -68,11 +76,33 @@ void windowFocusCallback(GLFWwindow *window, int focused)
 		WorldSystem::is_paused = true;
 		if (registry.screenStates.components.size() != 0) {
 			ScreenState &screen = registry.screenStates.components[0];
-			screen.paused = true;
+			screen.state = GameState::PAUSED;
 			screen.darken_screen_factor = 0.9;
+			pauseMenuText();
 		}
 	} 
 
+}
+
+void WorldSystem::stateSwitch(GameState new_state) {
+	// need to assert size
+	ScreenState &screen = registry.screenStates.components[0];
+
+	switch (new_state) {
+		case (GameState::GAME_OVER):
+			// game over - we are guaranteed to be coming from GameState::GAME
+			screen.state = GameState::GAME_OVER;
+			while (registry.userInterfaces.entities.size() > 0) {
+				registry.remove_all_components_of(registry.userInterfaces.entities.back());
+			}
+			is_paused = false;
+			createText(vec2(490, 550), 1.4f, "GAME OVER", vec3(1.0f, 0.f, 0.f));	
+			createText(vec2(465, 420), 0.8f, "PRESS R TO RESTART", vec3(1.0f, 1.0f, 1.0f));	
+			createText(vec2(400, 350), 0.8f, "PRESS ESC TO EXIT TO MENU", vec3(1.0f, 1.0f, 1.0f));
+			break;
+		default:
+			return;
+	}
 }
 
 // create the underwater world
@@ -320,6 +350,14 @@ void WorldSystem::spawn_nearby_tile(vec2 curr_tile, std::vector<ENEMY_TYPES> &en
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update)
 {
+	// Processing the screen state
+	assert(registry.screenStates.components.size() <= 1);
+	ScreenState &screen = registry.screenStates.components[0];
+
+	if (screen.state == GameState::GAME_OVER) {
+		glfwSetWindowTitle(window, "GAME OVER");
+		return true;
+	}
 
 	// Updating window title with points
 	std::stringstream title_ss;
@@ -664,9 +702,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 	}
 
-	// Processing the screen state
-	assert(registry.screenStates.components.size() <= 1);
-	ScreenState &screen = registry.screenStates.components[0];
 
 	float attack_counter_ms = 800.f;
 	for (Entity entity : registry.attackTimers.entities)
@@ -707,8 +742,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			registry.deathTimers.remove(entity);
 			if (registry.players.has(entity))
 			{
-				screen.darken_screen_factor = 0;
-				restart_game();
+				screen.darken_screen_factor = 1.0;
+				stateSwitch(GameState::GAME_OVER);
 				return true;
 			}
 			// Enemy death - animation finished, remove entity
@@ -778,7 +813,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				// Check if final boss is dead then stop game
 				if (registry.bosses.has(entity))
 				{
-					screen.paused = true;
+					screen.state = GameState::PAUSED;
 					createText({window_width_px / 2 - 100, window_height_px / 2}, 1, "!!!You Win!!!", glm::vec3(1.f, 1.f, 1.f));
 				}
 
@@ -996,15 +1031,15 @@ void WorldSystem::restart_game()
 	current_speed = 1.f;
 
 	ScreenState &screen = registry.screenStates.components[0];
-	screen.paused = false;
+	screen.state = GameState::GAME;
 	WorldSystem::is_level_up = false;
+
+	enemies_killed = 0;
 
 	while (registry.upgradeCards.entities.size() > 0)
 	{
 		registry.remove_all_components_of(registry.upgradeCards.entities.back());
 	}
-
-	enemies_killed = 0;
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all fish, eels, ... but that would be more cumbersome
@@ -1687,23 +1722,34 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R)
 	{
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
-
-		restart_game();
+		if (screen.state == GameState::GAME_OVER) {
+			int w, h;
+			glfwGetWindowSize(window, &w, &h);
+			restart_game();
+		}
 	}
 
-	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE)
+	if (screen.state == GameState::GAME_OVER) {
+		return;
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_P)
 	{
 		
-		if (!screen.paused) {
+		if (screen.state != GameState::PAUSED) {
 			pause();
 		} else {
 			unpause();
 		}
 	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) 
+	{
+		// if game over or paused: switch state to game over
+		// but rn will just exit
+	}
 	
-	if (screen.paused) {
+	if (screen.state == GameState::PAUSED) {
 		return;
 	}
 
@@ -1716,7 +1762,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	if (action == GLFW_RELEASE && key == GLFW_KEY_T)
 	{
 		// if the game is already paused then this shouldn't work
-		if (!screen.paused)
+		if (screen.state != GameState::PAUSED)
 		{
 			pause();
 			float tutorial_header_x = window_width_px / 2 - 120;
@@ -1756,7 +1802,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	if (key == GLFW_KEY_SPACE)
 	{
-		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player) && (!screen.paused) && player.is_dash_up)
+		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player) && (screen.state == GameState::GAME) && player.is_dash_up)
 		{
 			pmotion.speed = 5500.f;
 			player.is_dash_up = false;
@@ -1820,7 +1866,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		}
 	}
 
-	if (!screen.paused)
+	if (screen.state != GameState::PAUSED)
 		player_controller.on_key(key, action, mod);
 
 	// Control the current speed with `<` `>`
@@ -1858,9 +1904,10 @@ void WorldSystem::pause()
 	{
 		ScreenState &screen = registry.screenStates.components[0];
 		screen.darken_screen_factor = 0.9;
-		screen.paused = true;
+		screen.state = GameState::PAUSED;
 		is_paused = true;
 		std::cout << "Game paused" << std::endl;
+		pauseMenuText();
 	}
 }
 
@@ -1870,7 +1917,7 @@ void WorldSystem::unpause()
 	{
 		ScreenState &screen = registry.screenStates.components[0];
 		screen.darken_screen_factor = 0.0;
-		screen.paused = false;
+		screen.state = GameState::GAME;
 		is_paused = false;
 		registry.players.get(my_player).is_moving = false;
 		registry.players.get(my_player).move_direction = vec2(0, 0);
@@ -1886,13 +1933,13 @@ void WorldSystem::set_level_up_state(bool state)
 	if (state)
 	{ // TODO: can we change this to pause function ?
 		screen.darken_screen_factor = 0.0;
-		screen.paused = true;
+		screen.state = GameState::PAUSED;
 		std::cout << "Game paused due to level up" << std::endl;
 	}
 	else
 	{
 		screen.darken_screen_factor = 0.0;
-		screen.paused = false;
+		screen.state = GameState::GAME;
 		std::cout << "Game unpaused from level up" << std::endl;
 	}
 }
