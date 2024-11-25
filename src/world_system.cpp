@@ -1946,7 +1946,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 void WorldSystem::on_mouse_move(vec2 mouse_position)
 {
 	ScreenState& screen = registry.screenStates.components[0];
-	if (screen.state != GameState::GAME) {
+	if (screen.state == GameState::START) {
 		return;
 	}
 	player_controller.on_mouse_move(mouse_position);
@@ -1955,7 +1955,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position)
 void WorldSystem::on_mouse_button(int button, int action, int mods)
 {
 	ScreenState& screen = registry.screenStates.components[0];
-	if (screen.state != GameState::GAME) {
+	if (screen.state == GameState::START) {
 		return;
 	}
 	player_controller.on_mouse_button(button, action, mods);
