@@ -179,7 +179,7 @@ struct Ground
 // Door component
 struct Door 
 {
-
+	bool touching = true;
 };
 
 // Ground component

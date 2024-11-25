@@ -245,8 +245,6 @@ void WorldSystem::restart_world() {
 	current_speed = 1.f;
 	is_level_up = false;
 
-	current_map = map1;
-
 	camera = createCamera(renderer, vec2(window_width_px / 2, window_height_px / 2));
 }
 
@@ -863,17 +861,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					}
 					max_num_enemies = 0;
 					goal_reached = true;
-					
-					/*
-					if (current_map == map2)
-					{
-						mapSwitch(3);
-					}
-					else
-					{
-						mapSwitch(2);
-					}
-					*/
 
 					return true;
 				}
@@ -1412,6 +1399,11 @@ void WorldSystem::handle_collisions(float step_seconds)
 				HealthBuff &hb = registry.healthBuffs.get(entity_other);
 				hb.touching = true;
 			}
+
+			if (registry.doors.has(entity_other)) {
+				Door &door = registry.doors.get(entity_other);
+				door.touching = true;
+			}
 		}
 		else if (registry.deadlys.has(entity))
 		{
@@ -1899,6 +1891,21 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 				}
 
 				
+			}
+		}
+
+		for (Entity e : registry.doors.entities) {
+			Door &door = registry.doors.get(e);
+			if (door.touching) {
+				if (current_map == map2)
+				{
+					mapSwitch(3);
+				}
+				else
+				{
+					mapSwitch(2);
+				}
+				return;
 			}
 		}
 	}

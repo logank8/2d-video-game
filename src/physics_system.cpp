@@ -728,6 +728,15 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
         }
     }
 
+    for (Entity e : registry.doors.entities) {
+        Door& door = registry.doors.get(e);
+        if (door.touching) {
+            if (!collides(registry.motions.get(e), player_motion)) {
+                door.touching = false;
+            }
+        }
+    }
+
 
     // Effect movement
     for (Entity e : registry.effects.entities) {
