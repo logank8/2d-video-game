@@ -26,7 +26,8 @@ Entity createPlayer(RenderSystem *renderer, vec2 pos)
 			SPRITE_ASSET_ID::PLAYER,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			1 // Sprite index  => 0 INDEXED (L->R, T->B)
+			1, // Sprite index  => 0 INDEXED (L->R, T->B)
+			RENDER_LAYER::CREATURES
 		});
 
 	// Initialize animations
@@ -351,7 +352,8 @@ Entity createContactSlow(RenderSystem *renderer, vec2 position)
 		 SPRITE_ASSET_ID::SKELETON,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 1});
+		 1,
+		 RENDER_LAYER::CREATURES});
 
 	std::vector<int> idle_f_vec = {0, 1, 2, 3, 4, 5};
 	Animation idle_f = {
@@ -412,7 +414,8 @@ Entity createContactFast(RenderSystem *renderer, vec2 position)
 		 SPRITE_ASSET_ID::SLIME,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 1});
+		 1,
+		 RENDER_LAYER::CREATURES});
 
 	std::vector<int> idle_f_vec = {0, 1};
 	Animation idle_f = {
@@ -474,7 +477,8 @@ Entity createRangedEnemy(RenderSystem *renderer, vec2 position)
 		 SPRITE_ASSET_ID::RANGED_ENEMY,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 0});
+		 0,
+		 RENDER_LAYER::CREATURES});
 
 	std::vector<int> idle_f_vec = {0, 1, 2, 3, 4};
 	Animation idle_f = {
@@ -537,7 +541,9 @@ Entity createRangedProjectile(RenderSystem *renderer, vec2 position)
 		{TEXTURE_ASSET_ID::RANGED_PROJECTILE,
 		 SPRITE_ASSET_ID::SPRITE_COUNT,
 		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE});
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 -1,
+		 RENDER_LAYER::CREATURES});
 
 	return entity;
 }
@@ -574,7 +580,8 @@ Entity createRangedHomingEnemy(RenderSystem *renderer, vec2 position)
 		 SPRITE_ASSET_ID::RANGED_ENEMY,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 0});
+		 0,
+		 RENDER_LAYER::CREATURES});
 
 	std::vector<int> idle_f_vec = {0, 1, 2, 3, 4};
 	Animation idle_f = {
@@ -639,7 +646,9 @@ Entity createRangedHomingProjectile(RenderSystem *renderer, vec2 position)
 		{TEXTURE_ASSET_ID::RANGED_PROJECTILE,
 		 SPRITE_ASSET_ID::SPRITE_COUNT,
 		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE});
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 -1,
+		 RENDER_LAYER::CREATURES});
 
 	return entity;
 }
@@ -679,7 +688,8 @@ Entity createSlowingEnemy(RenderSystem *renderer, vec2 position)
 		 SPRITE_ASSET_ID::SLIME,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 1});
+		 1,
+		 RENDER_LAYER::CREATURES});
 
 	std::vector<int> idle_f_vec = {0, 1};
 	Animation idle_f = {
@@ -841,7 +851,9 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, bool side_wall)
 			entity, {TEXTURE_ASSET_ID::SIDE_WALL,
 					 SPRITE_ASSET_ID::SPRITE_COUNT,
 					 EFFECT_ASSET_ID::TEXTURED,
-					 GEOMETRY_BUFFER_ID::SPRITE});
+					 GEOMETRY_BUFFER_ID::SPRITE,
+					 -1,
+					 RENDER_LAYER::OBSTACLES});
 	}
 	else
 	{
@@ -849,7 +861,9 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, bool side_wall)
 			entity, {TEXTURE_ASSET_ID::WALL,
 					 SPRITE_ASSET_ID::SPRITE_COUNT,
 					 EFFECT_ASSET_ID::TEXTURED,
-					 GEOMETRY_BUFFER_ID::SPRITE});
+					 GEOMETRY_BUFFER_ID::SPRITE,
+					 -1,
+					 RENDER_LAYER::OBSTACLES});
 	}
 
 	// Setting initial motion values
@@ -1025,7 +1039,9 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos, int type)
 		entity, {texture,
 				 SPRITE_ASSET_ID::SPRITE_COUNT,
 				 EFFECT_ASSET_ID::TEXTURED,
-				 GEOMETRY_BUFFER_ID::SPRITE});
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 -1,
+				 RENDER_LAYER::OBSTACLES});
 
 	return entity;
 }
@@ -1049,7 +1065,9 @@ Entity createSlimePatch(RenderSystem *renderer, vec2 pos)
 		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
 				 SPRITE_ASSET_ID::SPRITE_COUNT,
 				 EFFECT_ASSET_ID::SALMON,
-				 GEOMETRY_BUFFER_ID::SALMON});
+				 GEOMETRY_BUFFER_ID::SALMON,
+				 -1,
+				 RENDER_LAYER::FLOOR});
 
 	return entity;
 }
@@ -1178,7 +1196,9 @@ Entity createEffect(RenderSystem *renderer, vec2 pos, float lifespan_ms, EFFECT_
 		entity, {texture,
 				 SPRITE_ASSET_ID::SPRITE_COUNT,
 				 EFFECT_ASSET_ID::TEXTURED,
-				 GEOMETRY_BUFFER_ID::SPRITE});
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 -1,
+				 RENDER_LAYER::EFFECTS});
 
 	return entity;
 }

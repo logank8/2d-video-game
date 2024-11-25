@@ -369,7 +369,16 @@ void RenderSystem::drawScreenSpaceObject(Entity entity)
 			texture_index = 0;
 		}
 		GLuint texture_id = texture_gl_handles[texture_index];
-		;
+
+		GLuint time_passed_uloc = glGetUniformLocation(program, "time_passed");
+		GLuint lifespan_uloc = glGetUniformLocation(program, "lifespan");
+
+		float ms_passed = 1.f;
+		float lifespan = 1.f;
+
+		glUniform1f(time_passed_uloc, ms_passed);
+		glUniform1f(lifespan_uloc, lifespan);
+		
 
 		if (render_request.used_sprite == SPRITE_ASSET_ID::SPRITE_COUNT || render_request.sprite_index == -1)
 		{
@@ -594,19 +603,20 @@ void RenderSystem::draw()
 	std::vector<Entity> uiEntities;
 
 	// separate by layer - visible_layers establishes order, inclusion
-	std::vector<RENDER_LAYER> visible_layers = {RENDER_LAYER::FLOOR, RENDER_LAYER::LAYER_COUNT};
+	std::vector<RENDER_LAYER> visible_layers = {RENDER_LAYER::FLOOR, RENDER_LAYER::EFFECTS, RENDER_LAYER::CREATURES, RENDER_LAYER::OBSTACLES, RENDER_LAYER::DEFAULT_LAYER, RENDER_LAYER::UI_LAYER};
 
 	for  (RENDER_LAYER layer : visible_layers) {
 		for (Entity entity : registry.renderRequests.entities)
 		{
-			if (registry.renderRequests.get(entity).layer != layer) {
-				continue;
-			}
-			if (registry.userInterfaces.has(entity))
+			if (registry.userInterfaces.has(entity) && layer == RENDER_LAYER::UI_LAYER)
 			{
 				uiEntities.push_back(entity);
 				continue;
 			}
+			if (registry.renderRequests.get(entity).layer != layer) {
+				continue;
+			}
+			
 			if (!registry.motions.has(entity))
 				continue;
 
@@ -621,7 +631,7 @@ void RenderSystem::draw()
 
 	for (Entity entity : uiEntities)
 	{
-		drawScreenSpaceObject(entity);
+	 	drawScreenSpaceObject(entity);
 	}
 
 	// Truely render to the screen

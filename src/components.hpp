@@ -38,7 +38,11 @@ enum class EFFECT_TYPE
 enum class RENDER_LAYER
 {
 	FLOOR = 0,
-	LAYER_COUNT = FLOOR + 1
+	EFFECTS = FLOOR + 1,
+	CREATURES = EFFECTS + 1,
+	OBSTACLES = CREATURES + 1,
+	DEFAULT_LAYER = OBSTACLES + 1,
+	UI_LAYER = DEFAULT_LAYER + 1
 };
 
 // Player component
@@ -493,7 +497,7 @@ struct RenderRequest
 	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 	int sprite_index = -1;
-	RENDER_LAYER layer = RENDER_LAYER::LAYER_COUNT;
+	RENDER_LAYER layer = RENDER_LAYER::DEFAULT_LAYER;
 };
 
 struct Animation
