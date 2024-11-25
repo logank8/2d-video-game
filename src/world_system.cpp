@@ -921,7 +921,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		if (player.curr_dash_cooldown_ms < 0.f)
 		{
 			player.curr_dash_cooldown_ms = player.dash_cooldown_ms;
-			registry.motions.get(my_player).speed = 300.f;
+			registry.motions.get(my_player).speed = min(registry.motions.get(my_player).speed, 300.f);
 			player.is_dash_up = true;
 			stamina_anim.current_animation = "staminabar_full";
 
@@ -929,7 +929,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 		else if (player.curr_dash_cooldown_ms < (player.dash_cooldown_ms - player.dash_time))
 		{
-			registry.motions.get(my_player).speed = 300.f;
+			registry.motions.get(my_player).speed = min(registry.motions.get(my_player).speed, 300.f);
 			registry.lightUps.remove(my_player);
 
 			stamina_anim.current_animation = "staminabar_regen";
