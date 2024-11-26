@@ -45,6 +45,8 @@ size_t max_num_enemies = 50;
 // For testing purposes only
 int map_counter = 1;
 
+std::vector<int> current_door_pos;
+
 PhysicsSystem physics;
 
 void pauseMenuText()
@@ -290,7 +292,7 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 	fprintf(stderr, "Loaded music\n");
 	fps_counter_ms = FPS_COUNTER_MS;
 
-	current_map = map1;
+	mapSwitch(1);
 
 	ScreenState &screen = registry.screenStates.components[0];
 	screen.state = GameState::START;
@@ -345,6 +347,11 @@ void WorldSystem::create_experience_bar()
 
 void WorldSystem::mapSwitch(int map)
 {
+	if (map < 3) {
+		current_door_pos = door_positions[map - 1];
+	} else {
+		current_door_pos = {-1, -1};
+	}
 	switch (map)
 	{
 	case 1:
@@ -550,7 +557,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 			if (current_map[j][i] == 0)
 			{
-				if (i == door_positions[0][0] && j == door_positions[0][1] && goal_reached)
+				if (i == current_door_pos[0] && j == current_door_pos[1] && goal_reached)
 				{
 					createDoor(renderer, world_pos);
 				}
@@ -1111,6 +1118,8 @@ void WorldSystem::restart_game()
 	restart_world();
 
 	enemies_killed = 0;
+	goal_reached = false;
+	max_num_enemies = 50;
 
 	while (registry.upgradeCards.entities.size() > 0)
 	{
