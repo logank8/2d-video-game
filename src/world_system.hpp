@@ -52,7 +52,7 @@ public:
 
 	int enemies_killed = 0;
 
-	int enemy_kill_goal = 6;
+	int enemy_kill_goal = 20;
 
 	bool goal_reached = false;
 

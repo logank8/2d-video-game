@@ -59,18 +59,21 @@ void windowMinimizedCallback(GLFWwindow *window, int iconified)
 {
 	if (iconified)
 	{
-
+		WorldSystem::is_paused = true;
 		if (registry.screenStates.components.size() != 0)
 		{
 
 			ScreenState &screen = registry.screenStates.components[0];
 			if (screen.state == GameState::GAME) {
 				screen.state = GameState::PAUSED;
-				screen.darken_screen_factor = 0.9;
+				screen.darken_screen_factor = 0.9f;
 				pauseMenuText();
 			}
+			if (screen.state != GameState::PAUSED) {
+				WorldSystem::is_paused = false;
+			}
 		}
-		WorldSystem::is_paused = true;
+		
 	}
 }
 
@@ -84,10 +87,12 @@ void windowFocusCallback(GLFWwindow *window, int focused)
 			ScreenState &screen = registry.screenStates.components[0];
 			if (screen.state == GameState::GAME) {
 				screen.state = GameState::PAUSED;
-				screen.darken_screen_factor = 0.9;
+				screen.darken_screen_factor = 0.9f;
 				pauseMenuText();
 			}
-			
+			if (screen.state != GameState::PAUSED) {
+				WorldSystem::is_paused = false;
+			}
 		}
 	}
 }
@@ -106,7 +111,8 @@ void WorldSystem::stateSwitch(GameState new_state)
 		{
 			registry.remove_all_components_of(registry.userInterfaces.entities.back());
 		}
-		is_paused = false;
+		is_paused = true;
+		screen.darken_screen_factor = 1.0f;
 		createText(vec2(490, 550), 1.4f, "GAME OVER", vec3(1.0f, 0.f, 0.f));
 		createText(vec2(465, 420), 0.8f, "PRESS R TO RESTART", vec3(1.0f, 1.0f, 1.0f));
 		createText(vec2(400, 350), 0.8f, "PRESS ESC TO EXIT TO MENU", vec3(1.0f, 1.0f, 1.0f));
@@ -1839,6 +1845,16 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		}
 	}
 
+	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE)
+	{
+		// if game over or paused, player is able to exit to menu
+		if (screen.state == GameState::PAUSED || screen.state == GameState::GAME_OVER)
+		{
+			stateSwitch(GameState::MENU);
+			return;
+		}
+	}
+
 	if (screen.state == GameState::GAME_OVER)
 	{
 		return;
@@ -1854,16 +1870,6 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		else
 		{
 			unpause();
-		}
-	}
-
-	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE)
-	{
-		// if game over or paused, player is able to exit to menu
-		if (screen.state == GameState::PAUSED || screen.state == GameState::GAME_OVER)
-		{
-			stateSwitch(GameState::MENU);
-			return;
 		}
 	}
 
