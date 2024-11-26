@@ -64,9 +64,11 @@ void windowMinimizedCallback(GLFWwindow *window, int iconified)
 		{
 
 			ScreenState &screen = registry.screenStates.components[0];
-			screen.state = GameState::PAUSED;
-			screen.darken_screen_factor = 0.9;
-			pauseMenuText();
+			if (screen.state == GameState::GAME) {
+				screen.state = GameState::PAUSED;
+				screen.darken_screen_factor = 0.9;
+				pauseMenuText();
+			}
 		}
 		WorldSystem::is_paused = true;
 	}
@@ -80,9 +82,12 @@ void windowFocusCallback(GLFWwindow *window, int focused)
 		if (registry.screenStates.components.size() != 0)
 		{
 			ScreenState &screen = registry.screenStates.components[0];
-			screen.state = GameState::PAUSED;
-			screen.darken_screen_factor = 0.9;
-			pauseMenuText();
+			if (screen.state == GameState::GAME) {
+				screen.state = GameState::PAUSED;
+				screen.darken_screen_factor = 0.9;
+				pauseMenuText();
+			}
+			
 		}
 	}
 }
@@ -2015,7 +2020,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 void WorldSystem::on_mouse_move(vec2 mouse_position)
 {
 	ScreenState &screen = registry.screenStates.components[0];
-	if (screen.state == GameState::GAME)
+	if (registry.players.entities.size() > 0)
 	{
 		player_controller.on_mouse_move(mouse_position);
 	}
@@ -2024,7 +2029,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position)
 void WorldSystem::on_mouse_button(int button, int action, int mods)
 {
 	ScreenState &screen = registry.screenStates.components[0];
-	if (screen.state == GameState::GAME)
+	if (registry.players.entities.size() > 0)
 	{
 		player_controller.on_mouse_button(button, action, mods);
 	}
