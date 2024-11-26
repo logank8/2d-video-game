@@ -43,6 +43,58 @@ bool collides(const Motion &motion1, const Motion &motion2)
     return false;
 }
 
+// use stricter separating axis theorem collision for enemy/player collisions
+bool enemy_player_collides(const Motion& motion1, const Motion& motion2)
+{
+    vec2 vertices1[4], vertices2[4];
+
+    float halfWidth1 = abs(motion1.scale.x) / 2.0f;
+    float halfHeight1 = abs(motion1.scale.y) / 2.0f;
+    vertices1[0] = { motion1.position.x - halfWidth1, motion1.position.y - halfHeight1 };
+    vertices1[1] = { motion1.position.x + halfWidth1, motion1.position.y - halfHeight1 };
+    vertices1[2] = { motion1.position.x + halfWidth1, motion1.position.y + halfHeight1 };
+    vertices1[3] = { motion1.position.x - halfWidth1, motion1.position.y + halfHeight1 };
+
+    float halfWidth2 = abs(motion2.scale.x) / 2.0f;
+    float halfHeight2 = abs(motion2.scale.y) / 2.0f;
+    vertices2[0] = { motion2.position.x - halfWidth2, motion2.position.y - halfHeight2 };
+    vertices2[1] = { motion2.position.x + halfWidth2, motion2.position.y - halfHeight2 };
+    vertices2[2] = { motion2.position.x + halfWidth2, motion2.position.y + halfHeight2 };
+    vertices2[3] = { motion2.position.x - halfWidth2, motion2.position.y + halfHeight2 };
+
+    // check for overlap on each axis
+    vec2 axes[4] = {
+        normalize(vertices1[1] - vertices1[0]),  // first rectangle's X axis
+        normalize(vertices1[3] - vertices1[0]),  // first rectangle's Y axis
+        normalize(vertices2[1] - vertices2[0]),  // second rectangle's X axis
+        normalize(vertices2[3] - vertices2[0])   // second rectangle's Y axis
+    };
+
+    for (int i = 0; i < 4; ++i) {
+        float min1 = INFINITY, max1 = -INFINITY;
+        float min2 = INFINITY, max2 = -INFINITY;
+
+        // project vertices of first rectangle onto the axis
+        for (int j = 0; j < 4; ++j) {
+            float proj = dot(vertices1[j], axes[i]);
+            min1 = std::min(min1, proj);
+            max1 = std::max(max1, proj);
+        }
+
+        // project vertices of second rectangle onto the axis
+        for (int j = 0; j < 4; ++j) {
+            float proj = dot(vertices2[j], axes[i]);
+            min2 = std::min(min2, proj);
+            max2 = std::max(max2, proj);
+        }
+
+        if (max1 < min2 || max2 < min1) {
+            return false;
+        }
+    }
+    return true;
+}
+
 // Check if point is in the triangle with vertices v0, v1, v2
 bool point_in_triangle(vec2 point, vec2 v0, vec2 v1, vec2 v2)
 {
@@ -702,10 +754,18 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
 
                 if (is_colliding)
                 {
-                    // Create a collisions event
-                    // We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
-                    registry.collisions.emplace_with_duplicates(entity_i, entity_j);
-                    registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+                    if ((registry.deadlys.has(entity_i) && registry.players.has(entity_j)) || (registry.deadlys.has(entity_j) && registry.players.has(entity_i))) {
+                        if (enemy_player_collides(motion_i, motion_j)) {
+                            registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+                            registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+                        }
+                    }
+                    else {
+                        // Create a collisions event
+                    // We are abusing the ECS system a bit in that we potentially insert multiple collisions for the same entity
+                        registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+                        registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+                    }
                 }
             }
             else
