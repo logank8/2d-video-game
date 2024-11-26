@@ -292,7 +292,8 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 	fprintf(stderr, "Loaded music\n");
 	fps_counter_ms = FPS_COUNTER_MS;
 
-	mapSwitch(1);
+	current_map = map1;
+	current_door_pos = door_positions[0];
 
 	ScreenState &screen = registry.screenStates.components[0];
 	screen.state = GameState::START;
@@ -2007,12 +2008,9 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		if (map_counter == 4)
 		{
 			map_counter = 1;
-			mapSwitch(map_counter);
+			
 		}
-		else
-		{
-			mapSwitch(map_counter);
-		}
+		mapSwitch(map_counter);
 	}
 
 	if (screen.state != GameState::PAUSED)
