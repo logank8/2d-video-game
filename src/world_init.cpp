@@ -911,11 +911,26 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 		} else if (!adjacent_walls[0][1] && !adjacent_walls[2][1]) {
 			sprite_idx = 5;
 		} else if (!adjacent_walls[0][1]) {
-			sprite_idx = 3;
+			if (!adjacent_walls[2][0]) {
+				sprite_idx = 14;
+			} else {
+				sprite_idx = 3;
+			}
 		} else if (!adjacent_walls[2][1]) {
-			sprite_idx = 3;
+			if (!adjacent_walls[0][0]) {
+				sprite_idx = 14;
+			} else {
+				sprite_idx = 3;
+			}
 			motion.scale.x = -1 * motion.scale.x;
-		} 
+		} else {
+			if (!adjacent_walls[2][0]) {
+				sprite_idx = 15;
+			} else if (!adjacent_walls[0][0]) {
+				sprite_idx = 15;
+				motion.scale.x = -1 * motion.scale.x;
+			}
+		}
 
 	} else { // inner walls, mostly blacked out
 		if (adjacent_walls[1][0]) {
@@ -926,10 +941,28 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 			*/
 
 			// side walls
-			if (!adjacent_walls[0][1] && adjacent_walls[2][0] && adjacent_walls[2][1] && adjacent_walls[2][2]) {
-				sprite_idx = 4;
-			} else if (!adjacent_walls[2][1] && adjacent_walls[0][0] && adjacent_walls[0][1] && adjacent_walls[0][2]) {
-				sprite_idx = 4;
+			if (!adjacent_walls[0][1] && adjacent_walls[2][1]) {
+				if (adjacent_walls[2][2]) {
+					if (adjacent_walls[2][0]) {
+						sprite_idx = 4;
+					} else {
+						sprite_idx = 17;
+					}
+					
+				} else if (adjacent_walls[2][0]) {
+					sprite_idx = 13;
+				}
+				
+			} else if (!adjacent_walls[2][1] && adjacent_walls[0][1]) {
+				if (adjacent_walls[0][2]) {
+					if (adjacent_walls[0][0]) {
+						sprite_idx = 4;
+					} else {
+						sprite_idx = 17;
+					}
+				} else if (adjacent_walls[0][0]) {
+					sprite_idx = 13;
+				}
 				motion.scale.x = -1 * motion.scale.x;
 			} else if (adjacent_walls[0][1] && adjacent_walls[2][0] && adjacent_walls[2][1] && adjacent_walls[2][2] && !adjacent_walls[0][2]) {
 				if (adjacent_walls[0][0]) {
@@ -946,9 +979,7 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 				motion.scale.x = -1 * motion.scale.x;
 			} else if (!adjacent_walls[0][1] && !adjacent_walls[2][1]) {
 				sprite_idx = 9;
-			}
-			
-
+			} 
 			
 			
 		} else {
@@ -963,7 +994,12 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 			} else if (!adjacent_walls[2][1]) {
 				sprite_idx = 7;
 				motion.scale.x = -1 * motion.scale.x;
-			} 
+			} else if (!adjacent_walls[2][2]) {
+				sprite_idx = 16;
+			} else if (!adjacent_walls[0][2]) {
+				sprite_idx = 16;
+				motion.scale.x = -1 * motion.scale.x;
+			}
 		}
 	}
 
