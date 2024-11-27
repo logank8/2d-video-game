@@ -628,7 +628,7 @@ void RenderSystem::draw()
 	std::vector<Entity> uiEntities;
 
 	// separate by layer - visible_layers establishes order, inclusion
-	std::vector<RENDER_LAYER> visible_layers = {RENDER_LAYER::FLOOR, RENDER_LAYER::EFFECTS, RENDER_LAYER::CREATURES, RENDER_LAYER::OBSTACLES, RENDER_LAYER::DEFAULT_LAYER, RENDER_LAYER::UI_LAYER};
+	std::vector<RENDER_LAYER> visible_layers = {RENDER_LAYER::FLOOR, RENDER_LAYER::CREATURES, RENDER_LAYER::OBSTACLES, RENDER_LAYER::EFFECTS, RENDER_LAYER::DEFAULT_LAYER, RENDER_LAYER::UI_LAYER};
 
 	for (RENDER_LAYER layer : visible_layers)
 	{

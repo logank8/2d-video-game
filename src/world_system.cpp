@@ -113,8 +113,8 @@ void WorldSystem::stateSwitch(GameState new_state)
 		{
 			registry.remove_all_components_of(registry.userInterfaces.entities.back());
 		}
-		is_paused = true;
-		screen.darken_screen_factor = 1.0f;
+		is_paused = false;
+		// currently the screen won't darken, maybe just make it a big background screen like the menu or whatever and remove all motion components
 		createText(vec2(490, 550), 1.4f, "GAME OVER", vec3(1.0f, 0.f, 0.f));
 		createText(vec2(465, 420), 0.8f, "PRESS R TO RESTART", vec3(1.0f, 1.0f, 1.0f));
 		createText(vec2(400, 350), 0.8f, "PRESS ESC TO EXIT TO MENU", vec3(1.0f, 1.0f, 1.0f));
@@ -476,6 +476,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		createText({1000.f, 650.f}, 1.f, "FPS: " + std::to_string(fps), glm::vec3(1.0f, 0.f, 0.f));
 	}
 
+	if (registry.doors.components.size() == 0 && goal_reached) {
+		vec2 world_pos = {(640 - (25 * 100)) + (current_door_pos[0] * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (current_door_pos[1] * TILE_SIZE) + (TILE_SIZE / 2)};
+
+		createDoor(renderer, world_pos);
+	}
+
 	for (int i = (int)motions_registry.components.size() - 1; i >= 0; --i)
 	{
 		Motion &motion = motions_registry.components[i];
@@ -545,7 +551,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			{
 				if ((std::find(tile_vec.begin(), tile_vec.end(), vec2(i, j)) == tile_vec.end()))
 				{
-					createWalls(renderer, world_pos, false);
+					createWalls(renderer, world_pos, current_map, {i, j});
 					tile_vec.push_back(vec2(i, j));
 				}
 				continue;
@@ -562,7 +568,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				{
 					createDoor(renderer, world_pos);
 				}
-				createWalls(renderer, world_pos, false);
+				createWalls(renderer, world_pos, current_map, {i, j});
 				tile_vec.push_back(vec2(i, j));
 			}
 
@@ -1204,12 +1210,14 @@ void WorldSystem::restart_game()
 		{
 			if ((i < 0) || (j < 0) || (i >= current_map[0].size()) || j >= current_map.size())
 			{
-				createWalls(renderer, {(640 - (25 * 100)) + (i * TILE_SIZE) + (sign(i) * TILE_SIZE / 2), (640 - (44 * 100)) + (j * TILE_SIZE) + (sign(j) * TILE_SIZE / 2)}, false);
+				createWalls(renderer, {(640 - (25 * 100)) + (i * TILE_SIZE) + (sign(i) * TILE_SIZE / 2), (640 - (44 * 100)) + (j * TILE_SIZE) + (sign(j) * TILE_SIZE / 2)}, current_map, {i, j});
 				tile_vec.push_back(vec2(i, j));
 			}
 			else if (current_map[j][i] == 0)
 			{
-				createWalls(renderer, {(640 - (25 * 100)) + (i * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (j * TILE_SIZE) + (TILE_SIZE / 2)}, false);
+				vec2 world_pos = {(640 - (25 * 100)) + (i * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (j * TILE_SIZE) + (TILE_SIZE / 2)};
+
+				createWalls(renderer, world_pos, current_map, {i, j});
 				tile_vec.push_back(vec2(i, j));
 			}
 		}

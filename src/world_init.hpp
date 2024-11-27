@@ -128,7 +128,7 @@ Entity createEgg(vec2 pos, vec2 size);
 Entity createText(vec2 pos, float scale, std::string text, glm::vec3 color);
 
 // a wall
-Entity createWalls(RenderSystem *renderer, vec2 pos, bool side_wall);
+Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int>> current_map, vec2 map_pos);
 
 // a piece of furniture
 Entity createFurniture(RenderSystem *renderer, vec2 pos, int type);
