@@ -379,6 +379,13 @@ struct Camera
 {
 };
 
+struct DamageIndicator
+{
+	float time_total_ms = 1000.0f;
+	float time_elapsed_ms = time_total_ms;
+	int damage;
+	Entity text;
+};
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture

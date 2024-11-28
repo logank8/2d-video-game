@@ -53,6 +53,7 @@ public:
 	ComponentContainer<HealthBuff> healthBuffs;
 	ComponentContainer<Camera> cameras;
 	ComponentContainer<Door> doors;
+	ComponentContainer<DamageIndicator> damageIndicators;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -100,6 +101,7 @@ public:
 		registry_list.push_back(&healthBuffs);
 		registry_list.push_back(&cameras);
 		registry_list.push_back(&doors);
+		registry_list.push_back(&damageIndicators);
 	}
 
 	void clear_all_components()

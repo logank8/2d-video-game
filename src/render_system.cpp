@@ -446,6 +446,15 @@ void RenderSystem::renderText()
 	GLuint m_font_shaderProgram = effects[(GLuint)EFFECT_ASSET_ID::FONT];
 	glUseProgram(m_font_shaderProgram);
 	gl_has_errors();
+
+	std::vector<DamageIndicator> damageIndicators;
+
+	for (Entity &entity : registry.damageIndicators.entities)
+	{
+		auto &damageIndicatorComponent = registry.damageIndicators.get(entity);
+		damageIndicators.push_back(damageIndicatorComponent);
+	}
+
 	for (Entity &entity : registry.texts.entities)
 	{
 		Motion &motion_component = registry.motions.get(entity);
@@ -456,6 +465,23 @@ void RenderSystem::renderText()
 		glm::vec3 color = text_component.color;
 		std::string text = text_component.content;
 		float scale = text_component.scale;
+
+		// Check if array contains entity
+		// if does: get shader uniform and set based on time
+
+		float opacity = 1.0f;
+
+		for (DamageIndicator dmg : damageIndicators)
+		{
+			if (entity == dmg.text)
+			{
+				opacity = dmg.time_elapsed_ms / dmg.time_total_ms;
+			}
+		}
+
+		GLint opacity_location = glGetUniformLocation(m_font_shaderProgram, "opacity");
+		glUniform1f(opacity_location, opacity);
+		gl_has_errors();
 
 		// get shader uniforms
 		GLint textColor_location =

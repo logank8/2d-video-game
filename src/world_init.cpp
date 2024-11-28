@@ -849,7 +849,6 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 
 	float sprite_rotate = 0;
 
-
 	// Setting initial motion values
 	Motion &motion = registry.motions.emplace(entity);
 	motion.position = pos;
@@ -857,31 +856,35 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 	motion.velocity = {0.f, 0.f};
 	motion.scale = vec2({100, 100});
 
-	
 	int sprite_idx = -1;
-
 
 	std::vector<std::vector<bool>> adjacent_walls = {{false, false, false}, {false, false, false}, {false, false, false}};
 
 	int wall_count = 0;
 
 	// check all 8 squares around and decide on sprite
-	for (int i = -1; i <= 1; i++) {
-		for (int j = -1; j <= 1; j++) {
+	for (int i = -1; i <= 1; i++)
+	{
+		for (int j = -1; j <= 1; j++)
+		{
 			vec2 checked_pos = {map_pos.x + i, map_pos.y + j};
 
-			if ((checked_pos.x < 0) || (checked_pos.y < 0) || (checked_pos.x >= current_map[0].size()) || checked_pos.y >= current_map.size()) {
-				adjacent_walls[i+1][j+1] = true;
-				if (i != 0 || j != 0) {
+			if ((checked_pos.x < 0) || (checked_pos.y < 0) || (checked_pos.x >= current_map[0].size()) || checked_pos.y >= current_map.size())
+			{
+				adjacent_walls[i + 1][j + 1] = true;
+				if (i != 0 || j != 0)
+				{
 					wall_count++;
 				}
-				
+
 				continue;
-			} 
-			
-			if (current_map[checked_pos.y][checked_pos.x] == 0) {
-				adjacent_walls[i+1][j+1] = true;
-				if (i != 0 || j != 0) {
+			}
+
+			if (current_map[checked_pos.y][checked_pos.x] == 0)
+			{
+				adjacent_walls[i + 1][j + 1] = true;
+				if (i != 0 || j != 0)
+				{
 					wall_count++;
 				}
 			}
@@ -894,7 +897,8 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 	{
 		sprite_idx = 2;
 
-		if (!adjacent_walls[1][0]) {
+		if (!adjacent_walls[1][0])
+		{
 			/*
 			?O?
 			?X?
@@ -902,38 +906,60 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 			*/
 			sprite_idx = 0;
 
-			if (!adjacent_walls[0][1]) {
+			if (!adjacent_walls[0][1])
+			{
 				sprite_idx = 1;
-			} else if (!adjacent_walls[2][1]) {
+			}
+			else if (!adjacent_walls[2][1])
+			{
 				sprite_idx = 1;
 				motion.scale.x = -1 * motion.scale.x;
 			}
-		} else if (!adjacent_walls[0][1] && !adjacent_walls[2][1]) {
+		}
+		else if (!adjacent_walls[0][1] && !adjacent_walls[2][1])
+		{
 			sprite_idx = 5;
-		} else if (!adjacent_walls[0][1]) {
-			if (!adjacent_walls[2][0]) {
+		}
+		else if (!adjacent_walls[0][1])
+		{
+			if (!adjacent_walls[2][0])
+			{
 				sprite_idx = 14;
-			} else {
+			}
+			else
+			{
 				sprite_idx = 3;
 			}
-		} else if (!adjacent_walls[2][1]) {
-			if (!adjacent_walls[0][0]) {
+		}
+		else if (!adjacent_walls[2][1])
+		{
+			if (!adjacent_walls[0][0])
+			{
 				sprite_idx = 14;
-			} else {
+			}
+			else
+			{
 				sprite_idx = 3;
 			}
 			motion.scale.x = -1 * motion.scale.x;
-		} else {
-			if (!adjacent_walls[2][0]) {
+		}
+		else
+		{
+			if (!adjacent_walls[2][0])
+			{
 				sprite_idx = 15;
-			} else if (!adjacent_walls[0][0]) {
+			}
+			else if (!adjacent_walls[0][0])
+			{
 				sprite_idx = 15;
 				motion.scale.x = -1 * motion.scale.x;
 			}
 		}
-
-	} else { // inner walls, mostly blacked out
-		if (adjacent_walls[1][0]) {
+	}
+	else
+	{ // inner walls, mostly blacked out
+		if (adjacent_walls[1][0])
+		{
 			/*
 			?X?
 			?X?
@@ -941,76 +967,113 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 			*/
 
 			// side walls
-			if (!adjacent_walls[0][1] && adjacent_walls[2][1]) {
-				if (adjacent_walls[2][2]) {
-					if (adjacent_walls[2][0]) {
+			if (!adjacent_walls[0][1] && adjacent_walls[2][1])
+			{
+				if (adjacent_walls[2][2])
+				{
+					if (adjacent_walls[2][0])
+					{
 						sprite_idx = 4;
-					} else {
+					}
+					else
+					{
 						sprite_idx = 17;
 					}
-					
-				} else if (adjacent_walls[2][0]) {
+				}
+				else if (adjacent_walls[2][0])
+				{
 					sprite_idx = 13;
 				}
-				
-			} else if (!adjacent_walls[2][1] && adjacent_walls[0][1]) {
-				if (adjacent_walls[0][2]) {
-					if (adjacent_walls[0][0]) {
+			}
+			else if (!adjacent_walls[2][1] && adjacent_walls[0][1])
+			{
+				if (adjacent_walls[0][2])
+				{
+					if (adjacent_walls[0][0])
+					{
 						sprite_idx = 4;
-					} else {
+					}
+					else
+					{
 						sprite_idx = 17;
 					}
-				} else if (adjacent_walls[0][0]) {
+				}
+				else if (adjacent_walls[0][0])
+				{
 					sprite_idx = 13;
 				}
 				motion.scale.x = -1 * motion.scale.x;
-			} else if (adjacent_walls[0][1] && adjacent_walls[2][0] && adjacent_walls[2][1] && adjacent_walls[2][2] && !adjacent_walls[0][2]) {
-				if (adjacent_walls[0][0]) {
+			}
+			else if (adjacent_walls[0][1] && adjacent_walls[2][0] && adjacent_walls[2][1] && adjacent_walls[2][2] && !adjacent_walls[0][2])
+			{
+				if (adjacent_walls[0][0])
+				{
 					sprite_idx = 6;
-				} else {
+				}
+				else
+				{
 					sprite_idx = 10;
 				}
-			} else if (adjacent_walls[2][1] && adjacent_walls[0][0] && adjacent_walls[0][1] && adjacent_walls[0][2] && !adjacent_walls[2][2]) {
-				if (adjacent_walls[2][0]) {
+			}
+			else if (adjacent_walls[2][1] && adjacent_walls[0][0] && adjacent_walls[0][1] && adjacent_walls[0][2] && !adjacent_walls[2][2])
+			{
+				if (adjacent_walls[2][0])
+				{
 					sprite_idx = 6;
-				} else {
+				}
+				else
+				{
 					sprite_idx = 10;
 				}
 				motion.scale.x = -1 * motion.scale.x;
-			} else if (!adjacent_walls[0][1] && !adjacent_walls[2][1]) {
+			}
+			else if (!adjacent_walls[0][1] && !adjacent_walls[2][1])
+			{
 				sprite_idx = 9;
-			} 
-			
-			
-		} else {
+			}
+		}
+		else
+		{
 			sprite_idx = 8;
-			if (!adjacent_walls[0][1]) {
-				if (!adjacent_walls[2][1]) {
+			if (!adjacent_walls[0][1])
+			{
+				if (!adjacent_walls[2][1])
+				{
 					sprite_idx = 12;
-				} else {
+				}
+				else
+				{
 					sprite_idx = 7;
 				}
-				
-			} else if (!adjacent_walls[2][1]) {
+			}
+			else if (!adjacent_walls[2][1])
+			{
 				sprite_idx = 7;
 				motion.scale.x = -1 * motion.scale.x;
-			} else if (!adjacent_walls[2][2]) {
+			}
+			else if (!adjacent_walls[2][2])
+			{
 				sprite_idx = 16;
-			} else if (!adjacent_walls[0][2]) {
+			}
+			else if (!adjacent_walls[0][2])
+			{
 				sprite_idx = 16;
 				motion.scale.x = -1 * motion.scale.x;
 			}
 		}
 	}
 
-	if (wall_count == 7 && sprite_idx == -1) {
+	if (wall_count == 7 && sprite_idx == -1)
+	{
 		sprite_idx = 11;
-		if (!adjacent_walls[2][0]) {
+		if (!adjacent_walls[2][0])
+		{
 			motion.scale.x = -1 * motion.scale.x;
 		}
 	}
 
-	if (wall_count == 8 || sprite_idx == -1) {
+	if (wall_count == 8 || sprite_idx == -1)
+	{
 		registry.renderRequests.insert(
 			entity, {TEXTURE_ASSET_ID::INNER_WALL,
 					 SPRITE_ASSET_ID::SPRITE_COUNT,
@@ -1018,7 +1081,9 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 					 GEOMETRY_BUFFER_ID::SPRITE,
 					 -1,
 					 RENDER_LAYER::OBSTACLES});
-	} else {
+	}
+	else
+	{
 		registry.renderRequests.insert(
 			entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
 					 SPRITE_ASSET_ID::WALL,
@@ -1027,8 +1092,6 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 					 sprite_idx,
 					 RENDER_LAYER::OBSTACLES});
 	}
-	
-
 
 	// Add wall to solid objects - player can't move through walls
 	registry.solidObjs.emplace(entity);
@@ -1760,6 +1823,21 @@ Entity createExitButton(RenderSystem *renderer, vec2 pos)
 				 GEOMETRY_BUFFER_ID::SPRITE,
 				 -1,
 				 RENDER_LAYER::DEFAULT_LAYER});
+
+	return entity;
+}
+
+Entity createDamageIndicator(RenderSystem *renderer, int damage, vec2 pos)
+{
+	auto entity = Entity();
+
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2(32, 32);
+
+	auto &indicator = registry.damageIndicators.emplace(entity);
+	indicator.damage = damage;
 
 	return entity;
 }

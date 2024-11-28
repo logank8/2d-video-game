@@ -10,6 +10,7 @@
 #include "render_system.hpp"
 #include "world_system.hpp"
 #include "animation_system.hpp"
+#include "damage_indicator_system.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
 
@@ -21,6 +22,7 @@ int main()
 	RenderSystem renderer;
 	PhysicsSystem physics;
 	AnimationSystem animations;
+	DamageIndicatorSystem damages;
 
 	// Initializing window
 	GLFWwindow *window = world.create_window();
@@ -48,7 +50,7 @@ int main()
 		float elapsed_ms =
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
-		
+
 		ScreenState &screen = registry.screenStates.components[0];
 
 		if (!world.is_level_up && (screen.state == GameState::GAME))
@@ -56,6 +58,7 @@ int main()
 			world.step(elapsed_ms);
 			physics.step(elapsed_ms, world.get_current_map());
 			animations.step(elapsed_ms);
+			damages.step(elapsed_ms);
 		}
 		else
 		{
@@ -69,10 +72,10 @@ int main()
 				screen.darken_screen_factor = 0;
 			}
 		}
-		if (screen.state == GAME) {
+		if (screen.state == GAME)
+		{
 			world.handle_collisions(elapsed_ms);
 		}
-		
 
 		renderer.draw();
 	}

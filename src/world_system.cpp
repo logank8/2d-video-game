@@ -66,16 +66,17 @@ void windowMinimizedCallback(GLFWwindow *window, int iconified)
 		{
 
 			ScreenState &screen = registry.screenStates.components[0];
-			if (screen.state == GameState::GAME) {
+			if (screen.state == GameState::GAME)
+			{
 				screen.state = GameState::PAUSED;
 				screen.darken_screen_factor = 0.9f;
 				pauseMenuText();
 			}
-			if (screen.state != GameState::PAUSED) {
+			if (screen.state != GameState::PAUSED)
+			{
 				WorldSystem::is_paused = false;
 			}
 		}
-		
 	}
 }
 
@@ -87,12 +88,14 @@ void windowFocusCallback(GLFWwindow *window, int focused)
 		if (registry.screenStates.components.size() != 0)
 		{
 			ScreenState &screen = registry.screenStates.components[0];
-			if (screen.state == GameState::GAME) {
+			if (screen.state == GameState::GAME)
+			{
 				screen.state = GameState::PAUSED;
 				screen.darken_screen_factor = 0.9f;
 				pauseMenuText();
 			}
-			if (screen.state != GameState::PAUSED) {
+			if (screen.state != GameState::PAUSED)
+			{
 				WorldSystem::is_paused = false;
 			}
 		}
@@ -348,9 +351,12 @@ void WorldSystem::create_experience_bar()
 
 void WorldSystem::mapSwitch(int map)
 {
-	if (map < 3) {
+	if (map < 3)
+	{
 		current_door_pos = door_positions[map - 1];
-	} else {
+	}
+	else
+	{
 		current_door_pos = {-1, -1};
 	}
 	switch (map)
@@ -476,7 +482,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		createText({1000.f, 650.f}, 1.f, "FPS: " + std::to_string(fps), glm::vec3(1.0f, 0.f, 0.f));
 	}
 
-	if (registry.doors.components.size() == 0 && goal_reached) {
+	if (registry.doors.components.size() == 0 && goal_reached)
+	{
 		vec2 world_pos = {(640 - (25 * 100)) + (current_door_pos[0] * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (current_door_pos[1] * TILE_SIZE) + (TILE_SIZE / 2)};
 
 		createDoor(renderer, world_pos);
@@ -1504,6 +1511,8 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - (damage.damage * temp_multiplier));
 
+				createDamageIndicator(renderer, damage.damage, enemy_motion.position);
+
 				vec2 diff = enemy_motion.position - pmotion.position;
 
 				if (!registry.projectiles.has(entity_other) && deadly_health.hit_points > 0)
@@ -2016,7 +2025,6 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		if (map_counter == 4)
 		{
 			map_counter = 1;
-			
 		}
 		mapSwitch(map_counter);
 	}
@@ -2096,7 +2104,7 @@ void WorldSystem::set_level_up_state(bool state)
 	if (state)
 	{ // TODO: can we change this to pause function ?
 		screen.darken_screen_factor = 0.0;
-		screen.state = GameState::PAUSED;
+		screen.state = GameState::GAME;
 		std::cout << "Game paused due to level up" << std::endl;
 	}
 	else
