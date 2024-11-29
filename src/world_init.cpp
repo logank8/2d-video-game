@@ -857,6 +857,7 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 	motion.scale = vec2({100, 100});
 
 	int sprite_idx = -1;
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 	std::vector<std::vector<bool>> adjacent_walls = {{false, false, false}, {false, false, false}, {false, false, false}};
 
@@ -897,13 +898,7 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 	{
 		sprite_idx = 2;
 
-		if (!adjacent_walls[1][0])
-		{
-			/*
-			?O?
-			?X?
-			?O?
-			*/
+		if (!adjacent_walls[1][0]) {
 			sprite_idx = 0;
 
 			if (!adjacent_walls[0][1])
@@ -955,17 +950,9 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 				motion.scale.x = -1 * motion.scale.x;
 			}
 		}
-	}
-	else
-	{ // inner walls, mostly blacked out
-		if (adjacent_walls[1][0])
-		{
-			/*
-			?X?
-			?X?
-			?X?
-			*/
 
+	} else { // inner walls, mostly blacked out
+		if (adjacent_walls[1][0]) {
 			// side walls
 			if (!adjacent_walls[0][1] && adjacent_walls[2][1])
 			{
@@ -1063,8 +1050,7 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 		}
 	}
 
-	if (wall_count == 7 && sprite_idx == -1)
-	{
+	if (wall_count == 7 && sprite_idx == -1 && texture == TEXTURE_ASSET_ID::TEXTURE_COUNT) {
 		sprite_idx = 11;
 		if (!adjacent_walls[2][0])
 		{
@@ -1072,27 +1058,20 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 		}
 	}
 
-	if (wall_count == 8 || sprite_idx == -1)
-	{
-		registry.renderRequests.insert(
-			entity, {TEXTURE_ASSET_ID::INNER_WALL,
-					 SPRITE_ASSET_ID::SPRITE_COUNT,
-					 EFFECT_ASSET_ID::TEXTURED,
-					 GEOMETRY_BUFFER_ID::SPRITE,
-					 -1,
-					 RENDER_LAYER::OBSTACLES});
+	if (wall_count == 8 || (sprite_idx == -1 && texture == TEXTURE_ASSET_ID::TEXTURE_COUNT)) {
+		sprite_idx = -1;
+		texture = TEXTURE_ASSET_ID::INNER_WALL;
 	}
-	else
-	{
-		registry.renderRequests.insert(
-			entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
+
+	registry.renderRequests.insert(
+			entity, {texture,
 					 SPRITE_ASSET_ID::WALL,
 					 EFFECT_ASSET_ID::TEXTURED,
 					 GEOMETRY_BUFFER_ID::SPRITE,
 					 sprite_idx,
-					 RENDER_LAYER::OBSTACLES});
-	}
-
+					 RENDER_LAYER::OBSTACLES}
+					 );
+	
 	// Add wall to solid objects - player can't move through walls
 	registry.solidObjs.emplace(entity);
 
@@ -1287,7 +1266,7 @@ Entity createSlimePatch(RenderSystem *renderer, vec2 pos)
 				 EFFECT_ASSET_ID::SALMON,
 				 GEOMETRY_BUFFER_ID::SALMON,
 				 -1,
-				 RENDER_LAYER::FLOOR});
+				 RENDER_LAYER::FLOOR_DECOR});
 
 	return entity;
 }
@@ -1746,6 +1725,31 @@ Entity createStartScreen(RenderSystem *renderer)
 	return entity;
 }
 
+Entity createGameOverScreen(RenderSystem *renderer)
+{
+	auto entity = Entity();
+
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = {window_width_px / 2, window_height_px / 2};
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2(0.1, 0.1);
+
+	UserInterface &ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = {0, 0};
+	ui.scale = vec2({2.0, -2.0});
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::GAME_OVER_SCREEN,
+				 SPRITE_ASSET_ID::SPRITE_COUNT,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 -1,
+				 RENDER_LAYER::DEFAULT_LAYER});
+
+	return entity;
+}
+
 Entity createMenuScreen(RenderSystem *renderer)
 {
 	auto entity = Entity();
@@ -1770,6 +1774,9 @@ void createElevatorButtons(RenderSystem *renderer, int num_levels)
 {
 
 	vec2 top_pos = {0.3f, 0.4f};
+	vec2 top_pos_world = {window_width_px * 0.7, window_height_px * 0.3};
+
+	
 
 	for (int i = 1; i <= num_levels + 1; i++)
 	{
@@ -1780,7 +1787,11 @@ void createElevatorButtons(RenderSystem *renderer, int num_levels)
 		}
 
 		createLevelButton(renderer, vec2(top_pos.x, top_pos.y - (0.25 * i)), i);
+		// figure out motion pos and pass to text
+		createText({top_pos_world.x, top_pos_world.y + (90 * (num_levels - i))}, 0.9f, "Level " + std::to_string(num_levels - i + 1), vec3(0.2, 0.2, 0.2));
+		
 	}
+	
 }
 
 Entity createLevelButton(RenderSystem *renderer, vec2 pos, int level)
@@ -1792,7 +1803,7 @@ Entity createLevelButton(RenderSystem *renderer, vec2 pos, int level)
 	UserInterface &ui = registry.userInterfaces.emplace(entity);
 	ui.angle = 0.f;
 	ui.position = pos;
-	ui.scale = vec2({0.1, -0.15});
+	ui.scale = vec2({0.09, -0.15});
 
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::LEVEL_BUTTON,
@@ -1802,7 +1813,6 @@ Entity createLevelButton(RenderSystem *renderer, vec2 pos, int level)
 				 -1,
 				 RENDER_LAYER::DEFAULT_LAYER});
 
-	// add text here ? idk
 
 	return entity;
 }
@@ -1838,6 +1848,133 @@ Entity createDamageIndicator(RenderSystem *renderer, int damage, vec2 pos)
 
 	auto &indicator = registry.damageIndicators.emplace(entity);
 	indicator.damage = damage;
+
+	return entity;
+}
+
+Entity createFloor(RenderSystem *renderer, vec2 pos) 
+{
+	auto entity = Entity();
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0;
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2({100, 100});
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::FLOOR,
+				 SPRITE_ASSET_ID::SPRITE_COUNT,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 -1,
+				 RENDER_LAYER::FLOOR});
+
+	return entity;
+}
+
+Entity createMovementKeys(RenderSystem *renderer, vec2 pos) {
+	auto entity = Entity();
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0;
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2({100, 100});
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
+				 SPRITE_ASSET_ID::WASD_KEYS,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 0,
+				 RENDER_LAYER::EFFECTS});
+
+
+
+	registry.tutorialIcons.emplace(entity);
+
+	std::vector<int> idle_vec = {0, 1};
+	Animation idle = {
+		"idle",
+		2,
+		SPRITE_ASSET_ID::WASD_KEYS,
+		idle_vec};
+
+	auto &animSet = registry.animationSets.emplace(entity);
+	animSet.animations[idle.name] = idle;
+	animSet.current_animation = idle.name;
+
+	return entity;
+}
+
+Entity createDashKey(RenderSystem *renderer, vec2 pos) {
+	auto entity = Entity();
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0;
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2({100, 50});
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
+				 SPRITE_ASSET_ID::DASH_KEYS,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 0,
+				 RENDER_LAYER::EFFECTS});
+
+
+
+	registry.tutorialIcons.emplace(entity);
+
+	std::vector<int> idle_vec = {0, 1};
+	Animation idle = {
+		"idle",
+		2,
+		SPRITE_ASSET_ID::WASD_KEYS,
+		idle_vec};
+
+	auto &animSet = registry.animationSets.emplace(entity);
+	animSet.animations[idle.name] = idle;
+	animSet.current_animation = idle.name;
+
+	return entity;
+}
+
+Entity createAttackCursor(RenderSystem *renderer, vec2 pos) {
+	auto entity = Entity();
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0;
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2({50, 50});
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::ATTACK_CURSOR,
+				 SPRITE_ASSET_ID::SPRITE_COUNT,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 -1,
+				 RENDER_LAYER::EFFECTS});
+
+
+
+	registry.tutorialIcons.emplace(entity);
 
 	return entity;
 }

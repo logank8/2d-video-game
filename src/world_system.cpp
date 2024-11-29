@@ -116,11 +116,16 @@ void WorldSystem::stateSwitch(GameState new_state)
 		{
 			registry.remove_all_components_of(registry.userInterfaces.entities.back());
 		}
+		while (registry.motions.entities.size() > 0)
+		{
+			registry.list_all_components_of(registry.motions.entities.back());
+			registry.remove_all_components_of(registry.motions.entities.back());
+		}
 		is_paused = false;
+		screen.darken_screen_factor = 0.0f;
+		createGameOverScreen(renderer);
+		restart_world();
 		// currently the screen won't darken, maybe just make it a big background screen like the menu or whatever and remove all motion components
-		createText(vec2(490, 550), 1.4f, "GAME OVER", vec3(1.0f, 0.f, 0.f));
-		createText(vec2(465, 420), 0.8f, "PRESS R TO RESTART", vec3(1.0f, 1.0f, 1.0f));
-		createText(vec2(400, 350), 0.8f, "PRESS ESC TO EXIT TO MENU", vec3(1.0f, 1.0f, 1.0f));
 		break;
 	case (GameState::MENU):
 		// guaranteed to be coming from GAME_OVER or PAUSED
@@ -445,6 +450,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		return true;
 	}
 
+	if (screen.state == GameState::MENU) {
+		glfwSetWindowTitle(window, "Main Menu");
+		return true;
+	}
+
 	// Updating window title with points
 	std::stringstream title_ss;
 	if (current_map != map3)
@@ -543,7 +553,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 	for (int i = player_pos_map.x - 8; i <= player_pos_map.x + 8; i++)
 	{
-		for (int j = player_pos_map.y - 8; j <= player_pos_map.y + 8; j++)
+		for (int j = player_pos_map.y - 6; j <= player_pos_map.y + 6; j++)
 		{
 			vec2 world_pos = {(640 - (25 * 100)) + (i * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (j * TILE_SIZE) + (TILE_SIZE / 2)};
 
@@ -576,6 +586,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					createDoor(renderer, world_pos);
 				}
 				createWalls(renderer, world_pos, current_map, {i, j});
+				tile_vec.push_back(vec2(i, j));
+			}
+
+			if (current_map[j][i] == 1) {
+				//createFloor(renderer, world_pos);
 				tile_vec.push_back(vec2(i, j));
 			}
 
@@ -1009,8 +1024,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 		else
 		{
+			if (!tutorial.dash) {
+				tutorial.dash = true;
+				// add a thing to check for type here
+				for (Entity icon : registry.tutorialIcons.entities) {
+					registry.remove_all_components_of(icon);
+				}
+			}
 			registry.motions.get(my_player).speed = 2000.f;
-			// TODO: add a thing to counter speed boost here
+			// TODO: add a thing to counter speed boost here or something .. idk
 			if (!registry.lightUps.has(my_player))
 			{
 				registry.lightUps.emplace(my_player);
@@ -1030,6 +1052,36 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	}
 
 	player_controller.step(elapsed_ms_since_last_update);
+
+	if (!tutorial.movement) {
+		if (registry.tutorialIcons.entities.size() == 0) {
+			createMovementKeys(renderer, {registry.motions.get(my_player).position.x + 80.f, registry.motions.get(my_player).position.y - 80.f});
+		}
+	} else if (!tutorial.attack) {
+		if (registry.tutorialIcons.entities.size() == 0) {
+			createAttackCursor(renderer, {registry.motions.get(my_player).position.x + (80.f * registry.players.get(my_player).attack_direction.x), registry.motions.get(my_player).position.y + (80.f * registry.players.get(my_player).attack_direction.y)});
+		} else {
+			Entity attack_cursor = registry.tutorialIcons.entities[0];
+			registry.motions.get(attack_cursor).position = {registry.motions.get(my_player).position.x + (80.f * registry.players.get(my_player).attack_direction.x), registry.motions.get(my_player).position.y + (80.f * registry.players.get(my_player).attack_direction.y)};
+		}
+		
+
+	} else if (!tutorial.dash) {
+		if (tutorial.dash_tut_cur_wait_ms < tutorial.dash_tut_wait_ms) {
+			tutorial.dash_tut_cur_wait_ms += elapsed_ms_since_last_update;
+		} else {
+			if (registry.tutorialIcons.entities.size() == 0) {
+				if (player.is_moving && !player.is_attacking) {
+					// maybe only create when not a certain radius from any enemies... but this would take a bit to check
+					createDashKey(renderer, {registry.motions.get(my_player).position.x + 80.f, registry.motions.get(my_player).position.y - 80.f});
+				}
+			} else {
+				// guaranteed to only have one tutorial icon at a time
+				Entity dash = registry.tutorialIcons.entities[0];
+				registry.motions.get(dash).position = {registry.motions.get(my_player).position.x + 80.f, registry.motions.get(my_player).position.y - 80.f};
+			}
+		}
+	}
 
 	for (Entity &e : registry.deadlys.entities)
 	{
@@ -1196,8 +1248,6 @@ void WorldSystem::restart_game()
 	registry.cameras.clear();
 	camera = createCamera(renderer, vec2(window_width_px / 2, window_height_px / 2));
 
-	std::cout << "mid creation" << std::endl;
-
 	lightflicker_counter_ms = 1000;
 	tile_vec.clear();
 
@@ -1213,7 +1263,7 @@ void WorldSystem::restart_game()
 	vec2 playerpos_world = vec2(640, 640);
 	for (int i = playerPos_init.x - 8; i <= playerPos_init.x + 8; i++)
 	{
-		for (int j = playerPos_init.y - 8; j <= playerPos_init.y + 8; j++)
+		for (int j = playerPos_init.y - 6; j <= playerPos_init.y + 6; j++)
 		{
 			if ((i < 0) || (j < 0) || (i >= current_map[0].size()) || j >= current_map.size())
 			{
@@ -2032,6 +2082,17 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	if (screen.state != GameState::PAUSED)
 		player_controller.on_key(key, action, mod);
 
+
+	// Manage tutorial input responses
+
+	if (player.is_moving && !tutorial.movement) {
+            tutorial.movement = true;
+			for (Entity icon : registry.tutorialIcons.entities) {
+				registry.remove_all_components_of(icon);
+			}
+    }
+
+	
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA)
 	{
@@ -2052,6 +2113,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position)
 	if (registry.players.entities.size() > 0)
 	{
 		player_controller.on_mouse_move(mouse_position);
+		
 	}
 }
 
@@ -2061,6 +2123,15 @@ void WorldSystem::on_mouse_button(int button, int action, int mods)
 	if (registry.players.entities.size() > 0)
 	{
 		player_controller.on_mouse_button(button, action, mods);
+
+		// Attack tutorial done
+		if (registry.players.get(my_player).is_attacking && !tutorial.attack) {
+			tutorial.attack = true;
+			for (Entity icon : registry.tutorialIcons.entities) {
+				// should probably check for type
+				registry.remove_all_components_of(icon);
+			}
+		}
 	}
 }
 

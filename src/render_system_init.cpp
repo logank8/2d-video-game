@@ -226,6 +226,8 @@ void RenderSystem::initializeSpriteSheets()
 	sprite_sheets[SPRITE_ASSET_ID::SLASH] = {TEXTURE_ASSET_ID::SLASH, 1, 13, 48, 48};
 	sprite_sheets[SPRITE_ASSET_ID::HP_BAR] = {TEXTURE_ASSET_ID::HP_BAR, 9, 1, 64, 16};
 	sprite_sheets[SPRITE_ASSET_ID::WALL] = {TEXTURE_ASSET_ID::WALL, 1, 18, 16, 16};
+	sprite_sheets[SPRITE_ASSET_ID::WASD_KEYS] = {TEXTURE_ASSET_ID::WASD_KEYS, 1, 2, 48, 32};
+	sprite_sheets[SPRITE_ASSET_ID::DASH_KEYS] = {TEXTURE_ASSET_ID::DASH_KEYS, 1, 2, 32, 16};
 }
 
 void RenderSystem::initializeGlEffects()

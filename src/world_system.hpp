@@ -36,6 +36,28 @@ public:
 	// Check for collisions
 	void handle_collisions(float step_seconds);
 
+	struct Tutorial {
+		bool movement; // movement keys appear at the immediate start
+		bool attack; // attack arrow appears when in proximity to enemy - maybe pause enemies here or something idk
+		float dash_tut_wait_ms; // amount of time after movement / attack tut to start dash tut
+		float dash_tut_cur_wait_ms; // amount of time passed after movement / attack tut
+		bool dash; // dash appears a certain amount of time after movement / attack keys disappear
+		bool pause; // not sure about pause yet
+		bool health_buff; // interact key appears when touching
+		bool door; // interact key appears when touching
+	};
+
+	Tutorial tutorial = {
+		false,
+		false,
+		4000.f,
+		0.f,
+		false,
+		false, 
+		false,
+		false
+	};
+
 	// Should the game be over ?
 	bool is_over() const;
 	static bool is_paused;

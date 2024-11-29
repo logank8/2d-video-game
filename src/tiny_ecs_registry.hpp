@@ -54,6 +54,7 @@ public:
 	ComponentContainer<Camera> cameras;
 	ComponentContainer<Door> doors;
 	ComponentContainer<DamageIndicator> damageIndicators;
+	ComponentContainer<TutorialIcon> tutorialIcons;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -102,6 +103,7 @@ public:
 		registry_list.push_back(&cameras);
 		registry_list.push_back(&doors);
 		registry_list.push_back(&damageIndicators);
+		registry_list.push_back(&tutorialIcons);
 	}
 
 	void clear_all_components()

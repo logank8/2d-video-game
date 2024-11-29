@@ -56,9 +56,10 @@ int main()
 		if (!world.is_level_up && (screen.state == GameState::GAME))
 		{
 			world.step(elapsed_ms);
-			physics.step(elapsed_ms, world.get_current_map());
-			animations.step(elapsed_ms);
-			damages.step(elapsed_ms);
+			if (screen.state == GameState::GAME) {
+				physics.step(elapsed_ms, world.get_current_map());
+				animations.step(elapsed_ms);
+			}
 		}
 		else
 		{

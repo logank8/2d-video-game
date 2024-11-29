@@ -65,7 +65,7 @@ class RenderSystem
 		textures_path("Round_Table.png"),
 		textures_path("Side_Table.png"),
 		textures_path("walls.png"),
-		textures_path("wall.png"),
+		textures_path("inner_wall.png"),
 		textures_path("player.png"),
 		textures_path("heart.png"),
 		textures_path("smoke_particle.png"),
@@ -80,9 +80,14 @@ class RenderSystem
 		textures_path("slash.png"),
 		textures_path("door.png"),
 		textures_path("start_screen.png"),
+		textures_path("game_over_screen.png"),
 		textures_path("elevator.png"),
 		textures_path("menu_level_button.png"),
-		textures_path("menu_exit_button.png")};
+		textures_path("menu_exit_button.png"),
+		textures_path("floor.png"),
+		textures_path("tutorial_sprites/wasd.png"), 
+		textures_path("tutorial_sprites/dash.png"),
+		textures_path("tutorial_sprites/attack_cursor.png")};
 
 	std::array<GLuint, effect_count> effects;
 	// Make sure these paths remain in sync with the associated enumerators.
