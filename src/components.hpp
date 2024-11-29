@@ -94,7 +94,8 @@ enum class ENEMY_TYPES
 	SLOWING_CONTACT = SWARM + 1,
 	RANGED_HOMING = SLOWING_CONTACT + 1,
 	HOMING_PROJECTILE = RANGED_HOMING + 1,
-	FINAL_BOSS = HOMING_PROJECTILE + 1
+	FINAL_BOSS = HOMING_PROJECTILE + 1,
+	DASHING = FINAL_BOSS + 1
 };
 
 struct PlayerAttack
@@ -111,6 +112,12 @@ struct Deadly
 	float drop_chance = 1.0f;
 	int experience = 1;
 	ENEMY_STATE state = ENEMY_STATE::IDLE;
+};
+
+struct EnemyDash {
+	float charge_time = 3000.f;
+	float current_charge_timer = 0.f;
+	vec2 target_pos = { 0, 0 };
 };
 
 // anything that is deadly to the player

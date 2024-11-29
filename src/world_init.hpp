@@ -107,6 +107,8 @@ Entity createRangedEnemy(RenderSystem *renderer, vec2 position);
 
 Entity createSlowingEnemy(RenderSystem *renderer, vec2 position);
 
+Entity createDashingEnemy(RenderSystem* renderer, vec2 position);
+
 Entity createRangedProjectile(RenderSystem *renderer, vec2 position);
 
 Entity createRangedHomingEnemy(RenderSystem *renderer, vec2 position);

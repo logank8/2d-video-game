@@ -341,6 +341,87 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
     return map[y][x] != 0;
 }
 
+// Checking for dashing line of sight using Bresenham's algorithm
+// adapted to use a TILE_SIZE approximation instead of a pixel based line approximation
+bool has_dashing_los(const vec2& start, const vec2& end)
+{
+    const float GRID_OFFSET_X = (640 - (25 * TILE_SIZE));
+    const float GRID_OFFSET_Y = (640 - (44 * TILE_SIZE));
+
+    // Convert to grid coordinates
+    int x1 = static_cast<int>((start.x - GRID_OFFSET_X) / TILE_SIZE);
+    int y1 = static_cast<int>((start.y - GRID_OFFSET_Y) / TILE_SIZE);
+    int x2 = static_cast<int>((end.x - GRID_OFFSET_X) / TILE_SIZE);
+    int y2 = static_cast<int>((end.y - GRID_OFFSET_Y) / TILE_SIZE);
+
+    int dx = abs(x2 - x1);
+    int dy = abs(y2 - y1);
+    int x = x1;
+    int y = y1;
+
+    // Determine step direction
+    int x_step = (x1 < x2) ? 1 : -1;
+    int y_step = (y1 < y2) ? 1 : -1;
+
+    int err;
+
+    // Choose which axis to move along
+    if (dx > dy)
+    {
+        err = dx / 2;
+        while (x != x2)
+        {
+            if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size())
+            {
+                return false;
+            }
+
+            if (!(map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8)))
+            {
+                return false;
+            }
+
+            err -= dy;
+            if (err < 0)
+            {
+                y += y_step;
+                err += dx;
+            }
+            x += x_step;
+        }
+    }
+    else
+    {
+        err = dy / 2;
+        while (y != y2)
+        {
+            if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size())
+            {
+                return false;
+            }
+
+            if (!(map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8)))
+            {
+                return false;
+            }
+
+            err -= dx;
+            if (err < 0)
+            {
+                x += x_step;
+                err += dy;
+            }
+            y += y_step;
+        }
+    }
+
+    if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size())
+    {
+        return false;
+    }
+    return map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8);
+}
+
 // Find A* path for enemy
 std::vector<vec2> find_path(const Motion &enemy, const Motion &player)
 {
@@ -855,7 +936,69 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                         if (registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::SWARM) {
                             update_swarm_movement(entity, step_seconds);
                             
-                        } else {
+                        }
+                        else if (registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::DASHING) {
+                            Motion& player_motion = registry.motions.get(registry.players.entities[0]);
+                            auto& dashing_enemy = registry.enemyDashes.get(entity);
+                            if (has_dashing_los(registry.motions.get(entity).position, player_motion.position)) {
+                                if (dashing_enemy.current_charge_timer < dashing_enemy.charge_time) {
+                                    registry.motions.get(entity).velocity = { 0, 0 };
+                                    if (!registry.lightUps.has(entity)) {
+                                        auto& lights_up = registry.lightUps.emplace(entity);
+                                        lights_up.duration_ms = dashing_enemy.charge_time;
+                                    }
+                                    int grid_x = static_cast<int>((player_motion.position.x - GRID_OFFSET_X) / TILE_SIZE);
+                                    int grid_y = static_cast<int>((player_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE);
+                                    dashing_enemy.target_pos = { (640 - (25 * 100)) + (grid_x * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (grid_y * TILE_SIZE) + (TILE_SIZE / 2) };
+                                    dashing_enemy.current_charge_timer += elapsed_ms;
+                                }
+                                else {
+                                    registry.motions.get(entity).velocity = { 500.f, 500.f };
+                                    if (registry.lightUps.has(entity)) {
+                                        registry.lightUps.remove(entity);
+                                    }
+                                    vec2 direction = {
+                                        dashing_enemy.target_pos.x - motion.position.x,
+                                        dashing_enemy.target_pos.y - motion.position.y
+                                    };
+
+                                    float length = sqrt(direction.x * direction.x + direction.y * direction.y);
+
+                                    if (length > 0) {
+                                        direction.x /= length;
+                                        direction.y /= length;
+                                    }
+                                    else {
+                                        dashing_enemy.current_charge_timer = 0;
+                                        continue;
+                                    }
+                                    
+                                    float distance_to_target = sqrt(pow(dashing_enemy.target_pos.x - motion.position.x, 2) + pow(dashing_enemy.target_pos.y - motion.position.y, 2));
+
+                                    float step_x = direction.x * motion.velocity.x * step_seconds;
+                                    float step_y = direction.y * motion.velocity.y * step_seconds;
+                                    float step_distance = sqrt(pow(step_x, 2) + pow(step_y, 2));
+
+                                    if (step_distance >= distance_to_target) {
+                                        motion.position = dashing_enemy.target_pos;
+                                        dashing_enemy.current_charge_timer = 0;
+                                    }
+                                    else {
+                                        motion.position.x += step_x;
+                                        motion.position.y += step_y;
+                                    }
+                                }
+                            }
+                            else {
+                                dashing_enemy.current_charge_timer = 0.f;
+                                registry.motions.get(entity).velocity = { 100.f, 100.f };
+                                if (registry.lightUps.has(entity)) {
+                                    registry.lightUps.remove(entity);
+                                }
+                                update_enemy_movement(entity, step_seconds);
+                            }
+                        }
+                        else{
                             update_enemy_movement(entity, step_seconds);
                         }
                         

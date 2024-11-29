@@ -22,6 +22,7 @@ const size_t CONTACT_FAST_SPAWN_DELAY_MS = 2000 * 3;
 // const size_t MAX_NUM_RANGED_ENEMY = 1;
 const size_t RANGED_ENEMY_SPAWN_DELAY_MS = 5000 * 3;
 const size_t RANGED_ENEMY_PROJECTILE_DELAY_MS = 3000;
+const size_t DASHING_ENEMY_SPAWN_DELAY_MS = 5000 * 3;
 
 const int TILE_SIZE = 100;
 std::vector<vec2> tile_vec;
@@ -765,28 +766,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		// tile_vec.push_back(spawnable_tiles[index]);
 	}
 
-	// Spawn Level 3 type enemy: slow ranged enemy
-	next_ranged_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (next_ranged_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
+	// Spawn dashing enemy
+	next_dashing_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (next_dashing_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
 	{
-		next_ranged_spawn = (RANGED_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_SPAWN_DELAY_MS / 2);
-		vec2 ranged_pos;
+		next_dashing_spawn = (DASHING_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (DASHING_ENEMY_SPAWN_DELAY_MS / 2);
+		vec2 dashing_pos;
 		float distance_to_player;
 		float index;
 		do
 		{
 			index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
-			ranged_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
-			distance_to_player = sqrt(pow(ranged_pos.x - player_pos.x, 2) + pow(ranged_pos.y - player_pos.y, 2));
+			dashing_pos = { (640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2) };
+			distance_to_player = sqrt(pow(dashing_pos.x - player_pos.x, 2) + pow(dashing_pos.y - player_pos.y, 2));
 		} while (distance_to_player < 300.f);
-		if (uniform_dist(rng) > 0.5)
-		{
-			createRangedEnemy(renderer, ranged_pos);
-		}
-		else
-		{
-			createRangedHomingEnemy(renderer, ranged_pos);
-		}
+		createDashingEnemy(renderer, dashing_pos);
 		// tile_vec.push_back(spawnable_tiles[index]);
 	}
 
@@ -1141,6 +1135,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			break;
 		case ENEMY_TYPES::FINAL_BOSS:
 			enemy_name = "final_boss_";
+			break;
+		case ENEMY_TYPES::DASHING:
+			enemy_name = "slow";
 			break;
 		default:
 			break;
@@ -1572,6 +1569,10 @@ void WorldSystem::handle_collisions(float step_seconds)
 				Player &player = registry.players.get(my_player);
 				Deadly &deadly = registry.deadlys.get(entity_other);
 
+				if (registry.enemyDashes.has(entity_other)) {
+					registry.enemyDashes.get(entity_other).current_charge_timer = 0.f;
+				}
+
 				float temp_multiplier = 1.f;
 				if (registry.powerups.has(my_player))
 				{
@@ -1593,11 +1594,11 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 				createDamageIndicator(renderer, damage_dealt, enemy_motion.position, damage_rng, temp_multiplier);
 
-				vec2 diff = enemy_motion.position - pmotion.position;
+				vec2 diff = registry.motions.get(entity_other).position - pmotion.position;
 
 				if (!registry.projectiles.has(entity_other) && deadly_health.hit_points > 0)
 				{
-					vec2 kockback_pos = enemy_motion.position + (diff * player.knockback_strength);
+					vec2 kockback_pos = registry.motions.get(entity_other).position + (diff * player.knockback_strength);
 					int grid_x = static_cast<int>((kockback_pos.x - (640 - (25 * TILE_SIZE)) - TILE_SIZE / 2) / TILE_SIZE);
 					int grid_y = static_cast<int>((kockback_pos.y - (640 - (44 * TILE_SIZE)) - TILE_SIZE / 2) / TILE_SIZE);
 					int adjust_x = 0;
@@ -1685,11 +1686,11 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 					if (registry.motions.has(entity_other) && (adjusted_tile == 1 || (adjusted_tile >= 3 && adjusted_tile <= 8)))
 					{
-						vec2 grid_kockback_pos = {(640 - (25 * 100)) + ((grid_x + adjust.x) * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + ((grid_y + adjust.y) * TILE_SIZE) + (TILE_SIZE / 2)};
-						vec2 new_diff = grid_kockback_pos - registry.motions.get(my_player).position;
+						vec2 grid_knockback_pos = {(640 - (25 * 100)) + ((grid_x + adjust.x) * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + ((grid_y + adjust.y) * TILE_SIZE) + (TILE_SIZE / 2)};
+						vec2 new_diff = grid_knockback_pos - registry.motions.get(my_player).position;
 						if (length(new_diff) > length(diff))
 						{
-							enemy_motion.position = grid_kockback_pos;
+							enemy_motion.position = grid_knockback_pos;
 							physics.update_enemy_movement(entity_other, step_seconds);
 							if (registry.pathTimers.has(entity_other))
 							{
