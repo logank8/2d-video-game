@@ -645,9 +645,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG};
 					spawn_nearby_tile(vec2(i, j), additional_enemies);
 				}
-				createContactSlow(renderer, world_pos);
-				std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG};
-				spawn_nearby_tile(vec2(i, j), additional_enemies);
 				tile_vec.push_back(vec2(i, j));
 			}
 			if (current_map[j][i] == 4 && registry.deadlys.entities.size() < max_num_enemies)
