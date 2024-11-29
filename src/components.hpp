@@ -361,8 +361,8 @@ struct Powerup
 	bool equipped = false;
 };
 
-struct TutorialIcon {
-
+struct TutorialIcon
+{
 };
 
 struct UpgradeCard
@@ -389,6 +389,8 @@ struct DamageIndicator
 	float time_total_ms = 1000.0f;
 	float time_elapsed_ms = time_total_ms;
 	int damage;
+	float rng;
+	float multiplier;
 	Entity text;
 };
 /**

@@ -450,7 +450,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		return true;
 	}
 
-	if (screen.state == GameState::MENU) {
+	if (screen.state == GameState::MENU)
+	{
 		glfwSetWindowTitle(window, "Main Menu");
 		return true;
 	}
@@ -589,8 +590,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				tile_vec.push_back(vec2(i, j));
 			}
 
-			if (current_map[j][i] == 1) {
-				//createFloor(renderer, world_pos);
+			if (current_map[j][i] == 1)
+			{
+				// createFloor(renderer, world_pos);
 				tile_vec.push_back(vec2(i, j));
 			}
 
@@ -1024,10 +1026,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 		else
 		{
-			if (!tutorial.dash) {
+			if (!tutorial.dash)
+			{
 				tutorial.dash = true;
 				// add a thing to check for type here
-				for (Entity icon : registry.tutorialIcons.entities) {
+				for (Entity icon : registry.tutorialIcons.entities)
+				{
 					registry.remove_all_components_of(icon);
 				}
 			}
@@ -1053,29 +1057,43 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 	player_controller.step(elapsed_ms_since_last_update);
 
-	if (!tutorial.movement) {
-		if (registry.tutorialIcons.entities.size() == 0) {
+	if (!tutorial.movement)
+	{
+		if (registry.tutorialIcons.entities.size() == 0)
+		{
 			createMovementKeys(renderer, {registry.motions.get(my_player).position.x + 80.f, registry.motions.get(my_player).position.y - 80.f});
 		}
-	} else if (!tutorial.attack) {
-		if (registry.tutorialIcons.entities.size() == 0) {
+	}
+	else if (!tutorial.attack)
+	{
+		if (registry.tutorialIcons.entities.size() == 0)
+		{
 			createAttackCursor(renderer, {registry.motions.get(my_player).position.x + (80.f * registry.players.get(my_player).attack_direction.x), registry.motions.get(my_player).position.y + (80.f * registry.players.get(my_player).attack_direction.y)});
-		} else {
+		}
+		else
+		{
 			Entity attack_cursor = registry.tutorialIcons.entities[0];
 			registry.motions.get(attack_cursor).position = {registry.motions.get(my_player).position.x + (80.f * registry.players.get(my_player).attack_direction.x), registry.motions.get(my_player).position.y + (80.f * registry.players.get(my_player).attack_direction.y)};
 		}
-		
-
-	} else if (!tutorial.dash) {
-		if (tutorial.dash_tut_cur_wait_ms < tutorial.dash_tut_wait_ms) {
+	}
+	else if (!tutorial.dash)
+	{
+		if (tutorial.dash_tut_cur_wait_ms < tutorial.dash_tut_wait_ms)
+		{
 			tutorial.dash_tut_cur_wait_ms += elapsed_ms_since_last_update;
-		} else {
-			if (registry.tutorialIcons.entities.size() == 0) {
-				if (player.is_moving && !player.is_attacking) {
+		}
+		else
+		{
+			if (registry.tutorialIcons.entities.size() == 0)
+			{
+				if (player.is_moving && !player.is_attacking)
+				{
 					// maybe only create when not a certain radius from any enemies... but this would take a bit to check
 					createDashKey(renderer, {registry.motions.get(my_player).position.x + 80.f, registry.motions.get(my_player).position.y - 80.f});
 				}
-			} else {
+			}
+			else
+			{
 				// guaranteed to only have one tutorial icon at a time
 				Entity dash = registry.tutorialIcons.entities[0];
 				registry.motions.get(dash).position = {registry.motions.get(my_player).position.x + 80.f, registry.motions.get(my_player).position.y - 80.f};
@@ -1559,9 +1577,16 @@ void WorldSystem::handle_collisions(float step_seconds)
 					}
 				}
 
-				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - (damage.damage * temp_multiplier));
+				// damage scales between -0.75 and 1.25
+				float damage_rng = (uniform_dist(rng) / 2) - 0.25;
 
-				createDamageIndicator(renderer, damage.damage, enemy_motion.position);
+				float damage_dealt = (damage.damage + (damage.damage * damage_rng)) * temp_multiplier;
+
+				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - damage_dealt);
+
+				std::cout << damage_rng << std::endl;
+
+				createDamageIndicator(renderer, damage_dealt, enemy_motion.position, damage_rng, temp_multiplier);
 
 				vec2 diff = enemy_motion.position - pmotion.position;
 
@@ -2082,17 +2107,17 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	if (screen.state != GameState::PAUSED)
 		player_controller.on_key(key, action, mod);
 
-
 	// Manage tutorial input responses
 
-	if (player.is_moving && !tutorial.movement) {
-            tutorial.movement = true;
-			for (Entity icon : registry.tutorialIcons.entities) {
-				registry.remove_all_components_of(icon);
-			}
-    }
+	if (player.is_moving && !tutorial.movement)
+	{
+		tutorial.movement = true;
+		for (Entity icon : registry.tutorialIcons.entities)
+		{
+			registry.remove_all_components_of(icon);
+		}
+	}
 
-	
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA)
 	{
@@ -2113,7 +2138,6 @@ void WorldSystem::on_mouse_move(vec2 mouse_position)
 	if (registry.players.entities.size() > 0)
 	{
 		player_controller.on_mouse_move(mouse_position);
-		
 	}
 }
 
@@ -2125,9 +2149,11 @@ void WorldSystem::on_mouse_button(int button, int action, int mods)
 		player_controller.on_mouse_button(button, action, mods);
 
 		// Attack tutorial done
-		if (registry.players.get(my_player).is_attacking && !tutorial.attack) {
+		if (registry.players.get(my_player).is_attacking && !tutorial.attack)
+		{
 			tutorial.attack = true;
-			for (Entity icon : registry.tutorialIcons.entities) {
+			for (Entity icon : registry.tutorialIcons.entities)
+			{
 				// should probably check for type
 				registry.remove_all_components_of(icon);
 			}

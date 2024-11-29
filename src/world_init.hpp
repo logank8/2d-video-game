@@ -172,7 +172,7 @@ Entity createLevelButton(RenderSystem *renderer, vec2 pos, int level);
 
 Entity createExitButton(RenderSystem *renderer, vec2 pos);
 
-Entity createDamageIndicator(RenderSystem *renderer, int damage, vec2 pos);
+Entity createDamageIndicator(RenderSystem *renderer, int damage, vec2 pos, float rng, float multiplier);
 
 Entity createFloor(RenderSystem *renderer, vec2 pos);
 

@@ -4,6 +4,8 @@
 #include <iostream>
 
 const float RESIZE_SCALE = 1.0f;
+const vec3 MULTIPLIER_COLOR = vec3(0.647, 0.188, 0.188);
+const vec3 RNG_COLOR = vec3(0.745, 0.467, 0.169);
 
 mat3 createProjectionMatrix(vec2 position)
 {
@@ -61,8 +63,22 @@ void DamageIndicatorSystem::step(float elapsed_ms)
             registry.remove_all_components_of(entity);
         }
 
+        vec3 text_color = vec3(1.f, 1.f, 1.f);
+
+        if (damageIndicatorComponent.rng > 0.0f)
+        {
+            text_color = RNG_COLOR;
+            float ratio = 1 / (damageIndicatorComponent.rng / 0.25);
+            text_color *= vec3(ratio);
+        }
+
+        if (damageIndicatorComponent.multiplier > 1.0f)
+        {
+            text_color = MULTIPLIER_COLOR;
+        }
+
         // std::cout << damageMotion.position.x << ',' << damageMotion.position.y << std::endl;
 
-        damageIndicatorComponent.text = createText(convertToScreenSpace(damageMotion.position), scale, std::to_string(damageIndicatorComponent.damage), vec3(1.f, 1.f, 1.f));
+        damageIndicatorComponent.text = createText(convertToScreenSpace(damageMotion.position), scale, std::to_string(damageIndicatorComponent.damage), text_color);
     }
 }

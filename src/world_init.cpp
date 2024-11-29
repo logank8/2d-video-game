@@ -898,7 +898,8 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 	{
 		sprite_idx = 2;
 
-		if (!adjacent_walls[1][0]) {
+		if (!adjacent_walls[1][0])
+		{
 			sprite_idx = 0;
 
 			if (!adjacent_walls[0][1])
@@ -950,9 +951,11 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 				motion.scale.x = -1 * motion.scale.x;
 			}
 		}
-
-	} else { // inner walls, mostly blacked out
-		if (adjacent_walls[1][0]) {
+	}
+	else
+	{ // inner walls, mostly blacked out
+		if (adjacent_walls[1][0])
+		{
 			// side walls
 			if (!adjacent_walls[0][1] && adjacent_walls[2][1])
 			{
@@ -1050,7 +1053,8 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 		}
 	}
 
-	if (wall_count == 7 && sprite_idx == -1 && texture == TEXTURE_ASSET_ID::TEXTURE_COUNT) {
+	if (wall_count == 7 && sprite_idx == -1 && texture == TEXTURE_ASSET_ID::TEXTURE_COUNT)
+	{
 		sprite_idx = 11;
 		if (!adjacent_walls[2][0])
 		{
@@ -1058,20 +1062,20 @@ Entity createWalls(RenderSystem *renderer, vec2 pos, std::vector<std::vector<int
 		}
 	}
 
-	if (wall_count == 8 || (sprite_idx == -1 && texture == TEXTURE_ASSET_ID::TEXTURE_COUNT)) {
+	if (wall_count == 8 || (sprite_idx == -1 && texture == TEXTURE_ASSET_ID::TEXTURE_COUNT))
+	{
 		sprite_idx = -1;
 		texture = TEXTURE_ASSET_ID::INNER_WALL;
 	}
 
 	registry.renderRequests.insert(
-			entity, {texture,
-					 SPRITE_ASSET_ID::WALL,
-					 EFFECT_ASSET_ID::TEXTURED,
-					 GEOMETRY_BUFFER_ID::SPRITE,
-					 sprite_idx,
-					 RENDER_LAYER::OBSTACLES}
-					 );
-	
+		entity, {texture,
+				 SPRITE_ASSET_ID::WALL,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 sprite_idx,
+				 RENDER_LAYER::OBSTACLES});
+
 	// Add wall to solid objects - player can't move through walls
 	registry.solidObjs.emplace(entity);
 
@@ -1776,8 +1780,6 @@ void createElevatorButtons(RenderSystem *renderer, int num_levels)
 	vec2 top_pos = {0.3f, 0.4f};
 	vec2 top_pos_world = {window_width_px * 0.7, window_height_px * 0.3};
 
-	
-
 	for (int i = 1; i <= num_levels + 1; i++)
 	{
 		if (i > num_levels)
@@ -1789,9 +1791,7 @@ void createElevatorButtons(RenderSystem *renderer, int num_levels)
 		createLevelButton(renderer, vec2(top_pos.x, top_pos.y - (0.25 * i)), i);
 		// figure out motion pos and pass to text
 		createText({top_pos_world.x, top_pos_world.y + (90 * (num_levels - i))}, 0.9f, "Level " + std::to_string(num_levels - i + 1), vec3(0.2, 0.2, 0.2));
-		
 	}
-	
 }
 
 Entity createLevelButton(RenderSystem *renderer, vec2 pos, int level)
@@ -1812,7 +1812,6 @@ Entity createLevelButton(RenderSystem *renderer, vec2 pos, int level)
 				 GEOMETRY_BUFFER_ID::SPRITE,
 				 -1,
 				 RENDER_LAYER::DEFAULT_LAYER});
-
 
 	return entity;
 }
@@ -1837,7 +1836,7 @@ Entity createExitButton(RenderSystem *renderer, vec2 pos)
 	return entity;
 }
 
-Entity createDamageIndicator(RenderSystem *renderer, int damage, vec2 pos)
+Entity createDamageIndicator(RenderSystem *renderer, int damage, vec2 pos, float rng, float multiplier)
 {
 	auto entity = Entity();
 
@@ -1848,11 +1847,13 @@ Entity createDamageIndicator(RenderSystem *renderer, int damage, vec2 pos)
 
 	auto &indicator = registry.damageIndicators.emplace(entity);
 	indicator.damage = damage;
+	indicator.rng = rng;
+	indicator.multiplier = multiplier;
 
 	return entity;
 }
 
-Entity createFloor(RenderSystem *renderer, vec2 pos) 
+Entity createFloor(RenderSystem *renderer, vec2 pos)
 {
 	auto entity = Entity();
 	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -1876,7 +1877,8 @@ Entity createFloor(RenderSystem *renderer, vec2 pos)
 	return entity;
 }
 
-Entity createMovementKeys(RenderSystem *renderer, vec2 pos) {
+Entity createMovementKeys(RenderSystem *renderer, vec2 pos)
+{
 	auto entity = Entity();
 	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
@@ -1896,8 +1898,6 @@ Entity createMovementKeys(RenderSystem *renderer, vec2 pos) {
 				 0,
 				 RENDER_LAYER::EFFECTS});
 
-
-
 	registry.tutorialIcons.emplace(entity);
 
 	std::vector<int> idle_vec = {0, 1};
@@ -1914,7 +1914,8 @@ Entity createMovementKeys(RenderSystem *renderer, vec2 pos) {
 	return entity;
 }
 
-Entity createDashKey(RenderSystem *renderer, vec2 pos) {
+Entity createDashKey(RenderSystem *renderer, vec2 pos)
+{
 	auto entity = Entity();
 	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
@@ -1934,8 +1935,6 @@ Entity createDashKey(RenderSystem *renderer, vec2 pos) {
 				 0,
 				 RENDER_LAYER::EFFECTS});
 
-
-
 	registry.tutorialIcons.emplace(entity);
 
 	std::vector<int> idle_vec = {0, 1};
@@ -1952,7 +1951,8 @@ Entity createDashKey(RenderSystem *renderer, vec2 pos) {
 	return entity;
 }
 
-Entity createAttackCursor(RenderSystem *renderer, vec2 pos) {
+Entity createAttackCursor(RenderSystem *renderer, vec2 pos)
+{
 	auto entity = Entity();
 	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
@@ -1971,8 +1971,6 @@ Entity createAttackCursor(RenderSystem *renderer, vec2 pos) {
 				 GEOMETRY_BUFFER_ID::SPRITE,
 				 -1,
 				 RENDER_LAYER::EFFECTS});
-
-
 
 	registry.tutorialIcons.emplace(entity);
 
