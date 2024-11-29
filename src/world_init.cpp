@@ -1463,6 +1463,30 @@ Entity createStaminaBar(RenderSystem *renderer, vec2 pos)
 	return entity;
 }
 
+Entity createExperienceBar(RenderSystem *renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	auto &ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = pos;
+	ui.scale = vec2({HPBAR_BB_WIDTH, -HPBAR_BB_HEIGHT});
+
+	registry.renderRequests.insert(
+		entity,
+		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 SPRITE_ASSET_ID::STAMINA_BAR,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 0});
+
+	return entity;
+}
+
 Entity createSwarm(RenderSystem *renderer, vec2 pos, float separation, float alignment, float cohesion)
 {
 

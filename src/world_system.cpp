@@ -347,9 +347,13 @@ void WorldSystem::create_experience_bar()
 	auto &player = registry.players.get(my_player);
 	auto &pmotion = registry.motions.get(my_player);
 
+	// vec2 exp_bar_pos = {-0.74f, 0.55f};
+
 	float progress = std::min((float)player.experience / player.toNextLevel, 1.0f);
 
-	experience_bar = createUILine(vec2(-1.0f, -1.0f), vec2(progress * 4.0, 0.15f));
+	float bar_offset = (progress * 0.2f);
+	vec2 bar_pos = vec2(-0.94f + bar_offset, 0.53f);
+	experience_bar = createUILine(bar_pos, vec2(progress * 0.4f, 0.04f));
 	vec3 &color = registry.colors.emplace(experience_bar);
 	color = vec3(0.325f, 0.478f, 0.902f);
 }
@@ -1309,7 +1313,8 @@ void WorldSystem::restart_game()
 	is_paused = true;
 	unpause();
 	// create experience bar
-	create_experience_bar();
+	vec2 exp_bar_pos = {-0.74f, 0.55f};
+	experience_bar = createExperienceBar(renderer, exp_bar_pos);
 }
 
 // utility functions for dash mvmnt implementation
