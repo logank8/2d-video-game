@@ -107,6 +107,8 @@ Entity createRangedEnemy(RenderSystem *renderer, vec2 position);
 
 Entity createSlowingEnemy(RenderSystem *renderer, vec2 position);
 
+Entity createDashingEnemy(RenderSystem* renderer, vec2 position);
+
 Entity createRangedProjectile(RenderSystem *renderer, vec2 position);
 
 Entity createRangedHomingEnemy(RenderSystem *renderer, vec2 position);
@@ -141,6 +143,9 @@ Entity createSmoke(RenderSystem *renderer, vec2 pos);
 Entity createEffect(RenderSystem *renderer, vec2 pos, float lifespan_ms, EFFECT_TYPE type);
 
 Entity createStaminaBar(RenderSystem *renderer, vec2 pos);
+
+Entity createExperienceBar(RenderSystem *renderer, vec2 pos);
+
 // a experience
 Entity createExperience(RenderSystem *renderer, vec2 pos, int experience);
 
@@ -172,7 +177,7 @@ Entity createLevelButton(RenderSystem *renderer, vec2 pos, int level);
 
 Entity createExitButton(RenderSystem *renderer, vec2 pos);
 
-Entity createDamageIndicator(RenderSystem *renderer, int damage, vec2 pos);
+Entity createDamageIndicator(RenderSystem *renderer, int damage, vec2 pos, float rng, float multiplier);
 
 Entity createFloor(RenderSystem *renderer, vec2 pos);
 

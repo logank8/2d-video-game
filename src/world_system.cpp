@@ -22,6 +22,7 @@ const size_t CONTACT_FAST_SPAWN_DELAY_MS = 2000 * 3;
 // const size_t MAX_NUM_RANGED_ENEMY = 1;
 const size_t RANGED_ENEMY_SPAWN_DELAY_MS = 5000 * 3;
 const size_t RANGED_ENEMY_PROJECTILE_DELAY_MS = 3000;
+const size_t DASHING_ENEMY_SPAWN_DELAY_MS = 5000 * 3;
 
 const int TILE_SIZE = 100;
 std::vector<vec2> tile_vec;
@@ -347,9 +348,13 @@ void WorldSystem::create_experience_bar()
 	auto &player = registry.players.get(my_player);
 	auto &pmotion = registry.motions.get(my_player);
 
+	// vec2 exp_bar_pos = {-0.74f, 0.55f};
+
 	float progress = std::min((float)player.experience / player.toNextLevel, 1.0f);
 
-	experience_bar = createUILine(vec2(-1.0f, -1.0f), vec2(progress * 4.0, 0.15f));
+	float bar_offset = (progress * 0.2f);
+	vec2 bar_pos = vec2(-0.94f + bar_offset, 0.53f);
+	experience_bar = createUILine(bar_pos, vec2(progress * 0.4f, 0.04f));
 	vec3 &color = registry.colors.emplace(experience_bar);
 	color = vec3(0.325f, 0.478f, 0.902f);
 }
@@ -450,7 +455,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		return true;
 	}
 
-	if (screen.state == GameState::MENU) {
+	if (screen.state == GameState::MENU)
+	{
 		glfwSetWindowTitle(window, "Main Menu");
 		return true;
 	}
@@ -589,8 +595,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				tile_vec.push_back(vec2(i, j));
 			}
 
-			if (current_map[j][i] == 1) {
-				//createFloor(renderer, world_pos);
+			if (current_map[j][i] == 1)
+			{
+				// createFloor(renderer, world_pos);
 				tile_vec.push_back(vec2(i, j));
 			}
 
@@ -638,9 +645,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG};
 					spawn_nearby_tile(vec2(i, j), additional_enemies);
 				}
-				createContactSlow(renderer, world_pos);
-				std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG};
-				spawn_nearby_tile(vec2(i, j), additional_enemies);
 				tile_vec.push_back(vec2(i, j));
 			}
 			if (current_map[j][i] == 4 && registry.deadlys.entities.size() < max_num_enemies)
@@ -759,28 +763,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		// tile_vec.push_back(spawnable_tiles[index]);
 	}
 
-	// Spawn Level 3 type enemy: slow ranged enemy
-	next_ranged_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (next_ranged_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
+	// Spawn dashing enemy
+	next_dashing_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (next_dashing_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
 	{
-		next_ranged_spawn = (RANGED_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_SPAWN_DELAY_MS / 2);
-		vec2 ranged_pos;
+		next_dashing_spawn = (DASHING_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (DASHING_ENEMY_SPAWN_DELAY_MS / 2);
+		vec2 dashing_pos;
 		float distance_to_player;
 		float index;
 		do
 		{
 			index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
-			ranged_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
-			distance_to_player = sqrt(pow(ranged_pos.x - player_pos.x, 2) + pow(ranged_pos.y - player_pos.y, 2));
+			dashing_pos = { (640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2) };
+			distance_to_player = sqrt(pow(dashing_pos.x - player_pos.x, 2) + pow(dashing_pos.y - player_pos.y, 2));
 		} while (distance_to_player < 300.f);
-		if (uniform_dist(rng) > 0.5)
-		{
-			createRangedEnemy(renderer, ranged_pos);
-		}
-		else
-		{
-			createRangedHomingEnemy(renderer, ranged_pos);
-		}
+		createDashingEnemy(renderer, dashing_pos);
 		// tile_vec.push_back(spawnable_tiles[index]);
 	}
 
@@ -1024,10 +1021,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 		else
 		{
-			if (!tutorial.dash) {
+			if (!tutorial.dash)
+			{
 				tutorial.dash = true;
 				// add a thing to check for type here
-				for (Entity icon : registry.tutorialIcons.entities) {
+				for (Entity icon : registry.tutorialIcons.entities)
+				{
 					registry.remove_all_components_of(icon);
 				}
 			}
@@ -1053,29 +1052,43 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 	player_controller.step(elapsed_ms_since_last_update);
 
-	if (!tutorial.movement) {
-		if (registry.tutorialIcons.entities.size() == 0) {
+	if (!tutorial.movement)
+	{
+		if (registry.tutorialIcons.entities.size() == 0)
+		{
 			createMovementKeys(renderer, {registry.motions.get(my_player).position.x + 80.f, registry.motions.get(my_player).position.y - 80.f});
 		}
-	} else if (!tutorial.attack) {
-		if (registry.tutorialIcons.entities.size() == 0) {
+	}
+	else if (!tutorial.attack)
+	{
+		if (registry.tutorialIcons.entities.size() == 0)
+		{
 			createAttackCursor(renderer, {registry.motions.get(my_player).position.x + (80.f * registry.players.get(my_player).attack_direction.x), registry.motions.get(my_player).position.y + (80.f * registry.players.get(my_player).attack_direction.y)});
-		} else {
+		}
+		else
+		{
 			Entity attack_cursor = registry.tutorialIcons.entities[0];
 			registry.motions.get(attack_cursor).position = {registry.motions.get(my_player).position.x + (80.f * registry.players.get(my_player).attack_direction.x), registry.motions.get(my_player).position.y + (80.f * registry.players.get(my_player).attack_direction.y)};
 		}
-		
-
-	} else if (!tutorial.dash) {
-		if (tutorial.dash_tut_cur_wait_ms < tutorial.dash_tut_wait_ms) {
+	}
+	else if (!tutorial.dash)
+	{
+		if (tutorial.dash_tut_cur_wait_ms < tutorial.dash_tut_wait_ms)
+		{
 			tutorial.dash_tut_cur_wait_ms += elapsed_ms_since_last_update;
-		} else {
-			if (registry.tutorialIcons.entities.size() == 0) {
-				if (player.is_moving && !player.is_attacking) {
+		}
+		else
+		{
+			if (registry.tutorialIcons.entities.size() == 0)
+			{
+				if (player.is_moving && !player.is_attacking)
+				{
 					// maybe only create when not a certain radius from any enemies... but this would take a bit to check
 					createDashKey(renderer, {registry.motions.get(my_player).position.x + 80.f, registry.motions.get(my_player).position.y - 80.f});
 				}
-			} else {
+			}
+			else
+			{
 				// guaranteed to only have one tutorial icon at a time
 				Entity dash = registry.tutorialIcons.entities[0];
 				registry.motions.get(dash).position = {registry.motions.get(my_player).position.x + 80.f, registry.motions.get(my_player).position.y - 80.f};
@@ -1119,6 +1132,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			break;
 		case ENEMY_TYPES::FINAL_BOSS:
 			enemy_name = "final_boss_";
+			break;
+		case ENEMY_TYPES::DASHING:
+			enemy_name = "slow";
 			break;
 		default:
 			break;
@@ -1291,7 +1307,8 @@ void WorldSystem::restart_game()
 	is_paused = true;
 	unpause();
 	// create experience bar
-	create_experience_bar();
+	vec2 exp_bar_pos = {-0.74f, 0.55f};
+	experience_bar = createExperienceBar(renderer, exp_bar_pos);
 }
 
 // utility functions for dash mvmnt implementation
@@ -1452,6 +1469,10 @@ void WorldSystem::handle_collisions(float step_seconds)
 				Player &player = registry.players.get(my_player);
 				Deadly &deadly = registry.deadlys.get(entity_other);
 
+				if (registry.enemyDashes.has(entity_other)) {
+					registry.enemyDashes.get(entity_other).current_charge_timer = 0.f;
+				}
+
 				float temp_multiplier = 1.f;
 				if (registry.powerups.has(my_player))
 				{
@@ -1462,15 +1483,22 @@ void WorldSystem::handle_collisions(float step_seconds)
 					}
 				}
 
-				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - (damage.damage * temp_multiplier));
+				// damage scales between -0.75 and 1.25
+				float damage_rng = (uniform_dist(rng) / 2) - 0.25;
 
-				createDamageIndicator(renderer, damage.damage, enemy_motion.position);
+				float damage_dealt = (damage.damage + (damage.damage * damage_rng)) * temp_multiplier;
 
-				vec2 diff = enemy_motion.position - pmotion.position;
+				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - damage_dealt);
+
+				std::cout << damage_rng << std::endl;
+
+				createDamageIndicator(renderer, damage_dealt, enemy_motion.position, damage_rng, temp_multiplier);
+
+				vec2 diff = registry.motions.get(entity_other).position - pmotion.position;
 
 				if (!registry.projectiles.has(entity_other) && deadly_health.hit_points > 0)
 				{
-					vec2 kockback_pos = enemy_motion.position + (diff * player.knockback_strength);
+					vec2 kockback_pos = registry.motions.get(entity_other).position + (diff * player.knockback_strength);
 					int grid_x = static_cast<int>((kockback_pos.x - (640 - (25 * TILE_SIZE)) - TILE_SIZE / 2) / TILE_SIZE);
 					int grid_y = static_cast<int>((kockback_pos.y - (640 - (44 * TILE_SIZE)) - TILE_SIZE / 2) / TILE_SIZE);
 					int adjust_x = 0;
@@ -1558,11 +1586,11 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 					if (registry.motions.has(entity_other) && (adjusted_tile == 1 || (adjusted_tile >= 3 && adjusted_tile <= 8)))
 					{
-						vec2 grid_kockback_pos = {(640 - (25 * 100)) + ((grid_x + adjust.x) * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + ((grid_y + adjust.y) * TILE_SIZE) + (TILE_SIZE / 2)};
-						vec2 new_diff = grid_kockback_pos - registry.motions.get(my_player).position;
+						vec2 grid_knockback_pos = {(640 - (25 * 100)) + ((grid_x + adjust.x) * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + ((grid_y + adjust.y) * TILE_SIZE) + (TILE_SIZE / 2)};
+						vec2 new_diff = grid_knockback_pos - registry.motions.get(my_player).position;
 						if (length(new_diff) > length(diff))
 						{
-							enemy_motion.position = grid_kockback_pos;
+							enemy_motion.position = grid_knockback_pos;
 							physics.update_enemy_movement(entity_other, step_seconds);
 							if (registry.pathTimers.has(entity_other))
 							{
@@ -1986,17 +2014,17 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	if (screen.state != GameState::PAUSED)
 		player_controller.on_key(key, action, mod);
 
-
 	// Manage tutorial input responses
 
-	if (player.is_moving && !tutorial.movement) {
-            tutorial.movement = true;
-			for (Entity icon : registry.tutorialIcons.entities) {
-				registry.remove_all_components_of(icon);
-			}
-    }
+	if (player.is_moving && !tutorial.movement)
+	{
+		tutorial.movement = true;
+		for (Entity icon : registry.tutorialIcons.entities)
+		{
+			registry.remove_all_components_of(icon);
+		}
+	}
 
-	
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA)
 	{
@@ -2017,7 +2045,6 @@ void WorldSystem::on_mouse_move(vec2 mouse_position)
 	if (registry.players.entities.size() > 0)
 	{
 		player_controller.on_mouse_move(mouse_position);
-		
 	}
 }
 
@@ -2029,9 +2056,11 @@ void WorldSystem::on_mouse_button(int button, int action, int mods)
 		player_controller.on_mouse_button(button, action, mods);
 
 		// Attack tutorial done
-		if (registry.players.get(my_player).is_attacking && !tutorial.attack) {
+		if (registry.players.get(my_player).is_attacking && !tutorial.attack)
+		{
 			tutorial.attack = true;
-			for (Entity icon : registry.tutorialIcons.entities) {
+			for (Entity icon : registry.tutorialIcons.entities)
+			{
 				// should probably check for type
 				registry.remove_all_components_of(icon);
 			}

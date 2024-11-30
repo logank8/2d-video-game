@@ -114,6 +114,7 @@ private:
 	float next_contact_slow_spawn;
 	float next_contact_fast_spawn;
 	float next_ranged_spawn;
+	float next_dashing_spawn;
 	Entity my_player;
 	Entity hp_bar;
 	Entity stamina_bar;

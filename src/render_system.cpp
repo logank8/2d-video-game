@@ -28,7 +28,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	if (registry.deadlys.has(entity))
 	{
 		Deadly &enemy = registry.deadlys.get(entity);
-		if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG)
+		if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG || enemy.enemy_type == ENEMY_TYPES::DASHING)
 		{
 			transform.scale(vec2(2.5f, 1.6f));
 		}
