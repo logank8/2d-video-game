@@ -187,7 +187,7 @@ struct Ground
 // Door component
 struct Door
 {
-	bool touching = true;
+	bool touching = false;
 };
 
 // Ground component
@@ -484,7 +484,8 @@ enum class TEXTURE_ASSET_ID
 	DASH_KEYS = WASD_KEYS + 1,
 	ATTACK_CURSOR = DASH_KEYS + 1,
 	INTERACT_KEY = ATTACK_CURSOR + 1,
-	TEXTURE_COUNT = INTERACT_KEY + 1
+	PAUSE_KEY = INTERACT_KEY + 1,
+	TEXTURE_COUNT = PAUSE_KEY + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -509,7 +510,8 @@ enum class SPRITE_ASSET_ID
 	WASD_KEYS = WALL + 1,
 	DASH_KEYS = WASD_KEYS + 1,
 	INTERACT_KEY = DASH_KEYS + 1,
-	SPRITE_COUNT = INTERACT_KEY + 1
+	PAUSE_KEY = INTERACT_KEY + 1,
+	SPRITE_COUNT = PAUSE_KEY + 1
 };
 const int sprite_count = (int)SPRITE_ASSET_ID::SPRITE_COUNT;
 

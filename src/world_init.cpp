@@ -2105,3 +2105,40 @@ Entity createAttackCursor(RenderSystem *renderer, vec2 pos)
 
 	return entity;
 }
+
+Entity createPauseKey(RenderSystem *renderer, vec2 pos)
+{
+	auto entity = Entity();
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0;
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2({150, 50});
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
+				 SPRITE_ASSET_ID::PAUSE_KEY,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 0,
+				 RENDER_LAYER::EFFECTS});
+
+	registry.tutorialIcons.emplace(entity);
+
+	std::vector<int> idle_vec = {0, 1};
+	Animation idle = {
+		"idle",
+		2,
+		SPRITE_ASSET_ID::PAUSE_KEY,
+		idle_vec};
+
+	auto &animSet = registry.animationSets.emplace(entity);
+	animSet.animations[idle.name] = idle;
+	animSet.current_animation = idle.name;
+
+	return entity;
+}

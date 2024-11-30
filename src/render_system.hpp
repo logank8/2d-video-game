@@ -88,7 +88,8 @@ class RenderSystem
 		textures_path("tutorial_sprites/wasd.png"), 
 		textures_path("tutorial_sprites/dash.png"),
 		textures_path("tutorial_sprites/attack_cursor.png"),
-		textures_path("tutorial_sprites/interact.png")};
+		textures_path("tutorial_sprites/interact.png"),
+		textures_path("tutorial_sprites/pause.png")};
 
 	std::array<GLuint, effect_count> effects;
 	// Make sure these paths remain in sync with the associated enumerators.

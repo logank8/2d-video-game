@@ -1091,7 +1091,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		else
 		{
 			Entity attack_cursor = registry.tutorialIcons.entities[0];
-			registry.motions.get(attack_cursor).position = {registry.motions.get(my_player).position.x + (80.f * registry.players.get(my_player).attack_direction.x), registry.motions.get(my_player).position.y + (80.f * registry.players.get(my_player).attack_direction.y)};
+			vec2 attack_direction = registry.players.get(my_player).attack_direction;
+			if (registry.players.get(my_player).attack_direction != vec2(0, 0)) {
+				registry.motions.get(attack_cursor).position = {registry.motions.get(my_player).position.x + (80.f * attack_direction.x), registry.motions.get(my_player).position.y + (80.f * attack_direction.y)};
+			}
+			
 		}
 	}
 	else if (!tutorial.dash)
@@ -1120,11 +1124,25 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	} else if (!tutorial.health_buff) {
 		for (Entity e : registry.healthBuffs.entities) {
 			HealthBuff& hb = registry.healthBuffs.get(e);
-			if (hb.touching && registry.tutorialIcons.entities.size() == 0 && registry.healths.get(my_player).hit_points < registry.healths.get(my_player).max_hp) {
+			if (hb.touching && registry.tutorialIcons.entities.size() == 0) {
 				createInteractKey(renderer, {registry.motions.get(e).position.x + 50, registry.motions.get(e).position.y - 50});
 				break;
 			}
 		}
+	} else if (!tutorial.pause) {
+		if (registry.tutorialIcons.entities.size() == 0) {
+			createPauseKey(renderer, {registry.motions.get(my_player).position.x + 100, registry.motions.get(my_player).position.y - 100});
+		} else {
+			Entity pause_key = registry.tutorialIcons.entities[0];
+			registry.motions.get(pause_key).position = {registry.motions.get(my_player).position.x + 100, registry.motions.get(my_player).position.y - 100};
+		}
+	} else if (!tutorial.door) {
+		std::cout << "creating door" << std::endl;
+		if (registry.tutorialIcons.entities.size() == 0 && registry.doors.entities.size() != 0) {
+			if (registry.doors.components[0].touching) {
+				createInteractKey(renderer, {registry.motions.get(my_player).position.x + 60, registry.motions.get(my_player).position.y});
+			}
+		} 
 	}
 
 
@@ -1907,6 +1925,12 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 		if (screen.state != GameState::PAUSED)
 		{
+			if (!tutorial.pause) {
+				tutorial.pause = true;
+				if (tutorial.movement && tutorial.attack && tutorial.dash && tutorial.health_buff) {
+					registry.remove_all_components_of(registry.tutorialIcons.entities[0]);
+				}
+			}
 			pause();
 		}
 		else
@@ -2000,11 +2024,12 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 				}
 				Health &p_health = registry.healths.get(my_player);
 				RenderRequest &hp_bar_render = registry.renderRequests.get(hp_bar);
+				createEffect(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);
 				if (p_health.hit_points < 200)
 				{
 					std::cout << "player regained health" << std::endl;
 					p_health.hit_points += min(buff.factor * 25.f, 200.f - p_health.hit_points);
-					createEffect(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);
+					
 
 					// Total HP bar is 200
 					int hp_level = int(p_health.hit_points / 25);
@@ -2021,6 +2046,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			Door &door = registry.doors.get(e);
 			if (door.touching)
 			{
+				tutorial.door = true;
 				if (current_map == map2)
 				{
 					mapSwitch(3);
