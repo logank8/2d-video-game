@@ -458,12 +458,7 @@ void PlayerController::on_key(int key, int action, int mod)
     }
 }
 
-vec2 mousePosToNormalizedDevice(vec2 mouse_position)
-{
-    float normalized_x = (2.0f * mouse_position.x) / window_width_px - 1.0f;
-    float normalized_y = 1.0f - (2.0f * mouse_position.y) / window_height_px;
-    return vec2(normalized_x, normalized_y);
-}
+
 void PlayerController::on_mouse_move(vec2 mouse_position)
 {
     // Update player attack direction
@@ -480,7 +475,7 @@ void PlayerController::on_mouse_move(vec2 mouse_position)
         {
             auto &ui = registry.userInterfaces.get(entity);
 
-            vec2 mouse_position_ndc = mousePosToNormalizedDevice(mouse_position);
+            vec2 mouse_position_ndc = WorldSystem::mousePosToNormalizedDevice(mouse_position);
 
             // std::cout << mouse_position_ndc.x << ',' << mouse_position_ndc.y <s< std::endl;
 

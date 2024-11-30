@@ -146,6 +146,18 @@ void WorldSystem::stateSwitch(GameState new_state)
 		createMenuScreen(renderer);
 		createElevatorButtons(renderer, 3);
 		break;
+	case (GameState::GAME):
+		while (registry.userInterfaces.entities.size() > 0)
+		{
+			registry.remove_all_components_of(registry.userInterfaces.entities.back());
+		}
+		while (registry.motions.entities.size() > 0)
+		{
+			registry.remove_all_components_of(registry.motions.entities.back());
+		}
+		is_paused = false;
+		restart_game();
+		break;
 	default:
 		return;
 	}
@@ -278,6 +290,13 @@ GLFWwindow *WorldSystem::create_window()
 	}
 
 	return window;
+}
+
+vec2 WorldSystem::mousePosToNormalizedDevice(vec2 mouse_position)
+{
+    float normalized_x = (2.0f * mouse_position.x) / window_width_px - 1.0f;
+    float normalized_y = 1.0f - (2.0f * mouse_position.y) / window_height_px;
+    return vec2(normalized_x, normalized_y);
 }
 
 void WorldSystem::restart_world()
@@ -1094,7 +1113,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				registry.motions.get(dash).position = {registry.motions.get(my_player).position.x + 80.f, registry.motions.get(my_player).position.y - 80.f};
 			}
 		}
+	} else if (!tutorial.health_buff) {
+		for (Entity e : registry.healthBuffs.entities) {
+			HealthBuff& hb = registry.healthBuffs.get(e);
+			if (hb.touching && registry.tutorialIcons.entities.size() == 0) {
+				createInteractKey(renderer, {registry.motions.get(e).position.x + 50, registry.motions.get(e).position.y - 50});
+				break;
+			}
+		}
 	}
+
 
 	for (Entity &e : registry.deadlys.entities)
 	{
@@ -1958,6 +1986,14 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			HealthBuff &buff = registry.healthBuffs.get(e);
 			if (buff.touching)
 			{
+				// first interaction with health buff obj - if the interact key is up get rid of it
+				// if any other keys are up don't get rid of them
+				if (tutorial.movement && tutorial.attack && tutorial.dash && !tutorial.health_buff) {
+					tutorial.health_buff = true;
+					for (Entity e : registry.tutorialIcons.entities) {
+						registry.remove_all_components_of(e);
+					}
+				}
 				Health &p_health = registry.healths.get(my_player);
 				RenderRequest &hp_bar_render = registry.renderRequests.get(hp_bar);
 				if (p_health.hit_points < 200)
@@ -2048,6 +2084,22 @@ void WorldSystem::on_mouse_move(vec2 mouse_position)
 	{
 		player_controller.on_mouse_move(mouse_position);
 	}
+
+	if (screen.state == GameState::MENU) {
+		for (Entity button : registry.elevatorButtons.entities) {
+			 vec2 mouse_position_ndc = mousePosToNormalizedDevice(mouse_position);
+			UserInterface& ui = registry.userInterfaces.get(button);
+
+			if (mouse_position_ndc.x >= ui.position.x - (ui.scale.x / 2) && mouse_position_ndc.x <= ui.position.x + (ui.scale.x / 2) &&
+                mouse_position_ndc.y >= ui.position.y - (-ui.scale.y / 2) && mouse_position_ndc.y <= ui.position.y + (-ui.scale.y / 2)) {
+					
+					registry.elevatorButtons.get(button).hovering = true;
+			} else {
+				registry.elevatorButtons.get(button).hovering = false;
+			}
+			
+		}
+	}
 }
 
 void WorldSystem::on_mouse_button(int button, int action, int mods)
@@ -2065,6 +2117,18 @@ void WorldSystem::on_mouse_button(int button, int action, int mods)
 			{
 				// should probably check for type
 				registry.remove_all_components_of(icon);
+			}
+		}
+	}
+
+	if (screen.state == GameState::MENU) {
+		for (ElevatorButton button : registry.elevatorButtons.components) {
+			if (button.hovering) {
+				if (button.level == 0) {
+					exit(0);
+				}
+				stateSwitch(GameState::GAME);
+				mapSwitch(button.level);
 			}
 		}
 	}

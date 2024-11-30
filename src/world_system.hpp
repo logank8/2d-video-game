@@ -63,6 +63,8 @@ public:
 	static bool is_paused;
 	static bool is_level_up;
 
+	static vec2 mousePosToNormalizedDevice(vec2 mouse_position);
+
 	void pause();
 	void unpause();
 	void set_level_up_state(bool state);

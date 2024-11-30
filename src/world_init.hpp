@@ -185,4 +185,6 @@ Entity createMovementKeys(RenderSystem *renderer, vec2 pos);
 
 Entity createDashKey(RenderSystem *renderer, vec2 pos);
 
+Entity createInteractKey(RenderSystem *renderer, vec2 pos);
+
 Entity createAttackCursor(RenderSystem *renderer, vec2 pos);

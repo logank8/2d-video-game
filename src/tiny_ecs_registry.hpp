@@ -56,6 +56,7 @@ public:
 	ComponentContainer<DamageIndicator> damageIndicators;
 	ComponentContainer<TutorialIcon> tutorialIcons;
 	ComponentContainer<EnemyDash> enemyDashes;
+	ComponentContainer<ElevatorButton> elevatorButtons;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -106,6 +107,7 @@ public:
 		registry_list.push_back(&damageIndicators);
 		registry_list.push_back(&tutorialIcons);
 		registry_list.push_back(&enemyDashes);
+		registry_list.push_back(&elevatorButtons);
 	}
 
 	void clear_all_components()

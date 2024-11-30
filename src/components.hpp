@@ -372,6 +372,12 @@ struct TutorialIcon
 {
 };
 
+struct ElevatorButton
+{
+	int level = 0;
+	bool hovering = false;
+};
+
 struct UpgradeCard
 {
 	int tier = 1;
@@ -477,7 +483,8 @@ enum class TEXTURE_ASSET_ID
 	WASD_KEYS = FLOOR + 1,
 	DASH_KEYS = WASD_KEYS + 1,
 	ATTACK_CURSOR = DASH_KEYS + 1,
-	TEXTURE_COUNT = ATTACK_CURSOR + 1
+	INTERACT_KEY = ATTACK_CURSOR + 1,
+	TEXTURE_COUNT = INTERACT_KEY + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -501,7 +508,8 @@ enum class SPRITE_ASSET_ID
 	WALL = HP_BAR + 1,
 	WASD_KEYS = WALL + 1,
 	DASH_KEYS = WASD_KEYS + 1,
-	SPRITE_COUNT = DASH_KEYS + 1
+	INTERACT_KEY = DASH_KEYS + 1,
+	SPRITE_COUNT = INTERACT_KEY + 1
 };
 const int sprite_count = (int)SPRITE_ASSET_ID::SPRITE_COUNT;
 

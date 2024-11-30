@@ -1876,7 +1876,7 @@ void createElevatorButtons(RenderSystem *renderer, int num_levels)
 			return;
 		}
 
-		createLevelButton(renderer, vec2(top_pos.x, top_pos.y - (0.25 * i)), i);
+		createLevelButton(renderer, vec2(top_pos.x, top_pos.y - (0.25 * i)), num_levels - i + 1);
 		// figure out motion pos and pass to text
 		createText({top_pos_world.x, top_pos_world.y + (90 * (num_levels - i))}, 0.9f, "Level " + std::to_string(num_levels - i + 1), vec3(0.2, 0.2, 0.2));
 	}
@@ -1892,6 +1892,8 @@ Entity createLevelButton(RenderSystem *renderer, vec2 pos, int level)
 	ui.angle = 0.f;
 	ui.position = pos;
 	ui.scale = vec2({0.09, -0.15});
+
+	registry.elevatorButtons.insert(entity, {level});
 
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::LEVEL_BUTTON,
@@ -1912,6 +1914,8 @@ Entity createExitButton(RenderSystem *renderer, vec2 pos)
 	ui.angle = 0.f;
 	ui.position = pos;
 	ui.scale = vec2({0.2, -0.2});
+
+	registry.elevatorButtons.emplace(entity);
 
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::EXIT_BUTTON,
@@ -2030,6 +2034,43 @@ Entity createDashKey(RenderSystem *renderer, vec2 pos)
 		"idle",
 		2,
 		SPRITE_ASSET_ID::WASD_KEYS,
+		idle_vec};
+
+	auto &animSet = registry.animationSets.emplace(entity);
+	animSet.animations[idle.name] = idle;
+	animSet.current_animation = idle.name;
+
+	return entity;
+}
+
+Entity createInteractKey(RenderSystem *renderer, vec2 pos)
+{
+	auto entity = Entity();
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0;
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2({50, 50});
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
+				 SPRITE_ASSET_ID::INTERACT_KEY,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 0,
+				 RENDER_LAYER::EFFECTS});
+
+	registry.tutorialIcons.emplace(entity);
+
+	std::vector<int> idle_vec = {0, 1};
+	Animation idle = {
+		"idle",
+		2,
+		SPRITE_ASSET_ID::INTERACT_KEY,
 		idle_vec};
 
 	auto &animSet = registry.animationSets.emplace(entity);
