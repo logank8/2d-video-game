@@ -1082,7 +1082,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	{
 		if (registry.tutorialIcons.entities.size() == 0)
 		{
-			createAttackCursor(renderer, {registry.motions.get(my_player).position.x + (80.f * registry.players.get(my_player).attack_direction.x), registry.motions.get(my_player).position.y + (80.f * registry.players.get(my_player).attack_direction.y)});
+			vec2 attack_direction = registry.players.get(my_player).attack_direction;
+			if (registry.players.get(my_player).attack_direction == vec2(0, 0)) {
+				attack_direction = vec2(1, 0);
+			}
+			createAttackCursor(renderer, {registry.motions.get(my_player).position.x + (80.f * attack_direction.x), registry.motions.get(my_player).position.y + (80.f * attack_direction.y)});
 		}
 		else
 		{
@@ -1116,7 +1120,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	} else if (!tutorial.health_buff) {
 		for (Entity e : registry.healthBuffs.entities) {
 			HealthBuff& hb = registry.healthBuffs.get(e);
-			if (hb.touching && registry.tutorialIcons.entities.size() == 0) {
+			if (hb.touching && registry.tutorialIcons.entities.size() == 0 && registry.healths.get(my_player).hit_points < registry.healths.get(my_player).max_hp) {
 				createInteractKey(renderer, {registry.motions.get(e).position.x + 50, registry.motions.get(e).position.y - 50});
 				break;
 			}
