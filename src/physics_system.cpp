@@ -950,6 +950,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
 		Entity entity = motion_registry.entities[i];
 		float step_seconds = elapsed_ms / 1000.f;
     if (registry.players.has(entity)) {
+        auto& player = registry.players.get(entity);
         // Updating speed to make sure most recent value is applied to motion
         if (distance({0, 0}, motion.velocity) != 0) {
             motion.velocity = (1 / distance({0, 0}, motion.velocity)) * motion.velocity;
@@ -958,17 +959,19 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
         float temp_multiplier = 1.f;
         if (registry.powerups.has(entity)) {
             Powerup& powerup = registry.powerups.get(entity);
-            if (powerup.type == PowerupType::SPEED_BOOST) {
+            if (powerup.type == PowerupType::SPEED_BOOST && (player.is_dash_up || (!player.is_dash_up && (player.curr_dash_cooldown_ms < (player.dash_cooldown_ms - player.dash_time))))) {
                 temp_multiplier *= powerup.multiplier;
             }
         }
-        auto& player = registry.players.get(entity);
+        
         if (player.slowed_duration_ms <= 0.f) {
             motion.velocity = motion.speed * temp_multiplier * motion.velocity;
         }
         else {
             motion.velocity = motion.speed * motion.velocity * temp_multiplier * player.slowed_amount;
         }
+
+        // PLAYER x SOLID COLLISION HANDLING
 
         // check if new x value will collide with any solid objects
         float new_x = motion.position[0] + (motion.velocity[0] * step_seconds);

@@ -61,6 +61,10 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		}
 	}
 
+	if (registry.walls.has(entity)) {
+		transform.scale(vec2(1.125, 1.125));
+	}
+
 	if (registry.healthBuffs.has(entity))
 	{
 		transform.scale(vec2(2, 2));
@@ -636,7 +640,7 @@ void RenderSystem::draw()
 	// Clearing backbuffer
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
-	glClearColor(GLfloat(120 / 255.0), GLfloat(120 / 255.0), GLfloat(117 / 255.0), 1.0);
+	glClearColor(GLfloat(26 / 255.0), GLfloat(20 / 255.0), GLfloat(15 / 255.0), 1.0);
 	glClearDepth(10.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);

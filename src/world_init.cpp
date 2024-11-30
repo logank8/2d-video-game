@@ -1775,7 +1775,7 @@ Entity createDoor(RenderSystem *renderer, vec2 pos)
 	Camera &camera = registry.cameras.emplace(entity);
 
 	Motion &motion = registry.motions.emplace(entity);
-	motion.position = {pos.x, pos.y - 25};
+	motion.position = {pos.x, pos.y - 10};
 	motion.velocity = {0.f, 0.f};
 	motion.scale = vec2(150, 150);
 
@@ -1941,7 +1941,7 @@ Entity createDamageIndicator(RenderSystem *renderer, int damage, vec2 pos, float
 	return entity;
 }
 
-Entity createFloor(RenderSystem *renderer, vec2 pos)
+Entity createFloor(RenderSystem *renderer)
 {
 	auto entity = Entity();
 	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -1949,10 +1949,10 @@ Entity createFloor(RenderSystem *renderer, vec2 pos)
 
 	// Setting initial motion values
 	Motion &motion = registry.motions.emplace(entity);
-	motion.position = pos;
+	motion.position = {(640 - (25 * 100)) + (100 / 2), (640 - (44 * 100)) + (100 / 2)};
 	motion.angle = 0;
 	motion.velocity = {0.f, 0.f};
-	motion.scale = vec2({100, 100});
+	motion.scale = vec2({56000 * 0.7, 45000 * 0.7});
 
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::FLOOR,

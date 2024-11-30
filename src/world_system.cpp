@@ -1219,6 +1219,8 @@ void WorldSystem::restart_game()
 	// clear spawnable_tiles on map switch
 	spawnable_tiles.clear();
 
+	createFloor(renderer);
+
 	// create a slime patches and create spawnable tiles vector
 	for (int i = 0; i < current_map.size(); i++)
 	{
