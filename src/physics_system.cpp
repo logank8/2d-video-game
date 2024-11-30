@@ -43,6 +43,47 @@ bool collides(const Motion &motion1, const Motion &motion2)
     return false;
 }
 
+// Returns horizontal overlap of bounding boxes
+float horiz_overlap(const Motion &motion1, const Motion &motion2) {
+    float left_1 = motion1.position.x - (abs(motion1.scale.x) / 2);
+    float right_1 = motion1.position.x + (abs(motion1.scale.x) / 2);
+
+    float left_2 = motion2.position.x - (abs(motion2.scale.x) / 2);
+    float right_2 = motion2.position.x + (abs(motion2.scale.x) / 2);
+
+    float overlap = 0;
+
+    if ((left_1 < right_2) && (left_1 > left_2))  {
+        overlap = (abs(right_2 - left_1));
+    } 
+    
+    if ((left_2 < right_1) && (left_2 > left_1)) {
+        overlap = max(overlap, (abs(right_1 - left_2)));
+    }
+
+    return overlap;
+}
+
+float vert_overlap(const Motion &motion1, const Motion &motion2) {
+    float bottom_1 = motion1.position.y - (abs(motion1.scale.y) / 2);
+    float top_1 = motion1.position.y + (abs(motion1.scale.y) / 2);
+
+    float bottom_2 = motion2.position.y - (abs(motion2.scale.y) / 2);
+    float top_2 = motion2.position.y + (abs(motion2.scale.y) / 2);
+
+    float overlap = 0;
+
+    if ((top_1 > bottom_2) && (top_1 < top_2)) {
+        overlap = abs(abs(bottom_2) - abs(top_1));
+    }
+
+    if ((top_2 > bottom_1) && (top_2 < top_1)) {
+        overlap = max(overlap, abs(abs(bottom_1) - abs(top_2)));
+    }
+
+    return overlap;
+}
+
 // use stricter separating axis theorem collision for enemy/player collisions
 bool enemy_player_collides(const Motion& motion1, const Motion& motion2)
 {
@@ -728,6 +769,7 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
 void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current_map)
 {
     map = current_map;
+    std::vector<Entity> collided_solids;
 	// Check for collisions between all moving entities
     ComponentContainer<Motion> &motion_container = registry.motions;
     for (uint i = 0; i < motion_container.components.size(); i++)
@@ -759,8 +801,13 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                             registry.collisions.emplace_with_duplicates(entity_i, entity_j);
                             registry.collisions.emplace_with_duplicates(entity_j, entity_i);
                         }
-                    }
-                    else {
+                    } else if ((registry.solidObjs.has(entity_i) && registry.players.has(entity_j)) || (registry.solidObjs.has(entity_j) && registry.players.has(entity_i))) {
+                        if (registry.solidObjs.has(entity_i)) {
+                            collided_solids.push_back(entity_i);
+                        } else {
+                            collided_solids.push_back(entity_j);
+                        }
+                    } else {
                         // Create a collisions event
                     // We are abusing the ECS system a bit in that we potentially insert multiple collisions for the same entity
                         registry.collisions.emplace_with_duplicates(entity_i, entity_j);
@@ -841,9 +888,47 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
         else {
             motion.velocity = motion.speed * motion.velocity * temp_multiplier * player.slowed_amount;
         }
-        
-		motion.position[0] += motion.velocity[0] * step_seconds;
+
+        // check if new x value will collide with any solid objects
+        float new_x = motion.position[0] + (motion.velocity[0] * step_seconds);
+        Motion new_motion_x = {{new_x, motion.position.y}, motion.angle, motion.velocity, motion.scale, motion.speed};
+        for (Entity solid : registry.solidObjs.entities) {
+            Motion& motion_solid = registry.motions.get(solid);
+
+            // just trying to make it so we're not checking for collision on every single solid object in the scene
+            if (distance(motion_solid.position, motion.position) > 3 * max(abs(motion.scale.x), abs(motion.scale.y))) {
+                continue;
+            }
+
+            if (collides(motion_solid, new_motion_x)) {
+                motion.velocity.x = 0;
+                break;
+            }
+        }
+
+        // update x value
+        motion.position[0] += motion.velocity[0] * step_seconds;
+
+        // check if new y value will collide with any solid objects
+        float new_y = motion.position[1] + (motion.velocity[1] * step_seconds);
+        Motion new_motion_y = {{motion.position.x, new_y}, motion.angle, motion.velocity, motion.scale, motion.speed};
+        for (Entity solid : registry.solidObjs.entities) {
+            Motion& motion_solid = registry.motions.get(solid);
+
+            // just trying to make it so we're not checking for collision on every single solid object in the scene
+            if (distance(motion_solid.position, motion.position) > 3 * max(abs(motion.scale.x), abs(motion.scale.y))) {
+                continue;
+            }
+
+            if (collides(motion_solid, new_motion_y)) {
+                motion.velocity.y = 0;
+                break;
+            }
+        }
+
+        // update y value
 		motion.position[1] += motion.velocity[1] * step_seconds;
+
     } else {
 			//Handle contact damage enemies
 			if (registry.deadlys.has(entity)) {

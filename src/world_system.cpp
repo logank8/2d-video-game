@@ -1412,103 +1412,6 @@ void WorldSystem::handle_collisions(float step_seconds)
 					Mix_PlayChannel(-1, salmon_eat_sound, 0);
 				}
 			}
-			// Checking player collision with solid object
-			if (registry.solidObjs.has(entity_other) || registry.walls.has(entity_other))
-			{
-				Motion &motion_moving = registry.motions.get(entity);
-				Motion &motion_solid = registry.motions.get(entity_other);
-
-				// Temp solution to prevent player from sticking to solid objects - may not work if solid object is really long or tall
-
-				float x_diff = motion_moving.position.x - motion_solid.position.x;
-				float y_diff = motion_moving.position.y - motion_solid.position.y;
-
-				vec2 newpos = {motion_moving.position.x, motion_moving.position.y};
-				vec2 newvelocity = {motion_moving.velocity.x, motion_moving.velocity.y};
-
-				if (x_diff < 0 && abs(x_diff) > abs(y_diff) && motion_moving.velocity.x > 0)
-				{
-					newvelocity.x = 0.f;
-					newpos.x = registry.players.get(entity).last_pos.x;
-				}
-				if (x_diff > 0 && abs(x_diff) > abs(y_diff) && motion_moving.velocity.x < 0)
-				{
-					newvelocity.x = 0.f;
-					newpos.x = registry.players.get(entity).last_pos.x;
-				}
-				// do we need to check for collision again here ?
-
-				if (y_diff < 0 && abs(y_diff) > abs(x_diff) && motion_moving.velocity.y > 0)
-				{
-					newvelocity.y = 0.f;
-					newpos.y = registry.players.get(entity).last_pos.y;
-				}
-				if (y_diff > 0 && abs(y_diff) > abs(x_diff) && motion_moving.velocity.y < 0)
-				{
-					newvelocity.y = 0.f;
-					newpos.y = registry.players.get(entity).last_pos.y;
-				}
-
-				motion_moving.velocity = newvelocity;
-				motion_moving.position = newpos;
-
-				if (!registry.players.get(entity).is_dash_up && (registry.players.get(entity).curr_dash_cooldown_ms) >= 2900.f)
-				{
-					registry.motions.get(entity).speed = 0.f;
-				}
-
-				/*
-				float left_1 = motion_moving.position.x - (abs(motion_moving.scale.x) / 2);
-				float right_1 = motion_moving.position.x + (abs(motion_moving.scale.x) / 2);
-
-				float left_2 = motion_solid.position.x - (abs(motion_solid.scale.x) / 2);
-				float right_2 = motion_solid.position.x + (abs(motion_solid.scale.x) / 2);
-
-				float bottom_1 = motion_moving.position.y - (abs(motion_moving.scale.y) / 2);
-				float top_1 = motion_moving.position.y + (abs(motion_moving.scale.y) / 2);
-
-				float bottom_2 = motion_solid.position.y - (abs(motion_solid.scale.y) / 2);
-				float top_2 = motion_solid.position.y + (abs(motion_solid.scale.y) / 2);
-
-				// float x_diff = max(abs(right_2 - left_1), abs(right_1 - left_2));
-				// float y_diff = max(abs(bottom_2 - top_1), abs(bottom_1 - top_2));
-
-				float x_diff = 2 * (motion_moving.position.x - motion_solid.position.x) / (motion_moving.scale.x + motion_solid.scale.x);
-				float y_diff = 2 * (motion_moving.position.y - motion_solid.position.y) / (motion_moving.scale.y + motion_solid.scale.y);
-
-
-
-				if (abs(x_diff) > abs(y_diff)) {
-
-					if (((left_1 <= right_2) && (left_1 >= left_2))) {
-						// player bounding box left bound overlaps with object box
-						//motion_moving.velocity.x = 0.f;
-						motion_moving.position.x += (right_2 - left_1) + 1;
-
-					}
-					if ((left_2 <= right_1) && (left_2 >= left_1)) {
-						// player bounding box right bound overlaps with object box
-						//motion_moving.velocity.x = 0.f;
-						motion_moving.position.x -= (right_1 - left_2) + 1;
-					}
-				} else {
-
-
-					if ((top_1 >= bottom_2) && (top_1 <= top_2)) {
-						// player bounding box top bound overlaps with object box
-						motion_moving.position.y += (bottom_2 - top_1) + 1;
-						//motion_moving.velocity.y = 0.f;
-					}
-					if ((top_2 >= bottom_1) && (top_2 <= top_1)) {
-						// player bounding box bottom bound overlaps with object box
-						motion_moving.position.y -= (bottom_1 - top_2) + 1;
-						//motion_moving.velocity.y = 0.f;
-
-					}
-
-				}
-				*/
-			}
 			if (registry.stickies.has(entity_other))
 			{
 				Motion &player_motion = registry.motions.get(my_player);
@@ -1989,12 +1892,13 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	// Debugging
 	/*
-	if (key == GLFW_KEY_P)
+	if (key == GLFW_KEY_X)
 	{
 		if (action == GLFW_RELEASE)
 			debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
 	*/
+	
 
 	// player key stuff starts here
 
