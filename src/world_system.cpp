@@ -647,7 +647,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 			if (current_map[j][i] == 3 && registry.deadlys.entities.size() < max_num_enemies)
 			{
-				createRangedHomingEnemy(renderer, world_pos);
 				int encounter = rand() % 3;
 				if (encounter == 0)
 				{
@@ -698,7 +697,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				if (encounter == 0)
 				{
 					createContactFast(renderer, world_pos);
-					createRangedHomingEnemy(renderer, world_pos);
 					std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::RANGED, ENEMY_TYPES::RANGED};
 					spawn_nearby_tile(vec2(i, j), additional_enemies);
 				}
