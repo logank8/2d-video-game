@@ -869,7 +869,7 @@ Entity createUILine(vec2 position, vec2 scale)
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
 				 SPRITE_ASSET_ID::SPRITE_COUNT,
-				 EFFECT_ASSET_ID::COLOURED,
+				 EFFECT_ASSET_ID::EGG,
 				 GEOMETRY_BUFFER_ID::DEBUG_LINE});
 
 	auto &uiComponent = registry.userInterfaces.emplace(entity);
