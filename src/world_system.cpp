@@ -294,9 +294,9 @@ GLFWwindow *WorldSystem::create_window()
 
 vec2 WorldSystem::mousePosToNormalizedDevice(vec2 mouse_position)
 {
-    float normalized_x = (2.0f * mouse_position.x) / window_width_px - 1.0f;
-    float normalized_y = 1.0f - (2.0f * mouse_position.y) / window_height_px;
-    return vec2(normalized_x, normalized_y);
+	float normalized_x = (2.0f * mouse_position.x) / window_width_px - 1.0f;
+	float normalized_y = 1.0f - (2.0f * mouse_position.y) / window_height_px;
+	return vec2(normalized_x, normalized_y);
 }
 
 void WorldSystem::restart_world()
@@ -373,6 +373,7 @@ void WorldSystem::create_experience_bar()
 
 	float bar_offset = (progress * 0.2f);
 	vec2 bar_pos = vec2(-0.94f + bar_offset, 0.53f);
+	// vec2 bar_pos = {-0.74f, 0.55f};
 	experience_bar = createUILine(bar_pos, vec2(progress * 0.4f, 0.04f));
 	vec3 &color = registry.colors.emplace(experience_bar);
 	color = vec3(0.325f, 0.478f, 0.902f);
@@ -793,7 +794,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		do
 		{
 			index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
-			dashing_pos = { (640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2) };
+			dashing_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
 			distance_to_player = sqrt(pow(dashing_pos.x - player_pos.x, 2) + pow(dashing_pos.y - player_pos.y, 2));
 		} while (distance_to_player < 300.f);
 		createDashingEnemy(renderer, dashing_pos);
@@ -1083,7 +1084,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		if (registry.tutorialIcons.entities.size() == 0)
 		{
 			vec2 attack_direction = registry.players.get(my_player).attack_direction;
-			if (registry.players.get(my_player).attack_direction == vec2(0, 0)) {
+			if (registry.players.get(my_player).attack_direction == vec2(0, 0))
+			{
 				attack_direction = vec2(1, 0);
 			}
 			createAttackCursor(renderer, {registry.motions.get(my_player).position.x + (80.f * attack_direction.x), registry.motions.get(my_player).position.y + (80.f * attack_direction.y)});
@@ -1118,30 +1120,42 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				registry.motions.get(dash).position = {registry.motions.get(my_player).position.x + 80.f, registry.motions.get(my_player).position.y - 80.f};
 			}
 		}
-	} else if (!tutorial.health_buff) {
-		for (Entity e : registry.healthBuffs.entities) {
-			HealthBuff& hb = registry.healthBuffs.get(e);
-			if (hb.touching && registry.tutorialIcons.entities.size() == 0) {
+	}
+	else if (!tutorial.health_buff)
+	{
+		for (Entity e : registry.healthBuffs.entities)
+		{
+			HealthBuff &hb = registry.healthBuffs.get(e);
+			if (hb.touching && registry.tutorialIcons.entities.size() == 0)
+			{
 				createInteractKey(renderer, {registry.motions.get(e).position.x + 50, registry.motions.get(e).position.y - 50});
 				break;
 			}
 		}
-	} else if (!tutorial.pause) {
-		if (registry.tutorialIcons.entities.size() == 0) {
+	}
+	else if (!tutorial.pause)
+	{
+		if (registry.tutorialIcons.entities.size() == 0)
+		{
 			createPauseKey(renderer, {registry.motions.get(my_player).position.x + 100, registry.motions.get(my_player).position.y - 100});
-		} else {
+		}
+		else
+		{
 			Entity pause_key = registry.tutorialIcons.entities[0];
 			registry.motions.get(pause_key).position = {registry.motions.get(my_player).position.x + 100, registry.motions.get(my_player).position.y - 100};
 		}
-	} else if (!tutorial.door) {
+	}
+	else if (!tutorial.door)
+	{
 		std::cout << "creating door" << std::endl;
-		if (registry.tutorialIcons.entities.size() == 0 && registry.doors.entities.size() != 0) {
-			if (registry.doors.components[0].touching) {
+		if (registry.tutorialIcons.entities.size() == 0 && registry.doors.entities.size() != 0)
+		{
+			if (registry.doors.components[0].touching)
+			{
 				createInteractKey(renderer, {registry.motions.get(my_player).position.x + 60, registry.motions.get(my_player).position.y});
 			}
-		} 
+		}
 	}
-
 
 	for (Entity &e : registry.deadlys.entities)
 	{
@@ -1518,7 +1532,8 @@ void WorldSystem::handle_collisions(float step_seconds)
 				Player &player = registry.players.get(my_player);
 				Deadly &deadly = registry.deadlys.get(entity_other);
 
-				if (registry.enemyDashes.has(entity_other)) {
+				if (registry.enemyDashes.has(entity_other))
+				{
 					registry.enemyDashes.get(entity_other).current_charge_timer = 0.f;
 				}
 
@@ -1922,9 +1937,11 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 		if (screen.state != GameState::PAUSED)
 		{
-			if (!tutorial.pause) {
+			if (!tutorial.pause)
+			{
 				tutorial.pause = true;
-				if (tutorial.movement && tutorial.attack && tutorial.dash && tutorial.health_buff) {
+				if (tutorial.movement && tutorial.attack && tutorial.dash && tutorial.health_buff)
+				{
 					registry.remove_all_components_of(registry.tutorialIcons.entities[0]);
 				}
 			}
@@ -1981,7 +1998,6 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
 	*/
-	
 
 	// player key stuff starts here
 
@@ -2013,9 +2029,11 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			{
 				// first interaction with health buff obj - if the interact key is up get rid of it
 				// if any other keys are up don't get rid of them
-				if (tutorial.movement && tutorial.attack && tutorial.dash && !tutorial.health_buff) {
+				if (tutorial.movement && tutorial.attack && tutorial.dash && !tutorial.health_buff)
+				{
 					tutorial.health_buff = true;
-					for (Entity e : registry.tutorialIcons.entities) {
+					for (Entity e : registry.tutorialIcons.entities)
+					{
 						registry.remove_all_components_of(e);
 					}
 				}
@@ -2026,7 +2044,6 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 				{
 					std::cout << "player regained health" << std::endl;
 					p_health.hit_points += min(buff.factor * 25.f, 200.f - p_health.hit_points);
-					
 
 					// Total HP bar is 200
 					int hp_level = int(p_health.hit_points / 25);
@@ -2112,19 +2129,23 @@ void WorldSystem::on_mouse_move(vec2 mouse_position)
 		player_controller.on_mouse_move(mouse_position);
 	}
 
-	if (screen.state == GameState::MENU) {
-		for (Entity button : registry.elevatorButtons.entities) {
-			 vec2 mouse_position_ndc = mousePosToNormalizedDevice(mouse_position);
-			UserInterface& ui = registry.userInterfaces.get(button);
+	if (screen.state == GameState::MENU)
+	{
+		for (Entity button : registry.elevatorButtons.entities)
+		{
+			vec2 mouse_position_ndc = mousePosToNormalizedDevice(mouse_position);
+			UserInterface &ui = registry.userInterfaces.get(button);
 
 			if (mouse_position_ndc.x >= ui.position.x - (ui.scale.x / 2) && mouse_position_ndc.x <= ui.position.x + (ui.scale.x / 2) &&
-                mouse_position_ndc.y >= ui.position.y - (-ui.scale.y / 2) && mouse_position_ndc.y <= ui.position.y + (-ui.scale.y / 2)) {
-					
-					registry.elevatorButtons.get(button).hovering = true;
-			} else {
+				mouse_position_ndc.y >= ui.position.y - (-ui.scale.y / 2) && mouse_position_ndc.y <= ui.position.y + (-ui.scale.y / 2))
+			{
+
+				registry.elevatorButtons.get(button).hovering = true;
+			}
+			else
+			{
 				registry.elevatorButtons.get(button).hovering = false;
 			}
-			
 		}
 	}
 }
@@ -2148,10 +2169,14 @@ void WorldSystem::on_mouse_button(int button, int action, int mods)
 		}
 	}
 
-	if (screen.state == GameState::MENU) {
-		for (ElevatorButton button : registry.elevatorButtons.components) {
-			if (button.hovering) {
-				if (button.level == 0) {
+	if (screen.state == GameState::MENU)
+	{
+		for (ElevatorButton button : registry.elevatorButtons.components)
+		{
+			if (button.hovering)
+			{
+				if (button.level == 0)
+				{
 					exit(0);
 				}
 				stateSwitch(GameState::GAME);

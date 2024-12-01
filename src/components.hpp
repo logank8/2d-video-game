@@ -80,7 +80,7 @@ struct Player
 	// Other
 	float collection_distance = 100.f;
 	float experience_multiplier = 1.0f;
-	int experience = 0;
+	int experience = 1;
 	int toNextLevel = 5;
 	int level = 0;
 };

@@ -323,7 +323,7 @@ void PlayerController::step(float elapsed_ms_since_last_update)
 
             player.experience += (collectible_experience.experience * player.experience_multiplier);
 
-            if (player.experience >= player.toNextLevel)
+            if (player.experience >= player.toNextLevel && !registry.deathTimers.has(*my_player))
             {
                 player.level++;
 
@@ -358,6 +358,7 @@ void PlayerController::displayStatCard()
     float y = 475;
 
     std::vector<std::pair<std::string, float>> attack_stats = {
+        {"Level: ", player.level},
         {"Attack: ", player.damage_multiplier},
         {"Area: ", player.attack_size},
         {"Dash CD: ", player.dash_cooldown_ms}};
@@ -632,7 +633,7 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
                 return;
             }
         }
-        
+
         for (Entity entity : registry.upgradeCards.entities)
         {
             auto &upgradeCardComponent = registry.upgradeCards.get(entity);
@@ -653,27 +654,5 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
                 }
             }
         }
-
-        // std::cout << registry.selectedCards.entities.size() << std::endl;
-
-        // for (Entity entity : registry.selectedCards.entities)
-        // {
-        //     auto &upgradeCardComponent = registry.upgradeCards.get(entity);
-
-        //     upgradeCardComponent.onClick();
-
-        //     for (Entity entity : registry.upgradeCards.entities)
-        //     {
-        //         auto &upgradeCardComponent = registry.upgradeCards.get(entity);
-
-        //         registry.remove_all_components_of(upgradeCardComponent.icon);
-        //         registry.remove_all_components_of(upgradeCardComponent.name);
-        //         registry.remove_all_components_of(upgradeCardComponent.description);
-        //         registry.remove_all_components_of(entity);
-        //     }
-
-        //     world->set_level_up_state(false);
-        //     break;
-        // }
     }
 }

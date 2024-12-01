@@ -61,7 +61,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		}
 	}
 
-	if (registry.walls.has(entity)) {
+	if (registry.walls.has(entity))
+	{
 		transform.scale(vec2(1.125, 1.125));
 	}
 
@@ -184,7 +185,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			glUniform2f(uv_scale_loc, (u1 - u0), (v1 - v0));
 		}
 	}
-	else if (render_request.used_effect == EFFECT_ASSET_ID::SALMON || render_request.used_effect == EFFECT_ASSET_ID::EGG)
+	else if (render_request.used_effect == EFFECT_ASSET_ID::SALMON || render_request.used_effect == EFFECT_ASSET_ID::EGG || render_request.used_effect == EFFECT_ASSET_ID::EGG)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_color_loc = glGetAttribLocation(program, "in_color");
@@ -319,10 +320,11 @@ void RenderSystem::drawScreenSpaceObject(Entity entity)
 	UserInterface &userInterface = registry.userInterfaces.get(entity);
 
 	mat3 screen_projection = mat3(1.0f); // Identity for 2D rendering
-	screen_projection[0][0] = userInterface.scale.x;
-	screen_projection[1][1] = userInterface.scale.y;
-	screen_projection[2][0] = userInterface.position.x;
-	screen_projection[2][1] = userInterface.position.y;
+
+	Transform transform;
+	transform.translate(userInterface.position);
+	transform.scale(userInterface.scale);
+	transform.rotate(userInterface.angle);
 
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest &render_request = registry.renderRequests.get(entity);
@@ -337,8 +339,6 @@ void RenderSystem::drawScreenSpaceObject(Entity entity)
 	assert(render_request.used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
 	const GLuint vbo = vertex_buffers[(GLuint)render_request.used_geometry];
 	const GLuint ibo = index_buffers[(GLuint)render_request.used_geometry];
-
-	mat3 transform = mat3(1.0f);
 
 	// Setting vertex and index buffers
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
