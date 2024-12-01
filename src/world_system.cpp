@@ -546,8 +546,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	{
 		Powerup &powerup = registry.powerups.get(my_player);
 		powerup.timer -= elapsed_ms_since_last_update;
-		float x = 80;
-		float y = 500;
+		float x = 30;
+		float y = 480;
 
 		std::string powerup_name = "";
 		if (powerup.type == PowerupType::DAMAGE_BOOST)
@@ -558,8 +558,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			powerup_name = "Invincibility";
 
 		
-		createText({x, y}, 0.5f, "Powerup active: " + powerup_name + (powerup.multiplier < 1.02f ? "" : " with multiplier x" + floatToString1DP(powerup.multiplier)), {1.f, 1.f, 1.f});
-		createClock(renderer, { -0.93f, 0.42f }, POWERUP_TIMER, powerup.timer);
+		createText({x, y}, 0.5f, "Powerup active: " + powerup_name + (powerup.multiplier < 1.02f ? "" : " with multiplier x" + floatToString1DP(powerup.multiplier)) + " for " + std::to_string((int)std::ceil(powerup.timer / 1000)) + "s", {1.f, 1.f, 1.f});
 		if (powerup.timer < 0)
 		{
 			registry.powerups.remove(my_player);

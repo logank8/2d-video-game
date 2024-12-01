@@ -2064,32 +2064,3 @@ Entity createAttackCursor(RenderSystem *renderer, vec2 pos)
 
 	return entity;
 }
-
-Entity createClock(RenderSystem* renderer, vec2 pos, float capacity, float value) {
-	auto entity = Entity();
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Setting initial motion values
-	auto& ui = registry.userInterfaces.emplace(entity);
-	ui.position = pos;
-	ui.angle = 0;
-	ui.scale = vec2({ 0.14, -0.14 });
-
-	float percentage = std::max(value / capacity, 0.f);
-
-	int index = std::ceil(percentage * 11);
-
-	std::cout << "Displaying clock index: " << index << std::endl;
-
-	registry.renderRequests.insert(
-		entity, { TEXTURE_ASSET_ID::TEXTURE_COUNT,
-				 SPRITE_ASSET_ID::CLOCK,
-				 EFFECT_ASSET_ID::TEXTURED,
-				 GEOMETRY_BUFFER_ID::SPRITE,
-				 index
-		});
-
-	registry.debugComponents.emplace(entity);
-	return entity;
-}
