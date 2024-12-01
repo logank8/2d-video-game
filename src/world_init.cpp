@@ -1190,111 +1190,111 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos, int type)
 	TEXTURE_ASSET_ID texture;
 
 	// Selecting asset and scale based on furniture type
-	if (type == 2)
+	if (type == 20)
 	{
 		motion.scale = vec2({PLANT_BB_WIDTH, PLANT_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::PLANT;
 	}
-	else if (type == 9)
+	else if (type == 21)
 	{
 		motion.scale = vec2({COAT_RACK_BB_WIDTH, COAT_RACK_BB_HEIGHT});
 		motion.position.y += 50.f;
 		texture = TEXTURE_ASSET_ID::COAT_RACK;
 	}
-	else if (type == 10)
+	else if (type == 22)
 	{
 		motion.scale = vec2({LONG_TABLE_BB_WIDTH, LONG_TABLE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::FURNITURE;
 	}
-	else if (type == 11)
+	else if (type == 23)
 	{
 		motion.scale = vec2({CHAIR_FRONT_BB_WIDTH, CHAIR_FRONT_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::CHAIR_FRONT;
 	}
-	else if (type == 12)
+	else if (type == 24)
 	{
 		motion.scale = vec2({CHAIR_BACK_BB_WIDTH, CHAIR_BACK_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::CHAIR_BACK;
 		motion.position.y -= 20;
 	}
-	else if (type == 13)
+	else if (type == 25)
 	{
 		motion.scale = vec2({CHAIR_SIDE_BB_WIDTH, CHAIR_SIDE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::CHAIR_SIDE;
 	}
-	else if (type == 14)
+	else if (type == 26)
 	{
 		motion.scale = vec2({-CHAIR_SIDE_BB_WIDTH, CHAIR_SIDE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::CHAIR_SIDE;
 	}
-	else if (type == 15)
+	else if (type == 27)
 	{
 		motion.scale = vec2({KITCHEN_COUNTER_1_BB_WIDTH, KITCHEN_COUNTER_1_BB_HEIGHT});
 		motion.position.x += 50;
 		motion.position.y += 17;
 		texture = TEXTURE_ASSET_ID::KITCHEN_COUNTER_1;
 	}
-	else if (type == 16)
+	else if (type == 28)
 	{
 		motion.scale = vec2({KITCHEN_COUNTER_2_BB_WIDTH, KITCHEN_COUNTER_2_BB_HEIGHT});
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::KITCHEN_COUNTER_2;
 	}
-	else if (type == 17)
+	else if (type == 29)
 	{
 		motion.scale = vec2({FRIDGE_BB_WIDTH, FRIDGE_BB_HEIGHT});
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::FRIDGE;
 	}
-	else if (type == 18)
+	else if (type == 30)
 	{
 		motion.scale = vec2({STOVE_BB_WIDTH, STOVE_BB_HEIGHT});
 		motion.position.y += 17;
 		texture = TEXTURE_ASSET_ID::STOVE;
 	}
-	else if (type == 19)
+	else if (type == 31)
 	{
 		motion.scale = vec2({BOOK_CASE_BB_WIDTH, BOOK_CASE_BB_HEIGHT});
 		motion.position.x += 50;
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::BOOK_CASE;
 	}
-	else if (type == 20)
+	else if (type == 32)
 	{
 		motion.scale = vec2({COFFEE_TABLE_BB_WIDTH, COFFEE_TABLE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::COFFEE_TABLE;
 	}
-	else if (type == 21)
+	else if (type == 33)
 	{
 		motion.scale = vec2({COUCH_BB_WIDTH, COUCH_BB_HEIGHT});
 		motion.position.x += 50;
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::COUCH;
 	}
-	else if (type == 22)
+	else if (type == 34)
 	{
 		motion.scale = vec2({DRESSER_BB_WIDTH, DRESSER_BB_HEIGHT});
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::DRESSER;
 	}
-	else if (type == 23)
+	else if (type == 35)
 	{
 		motion.scale = vec2({GRANDFATHER_CLOCK_BB_WIDTH, GRANDFATHER_CLOCK_BB_HEIGHT});
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::GRANDFATHER_CLOCK;
 	}
-	else if (type == 24)
+	else if (type == 36)
 	{
 		motion.scale = vec2({LAMP_BB_WIDTH, LAMP_BB_HEIGHT});
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::LAMP;
 	}
-	else if (type == 25)
+	else if (type == 37)
 	{
 		motion.scale = vec2({ROUND_TABLE_BB_WIDTH, ROUND_TABLE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::ROUND_TABLE;
 	}
-	else if (type == 26)
+	else if (type == 38)
 	{
 		motion.scale = vec2({SIDE_TABLE_BB_WIDTH, SIDE_TABLE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::SIDE_TABLE;

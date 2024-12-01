@@ -621,17 +621,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			}
 
 			// furniture spawning
-			if (current_map[j][i] == 2 || (current_map[j][i] >= 9 && current_map[j][i] <= 26))
+			if (current_map[j][i] >= 20 && current_map[j][i] <= 38)
 			{
-				// if (current_map[j][i] == 2 && current_map[j - 1][i] != current_map[j][i] && current_map[j][i-1] != current_map[j][i]) {
+				// if (current_map[j][i] == 20 && current_map[j - 1][i] != current_map[j][i] && current_map[j][i-1] != current_map[j][i]) {
 				//	// add 2 while loops here to find furniture size
 				//	int horiz_idx = 1;
 				//	int vert_idx = 1;
-				//	while (current_map[j + vert_idx][i] == 2)
+				//	while (current_map[j + vert_idx][i] == 20)
 				//	{
 				//		vert_idx += 1;
 				//	}
-				//	while (current_map[j][i + horiz_idx] == 2)
+				//	while (current_map[j][i + horiz_idx] == 20)
 				//	{
 				//		horiz_idx += 1;
 				//	}
@@ -1299,7 +1299,7 @@ void WorldSystem::restart_game()
 		{
 			vec2 world_pos = {(640 - (25 * 100)) + (j * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (i * TILE_SIZE) + (TILE_SIZE / 2)};
 
-			if (current_map[i][j] == 30)
+			if (current_map[i][j] == 10)
 			{
 				createBossEnemy(renderer, world_pos);
 			}

@@ -272,30 +272,22 @@ bool is_walkable(const vec2 &pos, vec2 dir)
     if (dir == diagonals[0]) {  // Moving top-right
         if (map[grid_y][grid_x - 1] == -1 || map[grid_y - 1][grid_x] == -1) return false;
         if (map[grid_y][grid_x - 1] == 0 || map[grid_y - 1][grid_x] == 0) return false;
-        if (map[grid_y][grid_x - 1] == 2 || map[grid_y - 1][grid_x] == 2) return false;
-        if (map[grid_y][grid_x - 1] == 9 || map[grid_y - 1][grid_x] == 9) return false;
-        if ((map[grid_y][grid_x - 1] >= 10 && map[grid_y][grid_x - 1] <= 26) || (map[grid_y - 1][grid_x] >= 2 && map[grid_y - 1][grid_x] <= 26)) return false;
+        if ((map[grid_y][grid_x - 1] >= 20 && map[grid_y][grid_x - 1] <= 38) || (map[grid_y - 1][grid_x] >= 20 && map[grid_y - 1][grid_x] <= 38)) return false;
     }
     else if (dir == diagonals[1]) {  // Moving top-left
         if (map[grid_y][grid_x + 1] == -1 || map[grid_y - 1][grid_x] == -1) return false;
         if (map[grid_y][grid_x + 1] == 0 || map[grid_y - 1][grid_x] == 0) return false;
-        if (map[grid_y][grid_x + 1] == 2 || map[grid_y - 1][grid_x] == 2) return false;
-        if (map[grid_y][grid_x + 1] == 9 || map[grid_y - 1][grid_x] == 9) return false;
-        if ((map[grid_y][grid_x + 1] >= 10 && map[grid_y][grid_x + 1] <= 26) || (map[grid_y - 1][grid_x] >= 2 && map[grid_y - 1][grid_x] <= 9)) return false;
+        if ((map[grid_y][grid_x + 1] >= 20 && map[grid_y][grid_x + 1] <= 38) || (map[grid_y - 1][grid_x] >= 20 && map[grid_y - 1][grid_x] <= 38)) return false;
     }
     else if (dir == diagonals[2]) {  // Moving bottom-right
         if (map[grid_y + 1][grid_x] == -1 || map[grid_y + 1][grid_x] == -1) return false;
         if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x - 1] == 0) return false;
-        if (map[grid_y + 1][grid_x] == 2 || map[grid_y][grid_x - 1] == 2) return false;
-        if (map[grid_y + 1][grid_x] == 9 || map[grid_y + 1][grid_x] == 9) return false;
-        if ((map[grid_y][grid_x + 1] >= 10 && map[grid_y + 1][grid_x] <= 26) || (map[grid_y + 1][grid_x] >= 2 && map[grid_y + 1][grid_x] <= 26)) return false;
+        if ((map[grid_y][grid_x + 1] >= 20 && map[grid_y + 1][grid_x] <= 38) || (map[grid_y + 1][grid_x] >= 20 && map[grid_y + 1][grid_x] <= 38)) return false;
     }
     else if (dir == diagonals[3]) {  // Moving bottom-left
         if (map[grid_y + 1][grid_x] == -1 || map[grid_y][grid_x + 1] == -1) return false;
         if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x + 1] == 0) return false;
-        if (map[grid_y + 1][grid_x] == 2 || map[grid_y][grid_x + 1] == 2) return false;
-        if (map[grid_y + 1][grid_x] == 9 || map[grid_y][grid_x + 1] == 9) return false;
-        if ((map[grid_y][grid_x + 1] >= 10 && map[grid_y + 1][grid_x] <= 26) || (map[grid_y][grid_x + 1] >= 2 && map[grid_y][grid_x + 1] <= 26)) return false;
+        if ((map[grid_y][grid_x + 1] >= 20 && map[grid_y + 1][grid_x] <= 38) || (map[grid_y][grid_x + 1] >= 20 && map[grid_y][grid_x + 1] <= 38)) return false;
     }
 
     return map[grid_y][grid_x] == 1 || (map[grid_y][grid_x] >= 3 && map[grid_y][grid_x] <= 8);
