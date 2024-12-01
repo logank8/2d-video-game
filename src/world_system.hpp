@@ -36,6 +36,16 @@ public:
 	// Check for collisions
 	void handle_collisions(float step_seconds);
 
+	// music references
+	Mix_Music *background_music;
+	Mix_Chunk *button_click_sound;
+	Mix_Chunk *salmon_eat_sound;
+	Mix_Chunk *player_damage_sound;
+	Mix_Chunk *enemy_damage_sound;
+	Mix_Chunk *level_up_sound;
+	Mix_Chunk *door_sound;
+
+
 	struct Tutorial {
 		bool movement; // movement keys appear at the immediate start
 		bool attack; // attack arrow appears when in proximity to enemy - maybe pause enemies here or something idk
@@ -124,11 +134,6 @@ private:
 	Entity camera;
 
 	PlayerController player_controller;
-
-	// music references
-	Mix_Music *background_music;
-	Mix_Chunk *salmon_dead_sound;
-	Mix_Chunk *salmon_eat_sound;
 
 	// C++ random number generator
 	std::default_random_engine rng;

@@ -177,10 +177,19 @@ WorldSystem::~WorldSystem()
 	// destroy music components
 	if (background_music != nullptr)
 		Mix_FreeMusic(background_music);
-	if (salmon_dead_sound != nullptr)
-		Mix_FreeChunk(salmon_dead_sound);
+	if (button_click_sound != nullptr)
+		Mix_FreeChunk(button_click_sound);
 	if (salmon_eat_sound != nullptr)
 		Mix_FreeChunk(salmon_eat_sound);
+	if (player_damage_sound != nullptr)
+		Mix_FreeChunk(player_damage_sound);
+	if (enemy_damage_sound != nullptr)
+		Mix_FreeChunk(enemy_damage_sound);
+	if (level_up_sound != nullptr)
+		Mix_FreeChunk(level_up_sound);
+	if (door_sound != nullptr)
+		Mix_FreeChunk(door_sound);
+
 
 	Mix_CloseAudio();
 
@@ -277,10 +286,14 @@ GLFWwindow *WorldSystem::create_window()
 	}
 
 	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
-	salmon_dead_sound = Mix_LoadWAV(audio_path("death_sound.wav").c_str());
+	button_click_sound = Mix_LoadWAV(audio_path("click.wav").c_str());
 	salmon_eat_sound = Mix_LoadWAV(audio_path("eat_sound.wav").c_str());
+	player_damage_sound = Mix_LoadWAV(audio_path("damage.wav").c_str());
+	enemy_damage_sound = Mix_LoadWAV(audio_path("enemy_damage.wav").c_str());
+	level_up_sound = Mix_LoadWAV(audio_path("level_up_select.wav").c_str());
+	door_sound = Mix_LoadWAV(audio_path("door.wav").c_str());
 
-	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr)
+	if (background_music == nullptr || button_click_sound == nullptr || salmon_eat_sound == nullptr || player_damage_sound == nullptr || enemy_damage_sound == nullptr || level_up_sound == nullptr)
 	{
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
 				audio_path("music.wav").c_str(),
@@ -1429,6 +1442,8 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 					// player takes damage
 					player_hp -= registry.damages.get(entity_other).damage;
+					// damage sound
+					Mix_PlayChannel(-1, player_damage_sound, 0);
 					// avoid negative hp values for hp bar
 					player_hp = max(0.f, player_hp);
 					// modify hp bar
@@ -1557,6 +1572,9 @@ void WorldSystem::handle_collisions(float step_seconds)
 				// std::cout << damage_rng << std::endl;
 
 				createDamageIndicator(renderer, damage_dealt, enemy_motion.position, damage_rng, temp_multiplier);
+
+				// play enemy damage sound
+				Mix_PlayChannel(-1, enemy_damage_sound, 0);
 
 				vec2 diff = registry.motions.get(entity_other).position - pmotion.position;
 
@@ -2060,6 +2078,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			Door &door = registry.doors.get(e);
 			if (door.touching)
 			{
+				Mix_PlayChannel(-1, door_sound, 0);
 				tutorial.door = true;
 				if (current_map == map2)
 				{
@@ -2175,6 +2194,7 @@ void WorldSystem::on_mouse_button(int button, int action, int mods)
 		{
 			if (button.hovering)
 			{
+				Mix_PlayChannel(-1, button_click_sound, 0);
 				if (button.level == 0)
 				{
 					exit(0);

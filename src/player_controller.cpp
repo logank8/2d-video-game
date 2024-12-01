@@ -612,6 +612,9 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
 
                 upgradeCardComponent.onClick();
 
+                // Play upgrade sound
+                Mix_PlayChannel(-1, world->level_up_sound, 0);
+
                 for (Entity entity : registry.upgradeCards.entities)
                 {
                     auto &upgradeCardComponent = registry.upgradeCards.get(entity);
@@ -642,6 +645,9 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
             if (upgradeCardComponent.hovering && !registry.selectedCards.has(entity))
             {
                 // std::cout << "selected a card" << std::endl;
+                // Play click button sound
+                Mix_PlayChannel(-1, world->button_click_sound, 0);
+
                 registry.selectedCards.emplace(entity);
                 uiComponent.scale = upgradeCardComponent.original_scale * vec2(1.03f, 1.03f);
             }

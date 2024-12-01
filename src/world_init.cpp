@@ -723,7 +723,6 @@ Entity createDashingEnemy(RenderSystem *renderer, vec2 position)
 	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({24, 24});
 
-	// Create an (empty) Bug component to be able to refer to all bug
 	Deadly &deadly = registry.deadlys.emplace(entity);
 	deadly.enemy_type = ENEMY_TYPES::DASHING;
 	registry.enemyDashes.emplace(entity);
