@@ -217,3 +217,5 @@ Entity createAttackCursor(RenderSystem *renderer, vec2 pos);
 Entity createPauseKey(RenderSystem *renderer, vec2 pos);
 
 Entity createTenant(RenderSystem *renderer, vec2 pos);
+
+Entity createDialogueBox(RenderSystem *renderer);

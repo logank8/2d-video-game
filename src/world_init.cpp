@@ -2249,3 +2249,29 @@ Entity createTenant(RenderSystem *renderer, vec2 pos) {
 
 	return entity;
 }
+
+Entity createDialogueBox(RenderSystem *renderer) {
+	auto entity = Entity();
+
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = {window_width_px / 2, 50};
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2(0.1, 0.1);
+
+	UserInterface &ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = {0, -0.7};
+	ui.scale = vec2({2.0, -0.5});
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::DIALOGUE_BOX,
+				 SPRITE_ASSET_ID::SPRITE_COUNT,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 -1,
+				 RENDER_LAYER::EFFECTS});
+
+	registry.dialogueBoxes.emplace(entity);
+
+	return entity;
+}

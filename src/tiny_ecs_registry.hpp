@@ -59,6 +59,7 @@ public:
 	ComponentContainer<EnemyDash> enemyDashes;
 	ComponentContainer<ElevatorButton> elevatorButtons;
 	ComponentContainer<Tenant> tenants;
+	ComponentContainer<DialogueBox> dialogueBoxes;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -112,6 +113,7 @@ public:
 		registry_list.push_back(&enemyDashes);
 		registry_list.push_back(&elevatorButtons);
 		registry_list.push_back(&tenants);
+		registry_list.push_back(&dialogueBoxes);
 	}
 
 	void clear_all_components()

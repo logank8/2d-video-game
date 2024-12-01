@@ -390,7 +390,11 @@ struct ElevatorDisplay
 	 - 0    -> exit
 	 - >= 1 -> level
 	*/
-}
+};
+
+struct DialogueBox 
+{
+};
 
 struct UpgradeCard
 {
@@ -518,7 +522,8 @@ enum class TEXTURE_ASSET_ID
 	HOMING_ENEMY = UPGRADE_ICONS + 1,
 	DASHING_ENEMY = HOMING_ENEMY + 1,
 	SLOWING_ENEMY = DASHING_ENEMY + 1,
-	TEXTURE_COUNT = SLOWING_ENEMY + 1
+	DIALOGUE_BOX = SLOWING_ENEMY + 1,
+	TEXTURE_COUNT = DIALOGUE_BOX + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

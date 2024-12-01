@@ -2125,6 +2125,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 					// player's first time speaking to tenant - freeze player movement/attack
 					if (tenant.dialogue_progress == -1) {
 						cutscene = true;
+						createDialogueBox(renderer);
 					} 
 					tenant.dialogue_progress += 1;
 
@@ -2133,10 +2134,13 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 					}
 					// TODO: temporary position - change to dialogue box later
 					if (tenant.dialogue_progress < int(tenant.dialogues.size())) {
-						Entity text = createText({40, 25}, 0.7, tenant.dialogues[tenant.dialogue_progress], vec3(1.0, 1.0, 1.0));
+						Entity text = createText({40, 120}, 0.7, tenant.dialogues[tenant.dialogue_progress], vec3(1.0, 1.0, 1.0));
 						registry.debugComponents.remove(text);
 					} else {
 						cutscene = false;
+						while (registry.dialogueBoxes.size() != 0) {
+							registry.remove_all_components_of(registry.dialogueBoxes.entities.back());
+						}
 					}
 				} else if (tenant.dialogue_progress < int(tenant.dialogues.size() + tenant.extra_dialogues.size())) {
 					while (registry.texts.size() != 0) {
@@ -2145,12 +2149,18 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 					if (cutscene) {
 						cutscene = false;
+						while (registry.dialogueBoxes.size() != 0) {
+							registry.remove_all_components_of(registry.dialogueBoxes.entities.back());
+						}
 						tenant.dialogue_progress += 1;
 					} else {
-						Entity text = createText({40, 25}, 0.7, tenant.extra_dialogues[tenant.dialogue_progress - int(tenant.dialogues.size())], vec3(1.0, 1.0, 1.0));
+						Entity text = createText({40, 120}, 0.7, tenant.extra_dialogues[tenant.dialogue_progress - int(tenant.dialogues.size())], vec3(1.0, 1.0, 1.0));
 						registry.debugComponents.remove(text);
 						cutscene = true;
+						createDialogueBox(renderer);
 					}
+				} else {
+					createEffect(renderer, {registry.motions.get(e).position.x, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);
 				}
 			}
 
