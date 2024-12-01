@@ -654,7 +654,7 @@ Entity createSlowingEnemy(RenderSystem *renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({EEL_BB_WIDTH * sign(motion.velocity.x), EEL_BB_HEIGHT});
+	motion.scale = vec2({24, 24});
 
 	// create an empty Eel component to be able to refer to all eels
 	Deadly &deadly = registry.deadlys.emplace(entity);
@@ -663,15 +663,13 @@ Entity createSlowingEnemy(RenderSystem *renderer, vec2 position)
 	auto &damage = registry.damages.emplace(entity);
 	// TODO: adjust	 damage amounts
 	damage.damage = 25.0;
-	auto &color = registry.colors.emplace(entity);
-	color = vec3(0, 0, 50.f);
 	auto &slows = registry.slows.emplace(entity);
 	slows.speed_dec = 0.5;
 	slows.duration = 1000.f;
 	registry.renderRequests.insert(
 		entity,
 		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
-		 SPRITE_ASSET_ID::SLIME,
+		 SPRITE_ASSET_ID::SLOWING_ENEMY,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 1,
@@ -681,21 +679,21 @@ Entity createSlowingEnemy(RenderSystem *renderer, vec2 position)
 	Animation idle_f = {
 		"fastenemy_idle_f",
 		2,
-		SPRITE_ASSET_ID::SLIME,
+		SPRITE_ASSET_ID::SLOWING_ENEMY,
 		idle_f_vec};
 
-	std::vector<int> run_f_vec = {10, 11, 12, 13, 14};
+	std::vector<int> run_f_vec = {4, 5, 6, 7};
 	Animation run_f = {
 		"fastenemy_run_f",
-		8,
-		SPRITE_ASSET_ID::SLIME,
+		13,
+		SPRITE_ASSET_ID::SLOWING_ENEMY,
 		run_f_vec};
 
-	std::vector<int> die_vec = {1, 2, 3, 4, 4};
+	std::vector<int> die_vec = {8, 9, 10};
 	Animation die = {
 		"fastenemy_die",
-		7,
-		SPRITE_ASSET_ID::SLIME,
+		5,
+		SPRITE_ASSET_ID::SLOWING_ENEMY,
 		die_vec};
 
 	auto &animSet = registry.animationSets.emplace(entity);
@@ -723,7 +721,7 @@ Entity createDashingEnemy(RenderSystem *renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ENEMY_1_BB_WIDTH * sign(motion.velocity.x), ENEMY_1_BB_HEIGHT});
+	motion.scale = vec2({24, 24});
 
 	// Create an (empty) Bug component to be able to refer to all bug
 	Deadly &deadly = registry.deadlys.emplace(entity);
@@ -731,36 +729,34 @@ Entity createDashingEnemy(RenderSystem *renderer, vec2 position)
 	registry.enemyDashes.emplace(entity);
 	registry.healths.emplace(entity);
 	registry.damages.emplace(entity);
-	auto &color = registry.colors.emplace(entity);
-	color = vec3(0, 0.3f, 0);
 	registry.renderRequests.insert(
 		entity,
-		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
-		 SPRITE_ASSET_ID::SKELETON,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 SPRITE_ASSET_ID::DASHING_ENEMY,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 1,
 		 RENDER_LAYER::CREATURES});
 
-	std::vector<int> idle_f_vec = {0, 1, 2, 3, 4, 5};
+	std::vector<int> idle_f_vec = {0, 1};
 	Animation idle_f = {
 		"slowenemy_idle_f",
-		15,
-		SPRITE_ASSET_ID::SKELETON,
+		2,
+		SPRITE_ASSET_ID::DASHING_ENEMY,
 		idle_f_vec};
 
-	std::vector<int> run_f_vec = {18, 19, 20, 21, 22, 23};
+	std::vector<int> run_f_vec = { 7, 8, 9, 10};
 	Animation run_f = {
 		"slowenemy_run_f",
-		10,
-		SPRITE_ASSET_ID::SKELETON,
-		run_f_vec};
-	std::vector<int> die_vec = {36, 37, 38, 39, 39};
+		13,
+		SPRITE_ASSET_ID::DASHING_ENEMY,
+		run_f_vec };
+	std::vector<int> die_vec = { 14, 15, 16, 17, 18, 19, 20 };
 	Animation die = {
 		"slowenemy_die",
 		7,
-		SPRITE_ASSET_ID::PLAYER,
-		die_vec};
+		SPRITE_ASSET_ID::DASHING_ENEMY,
+		die_vec };
 
 	auto &animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;

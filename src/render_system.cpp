@@ -28,11 +28,11 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	if (registry.deadlys.has(entity))
 	{
 		Deadly &enemy = registry.deadlys.get(entity);
-		if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG || enemy.enemy_type == ENEMY_TYPES::DASHING)
+		if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG)
 		{
 			transform.scale(vec2(2.5f, 1.6f));
 		}
-		else if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG_2 || enemy.enemy_type == ENEMY_TYPES::SLOWING_CONTACT)
+		else if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG_2 || enemy.enemy_type == ENEMY_TYPES::SLOWING_CONTACT || enemy.enemy_type == ENEMY_TYPES::DASHING)
 		{
 			transform.scale(vec2(2.4f, 2.2f));
 		}

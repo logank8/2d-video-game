@@ -91,7 +91,9 @@ class RenderSystem
 		textures_path("tutorial_sprites/interact.png"),
 		textures_path("tutorial_sprites/pause.png"),
 		textures_path("upgrade_icons.png"),
-		textures_path("homing_enemy.png")};
+		textures_path("homing_enemy.png"),
+		textures_path("fast_enemy_2.png"),
+		textures_path("slowing_enemy.png")};
 
 	std::array<GLuint, effect_count> effects;
 	// Make sure these paths remain in sync with the associated enumerators.

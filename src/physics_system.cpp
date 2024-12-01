@@ -1023,10 +1023,10 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                             if (has_dashing_los(registry.motions.get(entity).position, player_motion.position)) {
                                 if (dashing_enemy.current_charge_timer < dashing_enemy.charge_time) {
                                     registry.motions.get(entity).velocity = { 0, 0 };
-                                    if (!registry.lightUps.has(entity)) {
-                                        auto& lights_up = registry.lightUps.emplace(entity);
-                                        lights_up.duration_ms = dashing_enemy.charge_time;
+                                    if (registry.lightUps.has(entity)) {
+                                        registry.lightUps.remove(entity);
                                     }
+                                    // TODO: change animation so it just changes to dash mode when charging
                                     int grid_x = static_cast<int>((player_motion.position.x - GRID_OFFSET_X) / TILE_SIZE);
                                     int grid_y = static_cast<int>((player_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE);
                                     dashing_enemy.target_pos = { (640 - (25 * 100)) + (grid_x * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (grid_y * TILE_SIZE) + (TILE_SIZE / 2) };
@@ -1034,8 +1034,10 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                                 }
                                 else {
                                     registry.motions.get(entity).velocity = { 500.f, 500.f };
-                                    if (registry.lightUps.has(entity)) {
-                                        registry.lightUps.remove(entity);
+                                    // TODO: edit here as well for dash anim
+                                    if (!registry.lightUps.has(entity)) {
+                                        auto& lights_up = registry.lightUps.emplace(entity);
+                                        lights_up.duration_ms = dashing_enemy.charge_time;
                                     }
                                     vec2 direction = {
                                         dashing_enemy.target_pos.x - motion.position.x,
