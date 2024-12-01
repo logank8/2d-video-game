@@ -731,11 +731,10 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
     const float GRID_OFFSET_Y = (640 - (44 * TILE_SIZE)) - TILE_SIZE / 2;
 
     // Convert to grid coordinates
-    Motion &enemy_motion = registry.motions.get(enemy);
-    int grid_x = static_cast<int>((enemy_motion.position.x - GRID_OFFSET_X) / TILE_SIZE);
-    int grid_y = static_cast<int>((enemy_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE);
-    float raw_x = (enemy_motion.position.x - GRID_OFFSET_X) / TILE_SIZE;
-    float raw_y = (enemy_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE;
+    int grid_x = static_cast<int>((motion.position.x - GRID_OFFSET_X) / TILE_SIZE);
+    int grid_y = static_cast<int>((motion.position.y - GRID_OFFSET_Y) / TILE_SIZE);
+    float raw_x = (motion.position.x - GRID_OFFSET_X) / TILE_SIZE;
+    float raw_y = (motion.position.y - GRID_OFFSET_Y) / TILE_SIZE;
 
     // Recalculate path if all below are true:
     // - update time has elapsed
@@ -744,13 +743,14 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
     // - OR of enemy was knocked back recently
     if (((!registry.paths.has(enemy) || timer.timer >= PATH_UPDATE_TIME) &&
         (grid_x == raw_x && grid_y == raw_y) &&
-        phsyics.has_los(enemy_motion.position, player_motion.position)) || knocked_back)
+        phsyics.has_los(motion.position, player_motion.position)) || knocked_back)
     {
         // adjust pathfinding coordinates if knocked back recently
         if ((grid_x != raw_x || grid_y != raw_y)) {
-            int adjusted_x = (static_cast<int>(enemy_motion.position.x) - (640 - (25 * TILE_SIZE))) / TILE_SIZE;
-            int adjusted_y = (static_cast<int>(enemy_motion.position.y) - (640 - (44 * TILE_SIZE))) / TILE_SIZE;
-            enemy_motion.position = { (640 - (25 * 100)) + (adjusted_x * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (adjusted_y * TILE_SIZE) + (TILE_SIZE / 2) };
+            motion.position -= vec2(TILE_SIZE / 2, TILE_SIZE / 2);
+            int adjusted_x = (static_cast<int>(motion.position.x) - (640 - (25 * TILE_SIZE))) / TILE_SIZE;
+            int adjusted_y = (static_cast<int>(motion.position.y) - (640 - (44 * TILE_SIZE))) / TILE_SIZE;
+            motion.position = { (640 - (25 * 100)) + (adjusted_x * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (adjusted_y * TILE_SIZE) + (TILE_SIZE / 2) };
             timer.timer = 0.f;
         }
 
