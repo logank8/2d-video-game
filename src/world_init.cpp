@@ -2188,3 +2188,64 @@ Entity createPauseKey(RenderSystem *renderer, vec2 pos)
 
 	return entity;
 }
+
+Entity createTenant(RenderSystem *renderer, vec2 pos) {
+	auto entity = Entity();
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto &motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = {0, 0};
+	motion.position = pos;
+	motion.scale = vec2({PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT});
+
+	Tenant &tenant = registry.tenants.emplace(entity);
+	tenant.dialogues = tenant_dialogue_1;
+	tenant.extra_dialogues = tenant_extra_dialogue_1;
+	registry.renderRequests.insert(
+		entity,
+		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 SPRITE_ASSET_ID::PLAYER,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 1, // Sprite index  => 0 INDEXED (L->R, T->B)
+		 RENDER_LAYER::CREATURES});
+
+
+	// Initialize animations
+	std::vector<int> run_s_vec = {24, 25, 26, 27, 28, 29};
+	Animation run_s = {
+		"tenant_run_s",
+		15,
+		SPRITE_ASSET_ID::PLAYER,
+		run_s_vec};
+	std::vector<int> run_f_vec = {18, 19, 20, 21, 22, 23};
+	Animation run_f = {
+		"tenant_run_f",
+		15,
+		SPRITE_ASSET_ID::PLAYER,
+		run_f_vec};
+	std::vector<int> run_b_vec = {30, 31, 32, 33, 34, 35};
+	Animation run_b = {
+		"tenant_run_b",
+		15,
+		SPRITE_ASSET_ID::PLAYER,
+		run_b_vec};
+
+	std::vector<int> idle_f_vec = {0, 1, 2, 3, 4, 5};
+	Animation idle_f = {
+		"tenant_idle_f",
+		15,
+		SPRITE_ASSET_ID::PLAYER,
+		idle_f_vec};
+
+	auto &animSet = registry.animationSets.emplace(entity);
+	animSet.animations[run_s.name] = run_s;
+	animSet.animations[run_f.name] = run_f;
+	animSet.animations[run_b.name] = run_b;
+	animSet.animations[idle_f.name] = idle_f;
+
+	return entity;
+}

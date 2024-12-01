@@ -86,9 +86,11 @@ public:
 
 	int enemies_killed = 0;
 
-	int enemy_kill_goal = 20;
+	int enemy_kill_goal = 2;
 
 	bool goal_reached = false;
+
+	bool cutscene = false;
 
 private:
 	// Input callback functions

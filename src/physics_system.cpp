@@ -908,12 +908,24 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
         }
     }
 
+
+    // check for door collision
     for (Entity e : registry.doors.entities) {
         Door& door = registry.doors.get(e);
         if (door.touching) {
             if (!collides(registry.motions.get(e), player_motion)) {
                 door.touching = false;
             }
+        }
+    }
+
+    // Check for tenant within radius
+    for (Entity e : registry.tenants.entities) {
+        Tenant& tenant = registry.tenants.get(e);
+        if (distance(registry.motions.get(e).position, player_motion.position) <= 100) {
+            tenant.player_in_radius = true;
+        } else {
+            tenant.player_in_radius = false;
         }
     }
 

@@ -88,6 +88,27 @@ const float UPGRADE_CARD_TITLE_Y = 0.2f;
 
 const float PLAYER_DASH_SEC = 3.f;
 
+const std::vector<std::string> tenant_dialogue_1 = {
+    "Thank you so much for saving me!",
+    "Do you think you could help my friend up on the next floor?",
+    "I'm sure with all the strength you've gained from fighting here, you'll have no problem up there. The exit's at the end of the hallway."
+};
+
+const std::vector<std::string> tenant_extra_dialogue_1 = {
+    "Those monsters were so scary!",
+    "You're so brave!"
+};
+
+const std::vector<std::string> tenant_dialogue_2 = {
+    "Wow, thanks for cleaning up in here. It was such a mess!",
+    "I think the apartment above mine is still getting torn up... do you think you could go up there and help?",
+    "I'm honestly too spooked to go up there myself, but you don't seem afraid of anything!"
+};
+
+const std::vector<std::string> tenant_extra_dialogue_2 = {
+    "I don't know what the landlord is up to, but I hope it ends soon..."
+};
+
 // the player
 Entity createPlayer(RenderSystem *renderer, vec2 pos);
 
@@ -194,3 +215,5 @@ Entity createInteractKey(RenderSystem *renderer, vec2 pos);
 Entity createAttackCursor(RenderSystem *renderer, vec2 pos);
 
 Entity createPauseKey(RenderSystem *renderer, vec2 pos);
+
+Entity createTenant(RenderSystem *renderer, vec2 pos);

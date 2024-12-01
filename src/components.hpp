@@ -380,6 +380,18 @@ struct ElevatorButton
 	bool hovering = false;
 };
 
+struct ElevatorDisplay 
+{
+	float lasting_ms = 4000.f;
+	float current_ms = 0.f;
+	int message = 0;
+	/* 
+	messages
+	 - 0    -> exit
+	 - >= 1 -> level
+	*/
+}
+
 struct UpgradeCard
 {
 	int tier = 1;
@@ -395,6 +407,14 @@ struct UpgradeCard
 struct SelectedCard
 {
 	vec2 scale;
+};
+
+struct Tenant
+{
+	std::vector<std::string> dialogues;
+	int dialogue_progress = -1;
+	std::vector<std::string> extra_dialogues;
+	bool player_in_radius = false;
 };
 
 struct UpgradeConfirm

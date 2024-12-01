@@ -498,7 +498,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	std::stringstream title_ss;
 	if (current_map != map3)
 	{
-		title_ss << "Number of Enemies Until Next Level: " << (enemy_kill_goal - enemies_killed);
+		title_ss << "Number of Enemies Until Next Level: " << (max(0, enemy_kill_goal - enemies_killed));
 	}
 	else
 	{
@@ -577,7 +577,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			powerup_name = "Invincibility";
 
 		createText({x, y}, 0.5f, "Powerup active: " + powerup_name + (powerup.multiplier < 1.02f ? "" : " with multiplier x" + floatToString1DP(powerup.multiplier)), {1.f, 1.f, 1.f});
-		if (powerup.timer < 0)
+		if (powerup.timer < 0 || goal_reached)
 		{
 			registry.powerups.remove(my_player);
 		}
@@ -749,6 +749,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	for (auto &enemy : registry.deadlys.entities)
 	{
 		createHPBar(enemy);
+	}
+
+	// Managing tenant appearance and interaction ability stuff
+	if (goal_reached) {
+		if (registry.tenants.entities.size() == 0) {
+			std::cout << "creating tenant" << std::endl;
+			createTenant(renderer, {registry.motions.get(my_player).position.x + 100, registry.motions.get(my_player).position.y + 100});
+		} 
+		Entity tenant = registry.tenants.entities[0];
+		if (registry.tutorialIcons.size() == 0 && registry.tenants.get(tenant).player_in_radius && !cutscene) {
+			createInteractKey(renderer, {registry.motions.get(tenant).position.x, registry.motions.get(tenant).position.y - 100});
+		}
 	}
 
 	// TODO: spawn frequencies and spawn radius to be adjusted
@@ -2091,6 +2103,70 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 				return;
 			}
 		}
+
+		// tenant dialogue
+		for (Entity e : registry.tenants.entities) {
+			// if there is already dialogue up, progress index
+			// 	if the current dialogue is the last -> unfreeze player movement and remove current dialogue
+			//  else -> take down curent dialogue and put up next
+
+
+			// extra dialogue:
+			//  if already dialogue up -> close out of it and progress index
+			//  else -> display next dialogue
+
+			Tenant &tenant = registry.tenants.get(e);
+			if (tenant.player_in_radius) {
+				while (registry.tutorialIcons.entities.size() != 0) {
+					registry.remove_all_components_of(registry.tutorialIcons.entities.back());
+				}
+				// cutscene dialogue
+				if (tenant.dialogue_progress < int(tenant.dialogues.size())) {
+					// player's first time speaking to tenant - freeze player movement/attack
+					if (tenant.dialogue_progress == -1) {
+						cutscene = true;
+					} 
+					tenant.dialogue_progress += 1;
+
+					while (registry.texts.size() != 0) {
+						registry.remove_all_components_of(registry.texts.entities.back());
+					}
+					// TODO: temporary position - change to dialogue box later
+					if (tenant.dialogue_progress < int(tenant.dialogues.size())) {
+						Entity text = createText({40, 25}, 0.7, tenant.dialogues[tenant.dialogue_progress], vec3(1.0, 1.0, 1.0));
+						registry.debugComponents.remove(text);
+					} else {
+						cutscene = false;
+					}
+				} else if (tenant.dialogue_progress < int(tenant.dialogues.size() + tenant.extra_dialogues.size())) {
+					while (registry.texts.size() != 0) {
+						registry.remove_all_components_of(registry.texts.entities.back());
+					}
+
+					if (cutscene) {
+						cutscene = false;
+						tenant.dialogue_progress += 1;
+					} else {
+						Entity text = createText({40, 25}, 0.7, tenant.extra_dialogues[tenant.dialogue_progress - int(tenant.dialogues.size())], vec3(1.0, 1.0, 1.0));
+						registry.debugComponents.remove(text);
+						cutscene = true;
+					}
+				}
+			}
+
+			// -> no dialogue on screen, progress = -1
+			// player interacts
+			// freeze movement
+			// -> dialogue 1 on screen , progress = 0
+			// player interacts
+			// -> dialogue 2 on screen , progress = 1
+			// player interacts 
+			// -> dialogue 3 on screen , progress = 2
+			// player interacts
+			// unfreeze movement 
+			// -> no dialogue on screen , progress = 3 , interact key on screen again
+			
+		}
 	}
 
 	// Toggle god mode
@@ -2112,7 +2188,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		mapSwitch(map_counter);
 	}
 
-	if (screen.state != GameState::PAUSED)
+	if (screen.state != GameState::PAUSED && !cutscene)
 		player_controller.on_key(key, action, mod);
 
 	// Manage tutorial input responses
@@ -2172,7 +2248,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position)
 void WorldSystem::on_mouse_button(int button, int action, int mods)
 {
 	ScreenState &screen = registry.screenStates.components[0];
-	if (registry.players.entities.size() > 0)
+	if (registry.players.entities.size() > 0 && !cutscene)
 	{
 		player_controller.on_mouse_button(button, action, mods);
 
