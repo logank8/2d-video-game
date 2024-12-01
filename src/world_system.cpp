@@ -236,7 +236,7 @@ GLFWwindow *WorldSystem::create_window()
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
 	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(window_width_px, window_height_px, "Salmon Game Assignment", nullptr, nullptr);
+	window = glfwCreateWindow(window_width_px, window_height_px, "Eviction of the Damned", nullptr, nullptr);
 	if (window == nullptr)
 	{
 		fprintf(stderr, "Failed to glfwCreateWindow");
@@ -484,7 +484,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	std::stringstream title_ss;
 	if (current_map != map3)
 	{
-		title_ss << "Number of Enemies Until Next Level: " << (enemy_kill_goal - enemies_killed);
+		title_ss << "Number of Enemies Until Next Level: " << ((enemy_kill_goal - enemies_killed) < 0 ? 0 : (enemy_kill_goal - enemies_killed));
 	}
 	else
 	{
