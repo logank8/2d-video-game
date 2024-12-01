@@ -50,6 +50,7 @@ public:
 	ComponentContainer<Powerup> powerups;
 	ComponentContainer<UpgradeCard> upgradeCards;
 	ComponentContainer<SelectedCard> selectedCards;
+	ComponentContainer<UpgradeConfirm> upgradeConfirms;
 	ComponentContainer<HealthBuff> healthBuffs;
 	ComponentContainer<Camera> cameras;
 	ComponentContainer<Door> doors;
@@ -101,6 +102,7 @@ public:
 		registry_list.push_back(&powerups);
 		registry_list.push_back(&upgradeCards);
 		registry_list.push_back(&selectedCards);
+		registry_list.push_back(&upgradeConfirms);
 		registry_list.push_back(&healthBuffs);
 		registry_list.push_back(&cameras);
 		registry_list.push_back(&doors);

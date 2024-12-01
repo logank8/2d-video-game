@@ -388,11 +388,18 @@ struct UpgradeCard
 	Entity name;
 	Entity description;
 	std::function<void()> onClick;
+	bool hovering = false;
+	vec2 original_scale;
 };
 
 struct SelectedCard
 {
 	vec2 scale;
+};
+
+struct UpgradeConfirm
+{
+	bool hovering = false;
 };
 
 struct Camera

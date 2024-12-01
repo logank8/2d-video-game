@@ -107,7 +107,7 @@ Entity createRangedEnemy(RenderSystem *renderer, vec2 position);
 
 Entity createSlowingEnemy(RenderSystem *renderer, vec2 position);
 
-Entity createDashingEnemy(RenderSystem* renderer, vec2 position);
+Entity createDashingEnemy(RenderSystem *renderer, vec2 position);
 
 Entity createRangedProjectile(RenderSystem *renderer, vec2 position);
 
@@ -160,6 +160,8 @@ Entity createTempPowerup(RenderSystem *renderer, vec2 pos, PowerupType type, flo
 Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, int sprite_index, std::string title, std::string description, OnClickCallback onClick);
 
 Entity createUpgradeIcon(RenderSystem *renderer, vec2 pos, vec2 scale, int sprite);
+
+Entity createUpgradeConfirm(RenderSystem *renderer, vec2 pos, vec2 scale);
 
 Entity createHealthBuff(RenderSystem *renderer, vec2 pos);
 
