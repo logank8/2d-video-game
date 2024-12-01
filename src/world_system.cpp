@@ -647,6 +647,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 			if (current_map[j][i] == 3 && registry.deadlys.entities.size() < max_num_enemies)
 			{
+				createRangedHomingEnemy(renderer, world_pos);
 				int encounter = rand() % 3;
 				if (encounter == 0)
 				{
@@ -697,6 +698,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				if (encounter == 0)
 				{
 					createContactFast(renderer, world_pos);
+					createRangedHomingEnemy(renderer, world_pos);
 					std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::RANGED, ENEMY_TYPES::RANGED};
 					spawn_nearby_tile(vec2(i, j), additional_enemies);
 				}
@@ -1092,10 +1094,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		{
 			Entity attack_cursor = registry.tutorialIcons.entities[0];
 			vec2 attack_direction = registry.players.get(my_player).attack_direction;
-			if (registry.players.get(my_player).attack_direction != vec2(0, 0)) {
-				registry.motions.get(attack_cursor).position = {registry.motions.get(my_player).position.x + (80.f * attack_direction.x), registry.motions.get(my_player).position.y + (80.f * attack_direction.y)};
-			}
-			
+			registry.motions.get(attack_cursor).position = {registry.motions.get(my_player).position.x + (80.f * attack_direction.x), registry.motions.get(my_player).position.y + (80.f * attack_direction.y)};
 		}
 	}
 	else if (!tutorial.dash)
