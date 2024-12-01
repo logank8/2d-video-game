@@ -1092,10 +1092,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		{
 			Entity attack_cursor = registry.tutorialIcons.entities[0];
 			vec2 attack_direction = registry.players.get(my_player).attack_direction;
-			if (registry.players.get(my_player).attack_direction != vec2(0, 0)) {
-				registry.motions.get(attack_cursor).position = {registry.motions.get(my_player).position.x + (80.f * attack_direction.x), registry.motions.get(my_player).position.y + (80.f * attack_direction.y)};
-			}
-			
+			registry.motions.get(attack_cursor).position = {registry.motions.get(my_player).position.x + (80.f * attack_direction.x), registry.motions.get(my_player).position.y + (80.f * attack_direction.y)};
 		}
 	}
 	else if (!tutorial.dash)

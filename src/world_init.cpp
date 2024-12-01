@@ -552,7 +552,7 @@ Entity createRangedHomingEnemy(RenderSystem *renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({RANGED_BB_WIDTH, RANGED_BB_HEIGHT});
+	motion.scale = vec2({32, 32});
 
 	// Create an (empty) Bug component to be able to refer to all bug
 	auto &enemy = registry.deadlys.emplace(entity);
@@ -560,32 +560,30 @@ Entity createRangedHomingEnemy(RenderSystem *renderer, vec2 position)
 	registry.healths.emplace(entity);
 	registry.damages.emplace(entity);
 	registry.ranged.emplace(entity);
-	auto &color = registry.colors.emplace(entity);
-	color = vec3(1.f, 0, 0);
 	registry.renderRequests.insert(
 		entity,
 		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
-		 SPRITE_ASSET_ID::RANGED_ENEMY,
+		 SPRITE_ASSET_ID::HOMING_ENEMY,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 0,
 		 RENDER_LAYER::CREATURES});
 
-	std::vector<int> idle_f_vec = {0, 1, 2, 3, 4};
+	std::vector<int> idle_f_vec = {0, 1};
 	Animation idle_f = {
 		"rangedenemy_idle_f",
-		12,
+		5,
 		SPRITE_ASSET_ID::RANGED_ENEMY,
 		idle_f_vec};
 
-	std::vector<int> run_f_vec = {8, 9, 10, 11, 12, 13, 14, 15};
+	std::vector<int> run_f_vec = {6, 7, 8, 9};
 	Animation run_f = {
 		"rangedenemy_run_f",
-		10,
+		9,
 		SPRITE_ASSET_ID::RANGED_ENEMY,
 		run_f_vec};
 
-	std::vector<int> die_vec = {32, 33, 34, 35, 36};
+	std::vector<int> die_vec = {12, 13, 14, 15, 16, 17};
 	Animation die = {
 		"rangedenemy_die",
 		7,
