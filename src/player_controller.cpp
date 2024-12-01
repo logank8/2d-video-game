@@ -578,7 +578,7 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
     {
         Player &player = registry.players.get(*my_player);
 
-        if (player.is_attacking == false)
+        if (player.is_attacking == false && !world->is_level_up && !world->is_paused)
         {
             vec2 player_pos = registry.motions.get(*my_player).position;
             vec2 attack_direction = player.attack_direction;
