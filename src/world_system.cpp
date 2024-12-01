@@ -29,7 +29,7 @@ std::vector<vec2> tile_vec;
 std::vector<vec2> spawnable_tiles;
 const int LIGHT_FLICKER_RATE = 2000 * 10;
 const int FPS_COUNTER_MS = 1000;
-const float POWERUP_DROP_CHANCE = 1.0;
+const float POWERUP_DROP_CHANCE = 0.35;
 const float POWERUP_TIMER = 15000;
 
 int lightflicker_counter_ms;
