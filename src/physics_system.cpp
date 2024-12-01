@@ -328,7 +328,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == 0)
+            if (!(map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8)))
             {
                 return false;
             }
@@ -352,7 +352,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == 0)
+            if (!(map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8)))
             {
                 return false;
             }
@@ -371,7 +371,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
     {
         return false;
     }
-    return map[y][x] != 0;
+    return map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8);
 }
 
 // Checking for dashing line of sight using Bresenham's algorithm
