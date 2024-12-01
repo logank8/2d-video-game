@@ -321,7 +321,7 @@ void PlayerController::step(float elapsed_ms_since_last_update)
         {
             auto &collectible_experience = registry.experiences.get(entity);
 
-            player.experience += collectible_experience.experience;
+            player.experience += (collectible_experience.experience * player.experience_multiplier);
 
             if (player.experience >= player.toNextLevel)
             {
@@ -346,9 +346,46 @@ void PlayerController::step(float elapsed_ms_since_last_update)
     world->create_experience_bar();
 }
 
-const float CARD_PADDING = -0.6f;
-const float CARD_DISTANCE = 0.6f;
+const float STAT_FONT_SIZE = 0.5f;
+const float FONT_LINE_SPACE = 25.f;
+const vec3 STAT_TEXT_COLOR = vec3{1.f, 1.f, 1.f};
+
+void PlayerController::displayStatCard()
+{
+    auto &player = registry.players.get(*my_player);
+
+    float x = 40;
+    float y = 475;
+
+    std::vector<std::pair<std::string, float>> attack_stats = {
+        {"Attack: ", player.damage_multiplier},
+        {"Area: ", player.attack_size},
+        {"Dash CD: ", player.dash_cooldown_ms}};
+
+    std::vector<std::pair<std::string, float>> utility_stats = {
+        {"Collection Range: ", player.collection_distance},
+        {"Experience multiplier: ", player.experience_multiplier}};
+
+    for (const auto &stat : attack_stats)
+    {
+        createText({x, y}, STAT_FONT_SIZE, stat.first + std::to_string((int)stat.second), STAT_TEXT_COLOR);
+        y -= FONT_LINE_SPACE;
+    }
+
+    y -= (FONT_LINE_SPACE * 2);
+
+    for (const auto &stat : utility_stats)
+    {
+        createText({x, y}, STAT_FONT_SIZE, stat.first + std::to_string((int)stat.second), STAT_TEXT_COLOR);
+        y -= FONT_LINE_SPACE;
+    }
+}
+
+const float CARD_PADDING_LEFT = -0.2f;
+const float CARD_PADDING_TOP = 0.2f;
+const float CARD_DISTANCE = 0.45f;
 const int UPGRADE_CARD_COUNT = 3;
+const vec2 CARD_SIZE = vec2({0.4f, -1.f});
 
 bool operator==(const Upgrade &up1, const Upgrade &up2)
 {
@@ -357,6 +394,10 @@ bool operator==(const Upgrade &up1, const Upgrade &up2)
 
 void PlayerController::displayUpgradeCards()
 {
+    Entity test = createLine(vec2(0, 0), vec2(10000, 10000));
+    vec3 &color = registry.colors.emplace(test);
+    color = vec3(0.0f, 0.0f, 0.0f);
+    displayStatCard();
     std::vector<Upgrade> availableUpgrades = {};
     static std::mt19937 rng{std::random_device{}()};
     std::uniform_int_distribution<int> dist(0, upgradePool.size() - 1);
@@ -376,10 +417,10 @@ void PlayerController::displayUpgradeCards()
         availableUpgrades.push_back(currCard);
 
         Entity card = createUpgradeCard(renderer,
-                                        vec2(CARD_PADDING + (i * CARD_DISTANCE), 0.2f),
-                                        vec2(0.1f, 0.1f),
+                                        vec2(CARD_PADDING_LEFT + (i * CARD_DISTANCE), CARD_PADDING_TOP),
+                                        CARD_SIZE,
                                         currCard.tier,
-                                        TEXTURE_ASSET_ID::BEETLE,
+                                        currCard.sprite_index,
                                         currCard.title,
                                         currCard.description,
                                         currCard.onClick);
@@ -390,7 +431,6 @@ void PlayerController::on_key(int key, int action, int mod)
 {
     Motion &pmotion = registry.motions.get(*my_player);
     Player &player = registry.players.get(*my_player);
-
 
     if (!registry.deathTimers.has(*my_player) && (player.is_dash_up || (!player.is_dash_up && (player.curr_dash_cooldown_ms < (player.dash_cooldown_ms - player.dash_time)))))
     {
@@ -458,6 +498,18 @@ void PlayerController::on_key(int key, int action, int mod)
     }
 }
 
+// button must have ui component
+bool mouseOverButton(vec2 mouse_position, Entity button)
+{
+    if (!registry.userInterfaces.has(button))
+        return false;
+
+    auto &ui = registry.userInterfaces.get(button);
+    vec2 mouse_position_ndc = WorldSystem::mousePosToNormalizedDevice(mouse_position);
+
+    return (mouse_position_ndc.x >= ui.position.x - (ui.scale.x / 2) && mouse_position_ndc.x <= ui.position.x + (ui.scale.x / 2) &&
+            mouse_position_ndc.y >= ui.position.y - (-ui.scale.y / 2) && mouse_position_ndc.y <= ui.position.y + (-ui.scale.y / 2));
+}
 
 void PlayerController::on_mouse_move(vec2 mouse_position)
 {
@@ -475,12 +527,7 @@ void PlayerController::on_mouse_move(vec2 mouse_position)
         {
             auto &ui = registry.userInterfaces.get(entity);
 
-            vec2 mouse_position_ndc = WorldSystem::mousePosToNormalizedDevice(mouse_position);
-
-            // std::cout << mouse_position_ndc.x << ',' << mouse_position_ndc.y <s< std::endl;
-
-            if (mouse_position_ndc.x >= ui.position.x - (ui.scale.x / 2) && mouse_position_ndc.x <= ui.position.x + (ui.scale.x / 2) &&
-                mouse_position_ndc.y >= ui.position.y - (-ui.scale.y / 2) && mouse_position_ndc.y <= ui.position.y + (-ui.scale.y / 2))
+            if (mouseOverButton(mouse_position, entity))
             {
                 if (!registry.selectedCards.has(entity))
                 {
@@ -525,10 +572,11 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
 
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
     {
-        // world->set_level_up_state(true);
+        world->set_level_up_state(true);
 
-        // displayUpgradeCards();
-        debugging.in_debug_mode = !debugging.in_debug_mode;
+        displayUpgradeCards();
+
+        // debugging.in_debug_mode = !debugging.in_debug_mode;
     }
 
     if (world->is_level_up && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
@@ -542,6 +590,11 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
 
             for (Entity entity : registry.upgradeCards.entities)
             {
+                auto &upgradeCardComponent = registry.upgradeCards.get(entity);
+
+                registry.remove_all_components_of(upgradeCardComponent.icon);
+                registry.remove_all_components_of(upgradeCardComponent.name);
+                registry.remove_all_components_of(upgradeCardComponent.description);
                 registry.remove_all_components_of(entity);
             }
 

@@ -157,7 +157,9 @@ using OnClickCallback = std::function<void()>;
 
 Entity createTempPowerup(RenderSystem *renderer, vec2 pos, PowerupType type, float multiplier, float timer);
 
-Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, TEXTURE_ASSET_ID texture_id, std::string title, std::string description, OnClickCallback onClick);
+Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, int sprite_index, std::string title, std::string description, OnClickCallback onClick);
+
+Entity createUpgradeIcon(RenderSystem *renderer, vec2 pos, vec2 scale, int sprite);
 
 Entity createHealthBuff(RenderSystem *renderer, vec2 pos);
 

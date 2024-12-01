@@ -79,6 +79,7 @@ struct Player
 
 	// Other
 	float collection_distance = 100.f;
+	float experience_multiplier = 1.0f;
 	int experience = 0;
 	int toNextLevel = 5;
 	int level = 0;
@@ -114,10 +115,11 @@ struct Deadly
 	ENEMY_STATE state = ENEMY_STATE::IDLE;
 };
 
-struct EnemyDash {
+struct EnemyDash
+{
 	float charge_time = 3000.f;
 	float current_charge_timer = 0.f;
-	vec2 target_pos = { 0, 0 };
+	vec2 target_pos = {0, 0};
 };
 
 // anything that is deadly to the player
@@ -381,7 +383,7 @@ struct ElevatorButton
 struct UpgradeCard
 {
 	int tier = 1;
-	GLuint textureID;
+	int icon_sprite_index;
 	Entity icon;
 	Entity name;
 	Entity description;
@@ -485,7 +487,8 @@ enum class TEXTURE_ASSET_ID
 	ATTACK_CURSOR = DASH_KEYS + 1,
 	INTERACT_KEY = ATTACK_CURSOR + 1,
 	PAUSE_KEY = INTERACT_KEY + 1,
-	TEXTURE_COUNT = PAUSE_KEY + 1
+	UPGRADE_ICONS = PAUSE_KEY + 1,
+	TEXTURE_COUNT = UPGRADE_ICONS + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -511,7 +514,8 @@ enum class SPRITE_ASSET_ID
 	DASH_KEYS = WASD_KEYS + 1,
 	INTERACT_KEY = DASH_KEYS + 1,
 	PAUSE_KEY = INTERACT_KEY + 1,
-	SPRITE_COUNT = PAUSE_KEY + 1
+	UPGRADE_ICONS = PAUSE_KEY + 1,
+	SPRITE_COUNT = UPGRADE_ICONS + 1
 };
 const int sprite_count = (int)SPRITE_ASSET_ID::SPRITE_COUNT;
 

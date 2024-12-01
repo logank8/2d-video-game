@@ -1634,7 +1634,7 @@ vec2 screenToNDC(vec2 pos)
 	return vec2(ndc_x, ndc_y);
 }
 
-Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, TEXTURE_ASSET_ID texture_id, std::string title, std::string description, OnClickCallback onClick)
+Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, int sprite_index, std::string title, std::string description, OnClickCallback onClick)
 {
 	auto entity = Entity();
 
@@ -1644,7 +1644,7 @@ Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, 
 	auto &ui = registry.userInterfaces.emplace(entity);
 	ui.angle = 0.f;
 	ui.position = pos;
-	ui.scale = vec2({0.5, -1.25});
+	ui.scale = size;
 
 	registry.renderRequests.insert(
 		entity,
@@ -1659,7 +1659,33 @@ Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, 
 	upgradeCardComponent.onClick = onClick;
 
 	vec2 screen_pos = screenToNDC(pos + (ui.scale / vec2(2.0f, 2.0f)) - vec2(ui.scale.x - 0.05f, UPGRADE_CARD_TITLE_Y));
-	upgradeCardComponent.name = createText(screen_pos, 0.65f, title, vec3(0.9f, 0.9f, 0.9f));
+
+	upgradeCardComponent.name = createText(screen_pos + vec2(5.0f, 0.f), 0.5f, title, vec3(0.9f, 0.9f, 0.9f));
+	upgradeCardComponent.icon = createUpgradeIcon(renderer, pos + vec2(0.f, 0.05f), size, sprite_index);
+	upgradeCardComponent.description = createText(screen_pos + vec2(5.0f, -225.f), 0.5f, description, vec3(0.9f, 0.9f, 0.9f));
+
+	return entity;
+}
+
+Entity createUpgradeIcon(RenderSystem *renderer, vec2 pos, vec2 scale, int sprite)
+{
+	auto entity = Entity();
+
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	auto &ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = pos;
+	ui.scale = scale * vec2(0.5f, 0.5f);
+
+	registry.renderRequests.insert(
+		entity,
+		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 SPRITE_ASSET_ID::UPGRADE_ICONS,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 sprite});
 
 	return entity;
 }

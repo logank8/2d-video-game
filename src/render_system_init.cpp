@@ -230,6 +230,7 @@ void RenderSystem::initializeSpriteSheets()
 	sprite_sheets[SPRITE_ASSET_ID::DASH_KEYS] = {TEXTURE_ASSET_ID::DASH_KEYS, 1, 2, 32, 16};
 	sprite_sheets[SPRITE_ASSET_ID::INTERACT_KEY] = {TEXTURE_ASSET_ID::INTERACT_KEY, 1, 2, 16, 16};
 	sprite_sheets[SPRITE_ASSET_ID::PAUSE_KEY] = {TEXTURE_ASSET_ID::PAUSE_KEY, 1, 2, 64, 16};
+	sprite_sheets[SPRITE_ASSET_ID::UPGRADE_ICONS] = {TEXTURE_ASSET_ID::UPGRADE_ICONS, 1, 5, 16, 16};
 }
 
 void RenderSystem::initializeGlEffects()

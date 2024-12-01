@@ -551,8 +551,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	{
 		Powerup &powerup = registry.powerups.get(my_player);
 		powerup.timer -= elapsed_ms_since_last_update;
-		float x = 60;
-		float y = 550;
+		float x = 40;
+		float y = 500;
 
 		std::string powerup_name = "";
 		if (powerup.type == PowerupType::DAMAGE_BOOST)
@@ -1542,7 +1542,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - damage_dealt);
 
-				std::cout << damage_rng << std::endl;
+				// std::cout << damage_rng << std::endl;
 
 				createDamageIndicator(renderer, damage_dealt, enemy_motion.position, damage_rng, temp_multiplier);
 

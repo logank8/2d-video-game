@@ -16,7 +16,7 @@ struct Upgrade
     int id;
     std::string title;
     std::string description;
-    TEXTURE_ASSET_ID texture_id;
+    int sprite_index;
     int tier;
     OnClickCallback onClick; // Lambda function for handling the click
 };
@@ -28,6 +28,7 @@ public:
 
     void step(float elapsed_ms_since_last_update);
     void displayUpgradeCards();
+    void displayStatCard();
     void handleUpgradeInput();
 
     // Handle input
@@ -40,17 +41,17 @@ public:
     void set_world(WorldSystem *world);
 
     std::vector<Upgrade> upgradePool = {
-        {0, "+1 damage", "+10 damage", TEXTURE_ASSET_ID::BEETLE, 1, [this]()
+        {0, "WOOD", "+10 damage", 0, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
              player.damage_multiplier += 1.0;
          }},
-        {1, "+1 collect range", "+100 collection distance", TEXTURE_ASSET_ID::BEETLE, 1, [this]()
+        {1, "YUM", "+1 collect range", 1, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
              player.collection_distance += 100.0f;
          }},
-        {2, "+1 knockback", "+1 knockback", TEXTURE_ASSET_ID::BEETLE, 1, [this]()
+        {2, "ROCK", "+1 knockback", 2, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
              player.collection_distance += 0.1f;
