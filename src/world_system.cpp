@@ -35,6 +35,7 @@ const float POWERUP_DROP_CHANCE = 0.35;
 const float POWERUP_TIMER = 15000;
 
 int lightflicker_counter_ms;
+int darken_counter_ms = 0;
 int fps_counter_ms;
 int fps = 0;
 bool display_fps = false;
@@ -1208,6 +1209,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 	}
 
+	if (darken_counter_ms > 0) {
+		darken_counter_ms -= elapsed_ms_since_last_update;
+		if (darken_counter_ms == 0) darken_counter_ms -= 100;
+		if (darken_counter_ms % 500 < 250) {
+			screen.darken_screen_factor = 0.5;
+		} else {
+			screen.darken_screen_factor = 0;
+		}
+	} else if (darken_counter_ms < 0) {
+		screen.darken_screen_factor = 0;
+	}
+
 	if (debugging.in_debug_mode == true)
 	{
 		for (Motion &motion : motions_registry.components)
@@ -1477,7 +1490,14 @@ void WorldSystem::restart_game()
 
 	enemies_killed = 0;
 	goal_reached = false;
-	max_num_enemies = 50;
+	if (current_map == map_final)
+	{
+		max_num_enemies = 20;
+	}
+	else
+	{
+		max_num_enemies = 50;
+	}
 
 	while (registry.upgradeCards.entities.size() > 0)
 	{
@@ -1545,6 +1565,7 @@ void WorldSystem::restart_game()
 	camera = createCamera(renderer, vec2(window_width_px / 2, window_height_px / 2));
 
 	lightflicker_counter_ms = 1000;
+	darken_counter_ms = 0;
 	tile_vec.clear();
 
 	// player pos: [25, 44]
@@ -1787,10 +1808,16 @@ void WorldSystem::handle_collisions(float step_seconds)
 				if (boss_registry.has(entity_other) && boss_registry.get(entity_other).stage == FinalLevelStage::STAGE1 && deadly_health.hit_points < (2 * deadly_health.max_hp / 3)) {
 					boss_registry.get(entity_other).stage = FinalLevelStage::STAGE2;
 
+					darken_counter_ms = 1000;
+					registry.screenStates.components[0].darken_screen_factor = 0.9;
+
 					// play summon enemies sound
 					Mix_PlayChannel(-1, summon_sound, 0);
 				} else if (boss_registry.has(entity_other) && boss_registry.get(entity_other).stage == FinalLevelStage::STAGE2 && deadly_health.hit_points < (deadly_health.max_hp / 3)) {
 					boss_registry.get(entity_other).stage = FinalLevelStage::STAGE3;
+
+					darken_counter_ms = 1000;
+					registry.screenStates.components[0].darken_screen_factor = 0.9;
 
 					// play summon enemies sound
 					Mix_PlayChannel(-1, summon_sound, 0);
