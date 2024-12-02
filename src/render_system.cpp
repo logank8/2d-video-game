@@ -20,7 +20,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	transform.rotate(motion.angle);
 
 	// adjusting for discrepancies in texture vs. bb size
-	if (registry.players.has(entity))
+	if (registry.players.has(entity) || registry.tenants.has(entity))
 	{
 		transform.scale(vec2(2.6f, 2.f));
 	}

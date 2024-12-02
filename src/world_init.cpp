@@ -2238,25 +2238,28 @@ Entity createTenant(RenderSystem *renderer, vec2 pos, int level)
 	motion.scale = vec2({PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT});
 
 	Tenant &tenant = registry.tenants.emplace(entity);
+	SPRITE_ASSET_ID sprite = SPRITE_ASSET_ID::PLAYER;
 
 	switch (level)
 	{
 	case (1):
 		tenant.dialogues = tenant_dialogue_1;
 		tenant.extra_dialogues = tenant_extra_dialogue_1;
+		sprite = SPRITE_ASSET_ID::TENANT_1;
 		break;
 	default:
 		tenant.dialogues = tenant_dialogue_2;
 		tenant.extra_dialogues = tenant_extra_dialogue_2;
+		sprite = SPRITE_ASSET_ID::TENANT_2;
 	}
 
 	registry.renderRequests.insert(
 		entity,
 		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
-		 SPRITE_ASSET_ID::PLAYER,
+		 sprite,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 1, // Sprite index  => 0 INDEXED (L->R, T->B)
+		 0, // Sprite index  => 0 INDEXED (L->R, T->B)
 		 RENDER_LAYER::CREATURES});
 
 	// Initialize animations
