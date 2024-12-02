@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <random>
+#include <iomanip>
 
 PlayerController::PlayerController() : my_player(nullptr) {}
 
@@ -369,26 +370,38 @@ void PlayerController::displayStatCard()
     float y = 475;
 
     std::vector<std::pair<std::string, float>> attack_stats = {
-        {"Level: ", player.level},
         {"Attack: ", player.damage_multiplier},
-        {"Area: ", player.attack_size},
-        {"Dash CD: ", player.dash_cooldown_ms}};
+        {"Attack Area: ", player.attack_size},
+        {"Crit chance: ", player.crit_chance},
+        {"Crit damage: ", player.crit_multiplier},
+        {"Lifesteal: ", player.lifesteal}};
 
     std::vector<std::pair<std::string, float>> utility_stats = {
         {"Collection Range: ", player.collection_distance},
-        {"Experience multiplier: ", player.experience_multiplier}};
+        {"Experience multiplier: ", player.experience_multiplier},
+        {"Knockback: ", player.knockback_strength}};
+
+    createText({x, y}, STAT_FONT_SIZE, "LEVEL: " + std::to_string((int)player.level), STAT_TEXT_COLOR);
+    y -= (FONT_LINE_SPACE) * 2;
 
     for (const auto &stat : attack_stats)
     {
-        createText({x, y}, STAT_FONT_SIZE, stat.first + std::to_string((int)stat.second), STAT_TEXT_COLOR);
+        std::stringstream stream;
+        stream << std::fixed << std::setprecision(2) << (float)stat.second;
+        std::string formattedNumber = stream.str();
+
+        createText({x, y}, STAT_FONT_SIZE, stat.first + formattedNumber, STAT_TEXT_COLOR);
         y -= FONT_LINE_SPACE;
     }
-
-    y -= (FONT_LINE_SPACE * 2);
+    y -= (FONT_LINE_SPACE);
 
     for (const auto &stat : utility_stats)
     {
-        createText({x, y}, STAT_FONT_SIZE, stat.first + std::to_string((int)stat.second), STAT_TEXT_COLOR);
+        std::stringstream stream;
+        stream << std::fixed << std::setprecision(2) << (float)stat.second;
+        std::string formattedNumber = stream.str();
+
+        createText({x, y}, STAT_FONT_SIZE, stat.first + formattedNumber, STAT_TEXT_COLOR);
         y -= FONT_LINE_SPACE;
     }
 }

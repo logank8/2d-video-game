@@ -2336,22 +2336,24 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P)
 	{
-
-		if (screen.state != GameState::PAUSED)
+		if (!is_level_up)
 		{
-			if (!tutorial.pause)
+			if (screen.state != GameState::PAUSED)
 			{
-				tutorial.pause = true;
-				if (tutorial.movement && tutorial.attack && tutorial.dash && tutorial.health_buff)
+				if (!tutorial.pause)
 				{
-					registry.remove_all_components_of(registry.tutorialIcons.entities[0]);
+					tutorial.pause = true;
+					if (tutorial.movement && tutorial.attack && tutorial.dash && tutorial.health_buff)
+					{
+						registry.remove_all_components_of(registry.tutorialIcons.entities[0]);
+					}
 				}
+				pause();
 			}
-			pause();
-		}
-		else
-		{
-			unpause();
+			else
+			{
+				unpause();
+			}
 		}
 	}
 

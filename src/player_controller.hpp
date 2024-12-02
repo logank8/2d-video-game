@@ -56,10 +56,10 @@ public:
              Player &player = registry.players.get(*my_player);
              player.knockback_strength += .5f;
          }},
-        {3, "BOOK", "+25% exp gain", 1, 1, [this]()
+        {3, "BOOK", "+100% exp gain", 1, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
-             player.experience_multiplier += 0.25f;
+             player.experience_multiplier += 1.0f;
          }},
         {4, "\"SALT\"", "+25% attack size", 2, 1, [this]()
          {
