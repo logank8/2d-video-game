@@ -700,8 +700,9 @@ void PhysicsSystem::update_swarm_movement(Entity swarm_member, float step_second
     int grid_x = static_cast<int>((entity_motion.position.x - GRID_OFFSET_X) / TILE_SIZE);
     int grid_y = static_cast<int>((entity_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE);
 
-    // TODO: need collision correction
-    if (map[grid_y][grid_x] == 0 || map[grid_y][grid_x] == 2) {
+    if (grid_x > map[0].size() || grid_y > map.size() || grid_x < 0 || grid_y < 0) {
+        registry.remove_all_components_of(swarm_member);
+    } else if (map[grid_y][grid_x] == 0 || map[grid_y][grid_x] == 2) {
         registry.remove_all_components_of(swarm_member);
     }
 }

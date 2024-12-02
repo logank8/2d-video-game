@@ -46,7 +46,7 @@ public:
              Player &player = registry.players.get(*my_player);
              player.damage_multiplier += 1.0;
          }},
-        {1, "YUM", "+1 collect range", 1, 1, [this]()
+        {1, "VACUUM", "+1 collect range", 1, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
              player.collection_distance += 100.0f;
@@ -54,7 +54,7 @@ public:
         {2, "ROCK", "+1 knockback", 2, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
-             player.collection_distance += 0.1f;
+             player.knockback_strength += 0.1f;
          }}};
 
 private:

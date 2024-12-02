@@ -290,6 +290,14 @@ void PlayerController::step(float elapsed_ms_since_last_update)
         }
     }
 
+    //  Powerup magnet
+    for (Entity entity : registry.powerups.entities) {
+        Motion& motion = registry.motions.get(entity);
+        if (glm::distance(motion.position, pmotion.position) < player.collection_distance) {
+            motion.position = glm::mix(motion.position, pmotion.position, 0.1f);
+        }
+    }
+
     // collectibles
 
     for (Entity entity : registry.collectibles.entities)
@@ -336,14 +344,14 @@ void PlayerController::step(float elapsed_ms_since_last_update)
 
                 // temporary increase
                 player.toNextLevel += 5;
-                world->create_experience_bar();
+                world->update_experience_bar();
             }
 
             registry.remove_all_components_of(entity);
         }
     }
 
-    world->create_experience_bar();
+    world->update_experience_bar();
 }
 
 const float STAT_FONT_SIZE = 0.5f;
@@ -629,7 +637,7 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
                 {
                     registry.remove_all_components_of(entity);
                 }
-
+                world->save_player_data(SAVE_FILENAME);
                 world->set_level_up_state(false);
                 break;
 

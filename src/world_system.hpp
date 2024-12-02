@@ -46,19 +46,19 @@ public:
 	Mix_Chunk *door_sound;
 	Mix_Chunk *summon_sound;
 
-
-	struct Tutorial {
+	struct Tutorial
+	{
 		float toggle_show_ms;
 		float toggle_show_ms_passed;
 		int toggle_key;
-		bool movement; // movement keys appear at the immediate start
-		bool attack; // attack arrow appears when in proximity to enemy - maybe pause enemies here or something idk
-		float dash_tut_wait_ms; // amount of time after movement / attack tut to start dash tut
+		bool movement;				// movement keys appear at the immediate start
+		bool attack;				// attack arrow appears when in proximity to enemy - maybe pause enemies here or something idk
+		float dash_tut_wait_ms;		// amount of time after movement / attack tut to start dash tut
 		float dash_tut_cur_wait_ms; // amount of time passed after movement / attack tut
-		bool dash; // dash appears a certain amount of time after movement / attack keys disappear
-		bool pause; // not sure about pause yet
-		bool health_buff; // interact key appears when touching
-		bool door; // interact key appears when touching
+		bool dash;					// dash appears a certain amount of time after movement / attack keys disappear
+		bool pause;					// not sure about pause yet
+		bool health_buff;			// interact key appears when touching
+		bool door;					// interact key appears when touching
 	};
 
 	Tutorial tutorial = {
@@ -70,10 +70,9 @@ public:
 		4000.f,
 		0.f,
 		false,
-		false, 
 		false,
-		false
-	};
+		false,
+		false};
 
 	// Should the game be over ?
 	bool is_over() const;
@@ -86,7 +85,8 @@ public:
 	void pause();
 	void unpause();
 	void set_level_up_state(bool state);
-	void create_experience_bar();
+	void update_experience_bar();
+	void save_player_data(const std::string &filename);
 
 	std::vector<std::vector<int>> current_map;
 
@@ -94,7 +94,7 @@ public:
 
 	int enemies_killed = 0;
 
-	int enemy_kill_goal = 20;
+	int enemy_kill_goal = 2;
 
 	bool goal_reached = false;
 
@@ -106,6 +106,7 @@ private:
 	void on_mouse_move(vec2 pos);
 	void on_mouse_button(int button, int action, int mod);
 
+	void load_player_data(const std::string &filename);
 	void mapSwitch(int map);
 
 	void spawnDoor();
@@ -141,6 +142,7 @@ private:
 	Entity hp_bar;
 	Entity stamina_bar;
 	Entity experience_bar;
+	Entity experience_in;
 	Entity camera;
 	Entity final_boss;
 
@@ -152,7 +154,7 @@ private:
 
 	const std::vector<std::vector<int>> door_positions = {{25, 0}, {25, 2}};
 
-	const std::vector<std::vector<int>> tenant_positions = {{25, 16, 25, 16}};
+	const std::vector<std::vector<int>> tenant_positions = {{25, 16}, {25, 16}};
 
 	const std::vector<std::vector<int>> map1 = {
 		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -304,7 +306,7 @@ Final boss:
 10 -----------> final boss
 
 // Legend for enum to furniture item (20 to 38)
--1 -----------> furniture sprite overflows into this erea, use -1 so enemy ai knows it's not allowed in this space 
+-1 -----------> furniture sprite overflows into this erea, use -1 so enemy ai knows it's not allowed in this space
 20 -----------> plant
 21 -----------> coat rack
 22 -----------> table

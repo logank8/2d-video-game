@@ -391,12 +391,13 @@ struct ElevatorButton
 
 struct ElevatorDisplay
 {
-	float lasting_ms = 4000.f;
+	bool selection_made = false;
+	float lasting_ms = 1700.f;
 	float current_ms = 0.f;
 	int message = 0;
 	/*
 	messages
-	 - 0    -> exit
+	 - 0    -> not available
 	 - >= 1 -> level
 	*/
 };
@@ -534,7 +535,8 @@ enum class TEXTURE_ASSET_ID
 	DIALOGUE_BOX = SLOWING_ENEMY + 1,
 	TUTORIAL_TOGGLE_KEY = DIALOGUE_BOX + 1,
 	BARS = TUTORIAL_TOGGLE_KEY + 1,
-	TEXTURE_COUNT = BARS + 1
+	ELEVATOR_DISPLAY = BARS + 1,
+	TEXTURE_COUNT = ELEVATOR_DISPLAY + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -566,7 +568,8 @@ enum class SPRITE_ASSET_ID
 	SLOWING_ENEMY = DASHING_ENEMY + 1,
 	TUTORIAL_TOGGLE_KEY = SLOWING_ENEMY + 1,
 	BARS = TUTORIAL_TOGGLE_KEY + 1,
-	SPRITE_COUNT = BARS + 1
+	ELEVATOR_DISPLAY = BARS + 1,
+	SPRITE_COUNT = ELEVATOR_DISPLAY + 1
 };
 const int sprite_count = (int)SPRITE_ASSET_ID::SPRITE_COUNT;
 

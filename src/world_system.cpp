@@ -8,6 +8,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include "../ext/nlohmann/json.hpp"
+// mac config: run  brew install nlohmann-json
 
 #include "physics_system.hpp"
 #include "animation_system.hpp"
@@ -52,9 +54,12 @@ std::vector<int> current_tenant_pos;
 
 PhysicsSystem physics;
 
+using json = nlohmann::json;
+
 void pauseMenuText()
 {
-	// need to figure out how to clear powerup texts when paused or something
+	while (registry.debugComponents.entities.size() > 0)
+		registry.remove_all_components_of(registry.debugComponents.entities.back());
 	createText(vec2(475, 450), 0.8f, "PRESS P TO UNPAUSE", vec3(1.0f, 1.0f, 1.0f));
 	createText(vec2(410, 370), 0.8f, "PRESS ESC TO EXIT TO MENU", vec3(1.0f, 1.0f, 1.0f));
 	createText(vec2(245, 300), 0.6f, "(If you exit to menu your progress in the level will be lost!)", vec3(1.0f, 1.0f, 1.0f));
@@ -406,7 +411,7 @@ void createHPBar(Entity enemy)
 	}
 }
 
-void WorldSystem::create_experience_bar()
+void WorldSystem::update_experience_bar()
 {
 	auto &player = registry.players.get(my_player);
 	auto &pmotion = registry.motions.get(my_player);
@@ -417,8 +422,60 @@ void WorldSystem::create_experience_bar()
 
 	float bar_offset = (progress * 0.2f);
 	vec2 bar_pos = vec2(-0.94f + bar_offset, 0.525f);
-	// vec2 bar_pos = {-0.74f, 0.55f};
-	experience_bar = createUIBar(bar_pos, vec2(progress * 0.4f, 0.205f), 0);
+
+	auto &ui = registry.userInterfaces.get(experience_in);
+	ui.scale = vec2(progress * 0.4f, 0.205f);
+	ui.position = bar_pos;
+}
+
+void WorldSystem::save_player_data(const std::string &filename)
+{
+	auto &player = registry.players.get(my_player);
+
+	json j = {
+		{"dash_cooldown_ms", player.dash_cooldown_ms},
+		{"damage_multiplier", player.damage_multiplier},
+		{"attack_duration_ms", player.attack_duration_ms},
+		{"knockback_strength", player.knockback_strength},
+		{"attack_size", player.attack_size},
+		{"collection_distance", player.collection_distance},
+		{"experience_multiplier", player.experience_multiplier},
+		{"experience", player.experience},
+		{"toNextLevel", player.toNextLevel},
+		{"level", player.level}};
+
+	std::ofstream file(filename);
+	file << j.dump(4);
+
+	std::cout << "saved" << std::endl;
+}
+
+void WorldSystem::load_player_data(const std::string &filename)
+{
+	std::ifstream file(filename);
+
+	if (!file.is_open())
+	{
+		std::cout << "failed to open file for player data" << std::endl;
+		return;
+	}
+
+	json j;
+	file >> j;
+
+	auto &player = registry.players.get(my_player);
+
+	player.dash_cooldown_ms = j["dash_cooldown_ms"];
+	player.damage_multiplier = j["damage_multiplier"];
+	player.knockback_strength = j["knockback_strength"];
+	player.attack_size = j["attack_size"];
+	player.collection_distance = j["collection_distance"];
+	player.experience_multiplier = j["experience_multiplier"];
+	player.experience = j["experience"];
+	player.toNextLevel = j["toNextLevel"];
+	player.level = j["level"];
+
+	std::cout << "loaded" << std::endl;
 }
 
 void WorldSystem::mapSwitch(int map)
@@ -522,6 +579,33 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	if (screen.state == GameState::MENU)
 	{
 		glfwSetWindowTitle(window, "Main Menu");
+
+		if (registry.elevatorDisplays.entities.size() == 0) {
+			createElevatorDisplay(renderer, {window_width_px / 2, window_height_px / 2});
+		} 
+
+		Entity e = registry.elevatorDisplays.entities[0];
+		ElevatorDisplay &display = registry.elevatorDisplays.get(e);
+
+		if (display.selection_made) {
+			display.current_ms += elapsed_ms_since_last_update;
+			std::cout << registry.animationSets.get(e).current_animation << std::endl;
+
+			// if display is done - either reset (if locked) or go to level
+			if (display.current_ms >= display.lasting_ms) {
+				
+				if (display.message != 0) {
+					stateSwitch(GameState::GAME);
+					mapSwitch(display.message);
+				} else {
+					AnimationSet &animSet = registry.animationSets.get(e);
+					animSet.current_animation = "elevator_empty";
+					display.selection_made = false;
+				}
+			}
+			
+		}
+
 		return true;
 	}
 
@@ -550,6 +634,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	// Camera follows player
 	auto &cameraMotion = motions_registry.get(camera);
 	cameraMotion.position = player_pos;
+
+	// Remove a spawned power up if it has been around for more than 10 seconds
+	if (registry.powerups.entities.size() > 0) {
+		assert(registry.powerups.size() == 1);
+		Entity& powerupEntity = registry.powerups.entities[0];
+		Powerup& powerup = registry.powerups.get(powerupEntity);
+		if (!powerup.equipped) {
+			powerup.timer -= elapsed_ms_since_last_update;
+			if (powerup.timer < 0) {
+				registry.remove_all_components_of(powerupEntity);
+			}
+		}
+	}
 
 	if (display_fps)
 	{
@@ -592,12 +689,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 	// Update timer on equipped powerups, if any
 	// Also show active powerup
-	if (registry.powerups.has(my_player))
+	if (registry.powerups.has(my_player) && !is_paused)
 	{
 		Powerup &powerup = registry.powerups.get(my_player);
 		powerup.timer -= elapsed_ms_since_last_update;
-		float x = 40;
-		float y = 500;
+
+		float x = 30;
+		float y = 480;
 
 		std::string powerup_name = "";
 		if (powerup.type == PowerupType::DAMAGE_BOOST)
@@ -606,8 +704,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			powerup_name = "Speed Boost";
 		else if (powerup.type == PowerupType::INVINCIBILITY)
 			powerup_name = "Invincibility";
-
-		createText({x, y}, 0.5f, "Powerup active: " + powerup_name + (powerup.multiplier < 1.02f ? "" : " with multiplier x" + floatToString1DP(powerup.multiplier)), {1.f, 1.f, 1.f});
+		
+		createText({x, y}, 0.5f, "Powerup active: " + powerup_name + (powerup.multiplier < 1.02f ? "" : " with multiplier x" + floatToString1DP(powerup.multiplier)) + " for " + std::to_string((int)std::ceil(powerup.timer / 1000)) + "s", {1.f, 1.f, 1.f});
 		if (powerup.timer < 0 || goal_reached)
 		{
 			registry.powerups.remove(my_player);
@@ -964,11 +1062,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				}
 
 				float roll_powerup = uniform_dist(rng);
-				if (roll_powerup <= POWERUP_DROP_CHANCE && !registry.projectiles.has(entity) && !registry.swarms.has(entity) && !goal_reached)
+				if (roll_powerup <= POWERUP_DROP_CHANCE && !registry.projectiles.has(entity) && !registry.swarms.has(entity) && !goal_reached && registry.powerups.entities.size() == 0)
 				{
 					PowerupType type = (PowerupType)randomInt(2); // Change this if more powerups
 					float multiplier = 1.f;
-					float timer = POWERUP_TIMER;
 					if (type == PowerupType::DAMAGE_BOOST || type == PowerupType::SPEED_BOOST)
 					{
 						int multiplier_roll = randomInt(10);
@@ -977,7 +1074,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 						else
 							multiplier *= 1.3f;
 					}
-					createTempPowerup(renderer, enemy_motion.position, type, multiplier, timer);
+					createTempPowerup(renderer, enemy_motion.position, type, multiplier, 10000); // spawned powerup clears after 10 seconds if not picked up
 				}
 
 				// replace dead leader with new swarm member
@@ -1227,9 +1324,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			registry.motions.get(pause_key).position = {registry.motions.get(my_player).position.x + 100, registry.motions.get(my_player).position.y - 100};
 		}
 	}
-	else if (!tutorial.door)
+	if (!tutorial.door)
 	{
-		std::cout << "creating door" << std::endl;
 		if (registry.tutorialIcons.entities.size() == 0 && registry.doors.entities.size() != 0)
 		{
 			if (registry.doors.components[0].touching)
@@ -1344,9 +1440,12 @@ void WorldSystem::restart_game()
 
 	enemies_killed = 0;
 	goal_reached = false;
-	if (current_map == map3) {
-		max_num_enemies = 10;
-	} else {
+	if (current_map == map3)
+	{
+		max_num_enemies = 15;
+	}
+	else
+	{
 		max_num_enemies = 50;
 	}
 
@@ -1410,6 +1509,8 @@ void WorldSystem::restart_game()
 	player_controller.set_renderer(renderer);
 	player_controller.set_world(this);
 
+	load_player_data(SAVE_FILENAME);
+
 	registry.cameras.clear();
 	camera = createCamera(renderer, vec2(window_width_px / 2, window_height_px / 2));
 
@@ -1458,6 +1559,12 @@ void WorldSystem::restart_game()
 	// create experience bar
 	vec2 exp_bar_pos = {-0.74f, 0.55f};
 	experience_bar = createExperienceBar(renderer, exp_bar_pos);
+
+	auto &player = registry.players.get(my_player);
+	float progress = std::min((float)player.experience / player.toNextLevel, 1.0f);
+	float bar_offset = (progress * 0.2f);
+	vec2 bar_pos = vec2(-0.94f + bar_offset, 0.525f);
+	experience_in = createUIBar(bar_pos, vec2(progress * 0.4f, 0.205f), 0);
 }
 
 // utility functions for dash mvmnt implementation
@@ -1565,7 +1672,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 				{
 					Powerup &powerup = registry.powerups.get(entity_other);
 					PowerupType type = powerup.type;
-					float timer = powerup.timer;
+					float timer = POWERUP_TIMER;
 					float multiplier = powerup.multiplier;
 
 					registry.remove_all_components_of(entity_other);
@@ -1576,6 +1683,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 					player_powerup.multiplier = multiplier;
 					player_powerup.timer = timer;
+					player_powerup.equipped = true;
 
 					Mix_PlayChannel(-1, salmon_eat_sound, 0);
 				}
@@ -2370,9 +2478,28 @@ void WorldSystem::on_mouse_button(int button, int action, int mods)
 				if (button.level == 0)
 				{
 					exit(0);
+				} else {
+					if (registry.elevatorDisplays.entities.size() == 0) {
+						createElevatorDisplay(renderer, {window_width_px / 2, window_height_px / 2});
+					} 
+					Entity e = registry.elevatorDisplays.entities[0];
+
+					// TODO: need to more thoroughly track which levels have been unlocked to player
+					
+
+					if (button.level > 2) {
+						registry.animationSets.get(e).current_animation = "elevator_locked";
+						registry.elevatorDisplays.get(e).message = 0;
+					} else {
+						std::cout << "animation changed for level " << button.level << std::endl;
+						registry.animationSets.get(e).current_animation = "elevator_level" + std::to_string(button.level);
+						registry.elevatorDisplays.get(e).message = button.level;
+					}
+
+					registry.elevatorDisplays.get(e).selection_made = true;
+					registry.elevatorDisplays.get(e).current_ms = 0.f;
+					return;
 				}
-				stateSwitch(GameState::GAME);
-				mapSwitch(button.level);
 			}
 		}
 	}

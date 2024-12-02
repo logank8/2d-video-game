@@ -53,6 +53,10 @@
         "variant": "cpp",
         "vector": "cpp",
         "algorithm": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "any": "cpp",
+        "forward_list": "cpp",
+        "span": "cpp",
+        "valarray": "cpp"
     }
 }
