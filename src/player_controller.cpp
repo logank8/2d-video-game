@@ -291,9 +291,11 @@ void PlayerController::step(float elapsed_ms_since_last_update)
     }
 
     //  Powerup magnet
-    for (Entity entity : registry.powerups.entities) {
-        Motion& motion = registry.motions.get(entity);
-        if (glm::distance(motion.position, pmotion.position) < player.collection_distance) {
+    for (Entity entity : registry.powerups.entities)
+    {
+        Motion &motion = registry.motions.get(entity);
+        if (glm::distance(motion.position, pmotion.position) < player.collection_distance)
+        {
             motion.position = glm::mix(motion.position, pmotion.position, 0.1f);
         }
     }
@@ -319,6 +321,7 @@ void PlayerController::step(float elapsed_ms_since_last_update)
                 if (registry.experiences.has(entity))
                 {
                     animation.current_animation = "experience_collect";
+                    Mix_PlayChannel(-1, world->exp_sound, 0);
                     animation.current_frame = 0;
                 }
             }
@@ -661,11 +664,24 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
             }
             else
             {
-                if (registry.selectedCards.has(entity))
+                if (registry.selectedCards.has(entity) && registry.selectedCards.entities.size() > 1)
                 {
                     registry.selectedCards.remove(entity);
                     uiComponent.scale = upgradeCardComponent.original_scale;
                 }
+            }
+        }
+
+        // ensures only one
+        for (Entity entity : registry.selectedCards.entities)
+        {
+            auto &upgradeCardComponent = registry.upgradeCards.get(entity);
+            auto &uiComponent = registry.userInterfaces.get(entity);
+
+            if (!upgradeCardComponent.hovering && registry.selectedCards.entities.size() > 1)
+            {
+                registry.selectedCards.remove(entity);
+                uiComponent.scale = upgradeCardComponent.original_scale;
             }
         }
     }

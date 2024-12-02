@@ -41,22 +41,40 @@ public:
     void set_world(WorldSystem *world);
 
     std::vector<Upgrade> upgradePool = {
-        {0, "WOOD", "+10 damage", 0, 1, [this]()
+        {0, "KNIFE", "+5% damage", 0, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
-             player.damage_multiplier += 1.0;
+             player.damage_multiplier += 0.5;
          }},
-        {1, "VACUUM", "+1 collect range", 1, 1, [this]()
+        {1, "MAGNET", "+50 collect range", 3, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
-             player.collection_distance += 100.0f;
+             player.collection_distance += 50.0f;
          }},
-        {2, "ROCK", "+1 knockback", 2, 1, [this]()
+        {2, "ROCK", "+0.5 knockback", 4, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
-             player.knockback_strength += 0.1f;
+             player.knockback_strength += .5f;
+         }},
+        {3, "BOOK", "+25% exp gain", 1, 1, [this]()
+         {
+             Player &player = registry.players.get(*my_player);
+             player.experience_multiplier += 0.25f;
+         }},
+        {4, "\"SALT\"", "+25% attack size", 2, 1, [this]()
+         {
+             Player &player = registry.players.get(*my_player);
+             player.attack_size += 25.f;
          }}};
 
+    // DEAD
+
+    // ,
+    //         {5, "BOOTS", "-0.5s dash cd", 2, 1, [this]()
+    //          {
+    //              Player &player = registry.players.get(*my_player);
+    //              player.dash_cooldown_ms -= 500.f;
+    //          }}
 private:
     Entity *my_player; // Pointer to the player instance to control
     RenderSystem *renderer;
