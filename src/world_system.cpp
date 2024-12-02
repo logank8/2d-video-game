@@ -162,7 +162,7 @@ void WorldSystem::stateSwitch(GameState new_state)
 		screen.darken_screen_factor = 0.0f;
 
 		createMenuScreen(renderer);
-		createElevatorButtons(renderer, 3);
+		createElevatorButtons(renderer, 5);
 		break;
 	case (GameState::GAME):
 		while (registry.userInterfaces.entities.size() > 0)
@@ -507,9 +507,15 @@ void WorldSystem::mapSwitch(int map)
 		current_door_pos = {-1, -1};
 		current_tenant_pos = {-1, -1};
 	}
+
 	if (std::find(levels_unlocked.begin(), levels_unlocked.end(), map) == levels_unlocked.end()) {
 		levels_unlocked.push_back(map);
+		
 	}
+	for (int i : levels_unlocked) {
+		std::cout << i << std::endl;
+	}
+
 	switch (map)
 	{
 	case 1:
@@ -615,11 +621,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 		if (display.selection_made) {
 			display.current_ms += elapsed_ms_since_last_update;
-			std::cout << registry.animationSets.get(e).current_animation << std::endl;
 
 			// if display is done - either reset (if locked) or go to level
-			if (display.current_ms >= display.lasting_ms) {
-				
+			if (display.current_ms >= display.lasting_ms) {				
 				if (display.message != 0) {
 					stateSwitch(GameState::GAME);
 					mapSwitch(display.message);
@@ -925,7 +929,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		bool tenant = true;
 		if (registry.tenants.entities.size() == 0)
 		{
-			std::cout << "creating tenant" << std::endl;
 			vec2 world_pos = {(640 - (25 * 100)) + (current_tenant_pos[0] * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (current_tenant_pos[1] * TILE_SIZE) + (TILE_SIZE / 2)};
 			// varying tenant based on map
 			if (current_map == map1) {
@@ -1596,7 +1599,14 @@ void WorldSystem::restart_game()
 	player_controller.set_world(this);
 
 	load_player_data(SAVE_FILENAME);
-	levels_unlocked = registry.players.components[0].levels_unlocked;
+	for (int i : registry.players.components[0].levels_unlocked) {
+
+		if (std::find(levels_unlocked.begin(), levels_unlocked.end(), i) == levels_unlocked.end()) {
+			levels_unlocked.push_back(i);
+		
+		}
+	}
+	
 
 	registry.cameras.clear();
 	camera = createCamera(renderer, vec2(window_width_px / 2, window_height_px / 2));
@@ -2353,7 +2363,6 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 				createEffect(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);
 				if (p_health.hit_points < 200)
 				{
-					std::cout << "player regained health" << std::endl;
 					p_health.hit_points += min(buff.factor * 25.f, 200.f - p_health.hit_points);
 
 					// Total HP bar is 200
@@ -2640,7 +2649,6 @@ void WorldSystem::pause()
 		screen.darken_screen_factor = 0.9;
 		screen.state = GameState::PAUSED;
 		is_paused = true;
-		std::cout << "Game paused" << std::endl;
 		pauseMenuText();
 	}
 }
@@ -2655,7 +2663,6 @@ void WorldSystem::unpause()
 		is_paused = false;
 		registry.players.get(my_player).is_moving = false;
 		registry.players.get(my_player).move_direction = vec2(0, 0);
-		std::cout << "Game unpaused" << std::endl;
 	}
 }
 
@@ -2668,12 +2675,10 @@ void WorldSystem::set_level_up_state(bool state)
 	{ // TODO: can we change this to pause function ?
 		screen.darken_screen_factor = 0.0;
 		screen.state = GameState::GAME;
-		std::cout << "Game paused due to level up" << std::endl;
 	}
 	else
 	{
 		screen.darken_screen_factor = 0.0;
 		screen.state = GameState::GAME;
-		std::cout << "Game unpaused from level up" << std::endl;
 	}
 }

@@ -1908,19 +1908,19 @@ void createElevatorButtons(RenderSystem *renderer, int num_levels)
 {
 
 	vec2 top_pos = {0.3f, 0.4f};
-	vec2 top_pos_world = {window_width_px * 0.7, window_height_px * 0.3};
+	vec2 top_pos_world = {window_width_px * 0.7, window_height_px * 0.185};
 
 	for (int i = 1; i <= num_levels + 1; i++)
 	{
 		if (i > num_levels)
 		{
-			createExitButton(renderer, vec2(top_pos.x + 0.2, top_pos.y - (0.25 * i) - 0.1));
+			createExitButton(renderer, vec2(top_pos.x + 0.2, top_pos.y - 1.2));
 			return;
 		}
 
-		createLevelButton(renderer, vec2(top_pos.x, top_pos.y - (0.25 * i)), num_levels - i + 1);
+		createLevelButton(renderer, vec2(top_pos.x, top_pos.y - (0.2 * i)), num_levels - i + 1);
 		// figure out motion pos and pass to text
-		createText({top_pos_world.x, top_pos_world.y + (90 * (num_levels - i))}, 0.9f, "Level " + std::to_string(num_levels - i + 1), vec3(0.2, 0.2, 0.2));
+		createText({top_pos_world.x, top_pos_world.y + (70 * (num_levels - i))}, 0.9f, "Level " + std::to_string(num_levels - i + 1), vec3(0.2, 0.2, 0.2));
 	}
 }
 
