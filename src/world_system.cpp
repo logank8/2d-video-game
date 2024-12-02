@@ -192,7 +192,6 @@ WorldSystem::~WorldSystem()
 	if (door_sound != nullptr)
 		Mix_FreeChunk(door_sound);
 
-
 	Mix_CloseAudio();
 
 	// Destroy all created components
@@ -314,7 +313,8 @@ vec2 WorldSystem::mousePosToNormalizedDevice(vec2 mouse_position)
 	return vec2(normalized_x, normalized_y);
 }
 
-std::vector<std::string> WorldSystem::textToDialogueMode(std::string text) {
+std::vector<std::string> WorldSystem::textToDialogueMode(std::string text)
+{
 	std::vector<std::string> result;
 
 	std::string current = "";
@@ -322,14 +322,18 @@ std::vector<std::string> WorldSystem::textToDialogueMode(std::string text) {
 	for (int i = 0; i < text.size(); i++)
 	{
 		std::string c = {text[i]};
-		if (c == "\n") {
+		if (c == "\n")
+		{
 			result.push_back(current);
 			current = "";
-		} else {
+		}
+		else
+		{
 			current.push_back(text[i]);
 		}
 	}
-	if (current.size() != 0) {
+	if (current.size() != 0)
+	{
 		result.push_back(current);
 	}
 	return result;
@@ -409,11 +413,9 @@ void WorldSystem::create_experience_bar()
 	float progress = std::min((float)player.experience / player.toNextLevel, 1.0f);
 
 	float bar_offset = (progress * 0.2f);
-	vec2 bar_pos = vec2(-0.94f + bar_offset, 0.53f);
+	vec2 bar_pos = vec2(-0.94f + bar_offset, 0.525f);
 	// vec2 bar_pos = {-0.74f, 0.55f};
-	experience_bar = createUILine(bar_pos, vec2(progress * 0.4f, 0.04f));
-	vec3 &color = registry.colors.emplace(experience_bar);
-	color = vec3(0.325f, 0.478f, 0.902f);
+	experience_bar = createUIBar(bar_pos, vec2(progress * 0.4f, 0.205f), 0);
 }
 
 void WorldSystem::mapSwitch(int map)
@@ -778,18 +780,23 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	}
 
 	// Managing tenant appearance and interaction ability stuff
-	if (goal_reached) {
-		if (registry.tenants.entities.size() == 0) {
+	if (goal_reached)
+	{
+		if (registry.tenants.entities.size() == 0)
+		{
 			std::cout << "creating tenant" << std::endl;
 			vec2 world_pos = {(640 - (25 * 100)) + (current_tenant_pos[0] * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (current_tenant_pos[1] * TILE_SIZE) + (TILE_SIZE / 2)};
 			createTenant(renderer, world_pos, 1); // TODO: vary level input based on map
-		} 
+		}
 		Entity tenant = registry.tenants.entities[0];
-		if (registry.tutorialIcons.size() == 0 && registry.tenants.get(tenant).player_in_radius && !cutscene) {
+		if (registry.tutorialIcons.size() == 0 && registry.tenants.get(tenant).player_in_radius && !cutscene)
+		{
 			createInteractKey(renderer, {registry.motions.get(tenant).position.x, registry.motions.get(tenant).position.y + 60});
-		} 
-		if (!registry.tenants.get(tenant).player_in_radius) {
-			while (registry.tutorialIcons.entities.size() != 0) {
+		}
+		if (!registry.tenants.get(tenant).player_in_radius)
+		{
+			while (registry.tutorialIcons.entities.size() != 0)
+			{
 				registry.remove_all_components_of(registry.tutorialIcons.entities.back());
 			}
 		}
@@ -1085,7 +1092,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			player.is_dash_up = true;
 			stamina_anim.current_animation = "staminabar_full";
 
-			
 		} // Player done dashing
 		else if (player.curr_dash_cooldown_ms < (player.dash_cooldown_ms - player.dash_time))
 		{
@@ -1095,8 +1101,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 			stamina_anim.current_animation = "staminabar_regen";
 
-
-			
 		} // Player dashing
 		else
 		{
@@ -1131,12 +1135,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 	player_controller.step(elapsed_ms_since_last_update);
 
-	if (tutorial.toggle_show_ms_passed < tutorial.toggle_show_ms) {
-		if (tutorial.toggle_key == 1) {
-			createText({800, 680},0.6, "Press T to disable tutorial mode", vec3(1.0, 1.0, 1.0));
+	if (tutorial.toggle_show_ms_passed < tutorial.toggle_show_ms)
+	{
+		if (tutorial.toggle_key == 1)
+		{
+			createText({800, 680}, 0.6, "Press T to disable tutorial mode", vec3(1.0, 1.0, 1.0));
 		}
 		tutorial.toggle_show_ms_passed += elapsed_ms_since_last_update;
-		if (tutorial.toggle_show_ms_passed >= tutorial.toggle_show_ms) {
+		if (tutorial.toggle_show_ms_passed >= tutorial.toggle_show_ms)
+		{
 			tutorial.toggle_key = 0;
 		}
 	}
@@ -2050,12 +2057,10 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			4000.f,
 			4000.f,
 			true,
-			true, 
 			true,
-			true
-		};
+			true,
+			true};
 	}
-	
 
 	// Debugging
 	/*
@@ -2077,7 +2082,8 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player) && (screen.state == GameState::GAME) && player.is_dash_up)
 		{
 			pmotion.speed = 5500.f;
-			if (pmotion.velocity == vec2(0.f, 0.f)) {
+			if (pmotion.velocity == vec2(0.f, 0.f))
+			{
 				pmotion.velocity = player.last_direction;
 			}
 			player.is_dash_up = false;
@@ -2145,66 +2151,82 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		}
 
 		// tenant dialogue
-		for (Entity e : registry.tenants.entities) {
+		for (Entity e : registry.tenants.entities)
+		{
 			// if there is already dialogue up, progress index
 			// 	if the current dialogue is the last -> unfreeze player movement and remove current dialogue
 			//  else -> take down curent dialogue and put up next
-
 
 			// extra dialogue:
 			//  if already dialogue up -> close out of it and progress index
 			//  else -> display next dialogue
 
 			Tenant &tenant = registry.tenants.get(e);
-			if (tenant.player_in_radius) {
-				while (registry.tutorialIcons.entities.size() != 0) {
+			if (tenant.player_in_radius)
+			{
+				while (registry.tutorialIcons.entities.size() != 0)
+				{
 					registry.remove_all_components_of(registry.tutorialIcons.entities.back());
 				}
 				// cutscene dialogue
-				if (tenant.dialogue_progress < int(tenant.dialogues.size())) {
+				if (tenant.dialogue_progress < int(tenant.dialogues.size()))
+				{
 					// player's first time speaking to tenant - freeze player movement/attack
-					if (tenant.dialogue_progress == -1) {
+					if (tenant.dialogue_progress == -1)
+					{
 						cutscene = true;
 						createDialogueBox(renderer);
-					} 
+					}
 					tenant.dialogue_progress += 1;
 
-					while (registry.texts.size() != 0) {
+					while (registry.texts.size() != 0)
+					{
 						registry.remove_all_components_of(registry.texts.entities.back());
 					}
-					if (tenant.dialogue_progress < int(tenant.dialogues.size())) {
+					if (tenant.dialogue_progress < int(tenant.dialogues.size()))
+					{
 						// Create dialogue
 						std::vector<std::string> text_lines = textToDialogueMode(tenant.dialogues[tenant.dialogue_progress]);
-						for (int i = 0; i < text_lines.size(); i++) {
+						for (int i = 0; i < text_lines.size(); i++)
+						{
 							std::string line = text_lines[i];
 							float offset = 40 * i;
 
 							Entity text = createText({40, 130 - offset}, 0.7, line, vec3(1.0, 1.0, 1.0));
 							registry.debugComponents.remove(text);
 						}
-						
-
-					} else {
+					}
+					else
+					{
 						cutscene = false;
-						while (registry.dialogueBoxes.size() != 0) {
+						while (registry.dialogueBoxes.size() != 0)
+						{
 							registry.remove_all_components_of(registry.dialogueBoxes.entities.back());
 						}
 					}
-				} else if (tenant.dialogue_progress < int(tenant.dialogues.size() + tenant.extra_dialogues.size())) {
-					while (registry.texts.size() != 0) {
+				}
+				else if (tenant.dialogue_progress < int(tenant.dialogues.size() + tenant.extra_dialogues.size()))
+				{
+					while (registry.texts.size() != 0)
+					{
 						registry.remove_all_components_of(registry.texts.entities.back());
 					}
 
-					if (cutscene) {
+					if (cutscene)
+					{
 						cutscene = false;
-						while (registry.dialogueBoxes.size() != 0) {
+						while (registry.dialogueBoxes.size() != 0)
+						{
 							registry.remove_all_components_of(registry.dialogueBoxes.entities.back());
 						}
 						tenant.dialogue_progress += 1;
-					} else {
+					}
+					else
+					{
 						// Create dialogue
 						std::vector<std::string> text_lines = textToDialogueMode(tenant.extra_dialogues[tenant.dialogue_progress - int(tenant.dialogues.size())]);
-						for (int i = 0; i < text_lines.size(); i++) {
+						for (int i = 0; i < text_lines.size(); i++)
+						{
 							std::string line = text_lines[i];
 							float offset = 40 * i;
 
@@ -2215,7 +2237,9 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 						cutscene = true;
 						createDialogueBox(renderer);
 					}
-				} else {
+				}
+				else
+				{
 					createEffect(renderer, {registry.motions.get(e).position.x, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);
 				}
 			}

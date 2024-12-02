@@ -113,7 +113,7 @@ struct Deadly
 	float drop_chance = 1.0f;
 	int experience = 1;
 	ENEMY_STATE state = ENEMY_STATE::IDLE;
-	vec2 knocked_back_pos = { INFINITY, INFINITY };
+	vec2 knocked_back_pos = {INFINITY, INFINITY};
 };
 
 struct EnemyDash
@@ -381,19 +381,19 @@ struct ElevatorButton
 	bool hovering = false;
 };
 
-struct ElevatorDisplay 
+struct ElevatorDisplay
 {
 	float lasting_ms = 4000.f;
 	float current_ms = 0.f;
 	int message = 0;
-	/* 
+	/*
 	messages
 	 - 0    -> exit
 	 - >= 1 -> level
 	*/
 };
 
-struct DialogueBox 
+struct DialogueBox
 {
 };
 
@@ -525,7 +525,8 @@ enum class TEXTURE_ASSET_ID
 	SLOWING_ENEMY = DASHING_ENEMY + 1,
 	DIALOGUE_BOX = SLOWING_ENEMY + 1,
 	TUTORIAL_TOGGLE_KEY = DIALOGUE_BOX + 1,
-	TEXTURE_COUNT = TUTORIAL_TOGGLE_KEY + 1
+	BARS = TUTORIAL_TOGGLE_KEY + 1,
+	TEXTURE_COUNT = BARS + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -556,7 +557,8 @@ enum class SPRITE_ASSET_ID
 	DASHING_ENEMY = HOMING_ENEMY + 1,
 	SLOWING_ENEMY = DASHING_ENEMY + 1,
 	TUTORIAL_TOGGLE_KEY = SLOWING_ENEMY + 1,
-	SPRITE_COUNT = TUTORIAL_TOGGLE_KEY + 1
+	BARS = TUTORIAL_TOGGLE_KEY + 1,
+	SPRITE_COUNT = BARS + 1
 };
 const int sprite_count = (int)SPRITE_ASSET_ID::SPRITE_COUNT;
 

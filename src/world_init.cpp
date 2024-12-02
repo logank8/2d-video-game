@@ -730,7 +730,7 @@ Entity createDashingEnemy(RenderSystem *renderer, vec2 position)
 	registry.damages.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
 		 SPRITE_ASSET_ID::DASHING_ENEMY,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
@@ -744,18 +744,18 @@ Entity createDashingEnemy(RenderSystem *renderer, vec2 position)
 		SPRITE_ASSET_ID::DASHING_ENEMY,
 		idle_f_vec};
 
-	std::vector<int> run_f_vec = { 7, 8, 9, 10};
+	std::vector<int> run_f_vec = {7, 8, 9, 10};
 	Animation run_f = {
 		"slowenemy_run_f",
 		13,
 		SPRITE_ASSET_ID::DASHING_ENEMY,
-		run_f_vec };
-	std::vector<int> die_vec = { 14, 15, 16, 17, 18, 19, 20 };
+		run_f_vec};
+	std::vector<int> die_vec = {14, 15, 16, 17, 18, 19, 20};
 	Animation die = {
 		"slowenemy_die",
 		7,
 		SPRITE_ASSET_ID::DASHING_ENEMY,
-		die_vec };
+		die_vec};
 
 	auto &animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;
@@ -857,15 +857,15 @@ Entity createLine(vec2 position, vec2 scale)
 	return entity;
 }
 
-Entity createUILine(vec2 position, vec2 scale)
+Entity createUIBar(vec2 position, vec2 scale, int index)
 {
 	Entity entity = Entity();
 
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
-				 SPRITE_ASSET_ID::SPRITE_COUNT,
-				 EFFECT_ASSET_ID::EGG,
-				 GEOMETRY_BUFFER_ID::DEBUG_LINE});
+				 SPRITE_ASSET_ID::BARS,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE, index});
 
 	auto &uiComponent = registry.userInterfaces.emplace(entity);
 	uiComponent.position = position;
@@ -2226,7 +2226,8 @@ Entity createTutorialToggleKey(RenderSystem *renderer, vec2 pos)
 	return entity;
 }
 
-Entity createTenant(RenderSystem *renderer, vec2 pos, int level) {
+Entity createTenant(RenderSystem *renderer, vec2 pos, int level)
+{
 	auto entity = Entity();
 	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
@@ -2240,17 +2241,17 @@ Entity createTenant(RenderSystem *renderer, vec2 pos, int level) {
 
 	Tenant &tenant = registry.tenants.emplace(entity);
 
-	switch (level) {
-		case (1):
-			tenant.dialogues = tenant_dialogue_1;
-			tenant.extra_dialogues = tenant_extra_dialogue_1;
-			break;
-		default:
-			tenant.dialogues = tenant_dialogue_2;
-			tenant.extra_dialogues = tenant_extra_dialogue_2;
+	switch (level)
+	{
+	case (1):
+		tenant.dialogues = tenant_dialogue_1;
+		tenant.extra_dialogues = tenant_extra_dialogue_1;
+		break;
+	default:
+		tenant.dialogues = tenant_dialogue_2;
+		tenant.extra_dialogues = tenant_extra_dialogue_2;
 	}
 
-	
 	registry.renderRequests.insert(
 		entity,
 		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
@@ -2259,7 +2260,6 @@ Entity createTenant(RenderSystem *renderer, vec2 pos, int level) {
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 1, // Sprite index  => 0 INDEXED (L->R, T->B)
 		 RENDER_LAYER::CREATURES});
-
 
 	// Initialize animations
 	std::vector<int> run_s_vec = {24, 25, 26, 27, 28, 29};
@@ -2297,7 +2297,8 @@ Entity createTenant(RenderSystem *renderer, vec2 pos, int level) {
 	return entity;
 }
 
-Entity createDialogueBox(RenderSystem *renderer) {
+Entity createDialogueBox(RenderSystem *renderer)
+{
 	auto entity = Entity();
 
 	Motion &motion = registry.motions.emplace(entity);
