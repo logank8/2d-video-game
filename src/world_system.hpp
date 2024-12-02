@@ -74,6 +74,7 @@ public:
 	static bool is_level_up;
 
 	static vec2 mousePosToNormalizedDevice(vec2 mouse_position);
+	static std::vector<std::string> textToDialogueMode(std::string text);
 
 	void pause();
 	void unpause();
@@ -142,6 +143,8 @@ private:
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
 	const std::vector<std::vector<int>> door_positions = {{25, 0}, {25, 2}};
+
+	const std::vector<std::vector<int>> tenant_positions = {{25, 16, 25, 16}};
 
 	const std::vector<std::vector<int>> map1 = {
 		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},

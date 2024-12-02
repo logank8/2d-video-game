@@ -2189,7 +2189,7 @@ Entity createPauseKey(RenderSystem *renderer, vec2 pos)
 	return entity;
 }
 
-Entity createTenant(RenderSystem *renderer, vec2 pos) {
+Entity createTenant(RenderSystem *renderer, vec2 pos, int level) {
 	auto entity = Entity();
 	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
@@ -2202,8 +2202,18 @@ Entity createTenant(RenderSystem *renderer, vec2 pos) {
 	motion.scale = vec2({PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT});
 
 	Tenant &tenant = registry.tenants.emplace(entity);
-	tenant.dialogues = tenant_dialogue_1;
-	tenant.extra_dialogues = tenant_extra_dialogue_1;
+
+	switch (level) {
+		case (1):
+			tenant.dialogues = tenant_dialogue_1;
+			tenant.extra_dialogues = tenant_extra_dialogue_1;
+			break;
+		default:
+			tenant.dialogues = tenant_dialogue_2;
+			tenant.extra_dialogues = tenant_extra_dialogue_2;
+	}
+
+	
 	registry.renderRequests.insert(
 		entity,
 		{TEXTURE_ASSET_ID::TEXTURE_COUNT,

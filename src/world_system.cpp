@@ -48,6 +48,8 @@ int map_counter = 1;
 
 std::vector<int> current_door_pos;
 
+std::vector<int> current_tenant_pos;
+
 PhysicsSystem physics;
 
 void pauseMenuText()
@@ -312,6 +314,27 @@ vec2 WorldSystem::mousePosToNormalizedDevice(vec2 mouse_position)
 	return vec2(normalized_x, normalized_y);
 }
 
+std::vector<std::string> WorldSystem::textToDialogueMode(std::string text) {
+	std::vector<std::string> result;
+
+	std::string current = "";
+
+	for (int i = 0; i < text.size(); i++)
+	{
+		std::string c = {text[i]};
+		if (c == "\n") {
+			result.push_back(current);
+			current = "";
+		} else {
+			current.push_back(text[i]);
+		}
+	}
+	if (current.size() != 0) {
+		result.push_back(current);
+	}
+	return result;
+}
+
 void WorldSystem::restart_world()
 {
 	// Debugging for memory/component leaks
@@ -335,6 +358,7 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 
 	current_map = map1;
 	current_door_pos = door_positions[0];
+	current_tenant_pos = tenant_positions[0];
 
 	ScreenState &screen = registry.screenStates.components[0];
 	screen.state = GameState::START;
@@ -397,10 +421,12 @@ void WorldSystem::mapSwitch(int map)
 	if (map < 3)
 	{
 		current_door_pos = door_positions[map - 1];
+		current_tenant_pos = tenant_positions[map - 1];
 	}
 	else
 	{
 		current_door_pos = {-1, -1};
+		current_tenant_pos = {-1, -1};
 	}
 	switch (map)
 	{
@@ -755,11 +781,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	if (goal_reached) {
 		if (registry.tenants.entities.size() == 0) {
 			std::cout << "creating tenant" << std::endl;
-			createTenant(renderer, {registry.motions.get(my_player).position.x + 100, registry.motions.get(my_player).position.y + 100});
+			vec2 world_pos = {(640 - (25 * 100)) + (current_tenant_pos[0] * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (current_tenant_pos[1] * TILE_SIZE) + (TILE_SIZE / 2)};
+			createTenant(renderer, world_pos, 1); // TODO: vary level input based on map
 		} 
 		Entity tenant = registry.tenants.entities[0];
 		if (registry.tutorialIcons.size() == 0 && registry.tenants.get(tenant).player_in_radius && !cutscene) {
-			createInteractKey(renderer, {registry.motions.get(tenant).position.x, registry.motions.get(tenant).position.y - 100});
+			createInteractKey(renderer, {registry.motions.get(tenant).position.x, registry.motions.get(tenant).position.y + 60});
+		} 
+		if (!registry.tenants.get(tenant).player_in_radius) {
+			while (registry.tutorialIcons.entities.size() != 0) {
+				registry.remove_all_components_of(registry.tutorialIcons.entities.back());
+			}
 		}
 	}
 
@@ -1053,17 +1085,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			player.is_dash_up = true;
 			stamina_anim.current_animation = "staminabar_full";
 
-			// Player done dashing
-		}
+			
+		} // Player done dashing
 		else if (player.curr_dash_cooldown_ms < (player.dash_cooldown_ms - player.dash_time))
 		{
 			registry.motions.get(my_player).speed = min(registry.motions.get(my_player).speed, 300.f);
+			registry.motions.get(my_player).velocity = {0, 0};
 			registry.lightUps.remove(my_player);
 
 			stamina_anim.current_animation = "staminabar_regen";
 
-			// Player dashing
-		}
+
+			
+		} // Player dashing
 		else
 		{
 			if (!tutorial.dash)
@@ -2040,6 +2074,9 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player) && (screen.state == GameState::GAME) && player.is_dash_up)
 		{
 			pmotion.speed = 5500.f;
+			if (pmotion.velocity == vec2(0.f, 0.f)) {
+				pmotion.velocity = player.last_direction;
+			}
 			player.is_dash_up = false;
 			registry.lightUps.emplace(my_player);
 			AnimationSet &stamina_anim = registry.animationSets.get(stamina_bar);
@@ -2132,10 +2169,18 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 					while (registry.texts.size() != 0) {
 						registry.remove_all_components_of(registry.texts.entities.back());
 					}
-					// TODO: temporary position - change to dialogue box later
 					if (tenant.dialogue_progress < int(tenant.dialogues.size())) {
-						Entity text = createText({40, 120}, 0.7, tenant.dialogues[tenant.dialogue_progress], vec3(1.0, 1.0, 1.0));
-						registry.debugComponents.remove(text);
+						// Create dialogue
+						std::vector<std::string> text_lines = textToDialogueMode(tenant.dialogues[tenant.dialogue_progress]);
+						for (int i = 0; i < text_lines.size(); i++) {
+							std::string line = text_lines[i];
+							float offset = 40 * i;
+
+							Entity text = createText({40, 130 - offset}, 0.7, line, vec3(1.0, 1.0, 1.0));
+							registry.debugComponents.remove(text);
+						}
+						
+
 					} else {
 						cutscene = false;
 						while (registry.dialogueBoxes.size() != 0) {
@@ -2154,8 +2199,16 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 						}
 						tenant.dialogue_progress += 1;
 					} else {
-						Entity text = createText({40, 120}, 0.7, tenant.extra_dialogues[tenant.dialogue_progress - int(tenant.dialogues.size())], vec3(1.0, 1.0, 1.0));
-						registry.debugComponents.remove(text);
+						// Create dialogue
+						std::vector<std::string> text_lines = textToDialogueMode(tenant.extra_dialogues[tenant.dialogue_progress - int(tenant.dialogues.size())]);
+						for (int i = 0; i < text_lines.size(); i++) {
+							std::string line = text_lines[i];
+							float offset = 40 * i;
+
+							Entity text = createText({40, 130 - offset}, 0.7, line, vec3(1.0, 1.0, 1.0));
+							registry.debugComponents.remove(text);
+						}
+
 						cutscene = true;
 						createDialogueBox(renderer);
 					}
@@ -2163,19 +2216,6 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 					createEffect(renderer, {registry.motions.get(e).position.x, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);
 				}
 			}
-
-			// -> no dialogue on screen, progress = -1
-			// player interacts
-			// freeze movement
-			// -> dialogue 1 on screen , progress = 0
-			// player interacts
-			// -> dialogue 2 on screen , progress = 1
-			// player interacts 
-			// -> dialogue 3 on screen , progress = 2
-			// player interacts
-			// unfreeze movement 
-			// -> no dialogue on screen , progress = 3 , interact key on screen again
-			
 		}
 	}
 
