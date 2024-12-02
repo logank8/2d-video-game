@@ -453,7 +453,8 @@ void WorldSystem::save_player_data(const std::string &filename)
 		{"experience_multiplier", player.experience_multiplier},
 		{"experience", player.experience},
 		{"toNextLevel", player.toNextLevel},
-		{"level", player.level}};
+		{"level", player.level},
+		{"levels_unlocked", player.levels_unlocked}};
 
 	std::ofstream file(filename);
 	file << j.dump(4);
@@ -485,6 +486,11 @@ void WorldSystem::load_player_data(const std::string &filename)
 	player.experience = j["experience"];
 	player.toNextLevel = j["toNextLevel"];
 	player.level = j["level"];
+	player.levels_unlocked.clear();
+	for (int i : j["levels_unlocked"]) {
+		player.levels_unlocked.push_back(i);
+	}
+	
 
 	std::cout << "loaded" << std::endl;
 }
@@ -500,6 +506,9 @@ void WorldSystem::mapSwitch(int map)
 	{
 		current_door_pos = {-1, -1};
 		current_tenant_pos = {-1, -1};
+	}
+	if (std::find(levels_unlocked.begin(), levels_unlocked.end(), map) == levels_unlocked.end()) {
+		levels_unlocked.push_back(map);
 	}
 	switch (map)
 	{
@@ -906,27 +915,47 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		createHPBar(enemy);
 	}
 
+	// update unlocked levels - easier to do in step function than miss something small
+	Player& player = registry.players.components[0];
+	player.levels_unlocked = levels_unlocked;
+
 	// Managing tenant appearance and interaction ability stuff
 	if (goal_reached)
 	{
+		bool tenant = true;
 		if (registry.tenants.entities.size() == 0)
 		{
 			std::cout << "creating tenant" << std::endl;
 			vec2 world_pos = {(640 - (25 * 100)) + (current_tenant_pos[0] * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (current_tenant_pos[1] * TILE_SIZE) + (TILE_SIZE / 2)};
-			createTenant(renderer, world_pos, 1); // TODO: vary level input based on map
+			// varying tenant based on map
+			if (current_map == map1) {
+				createTenant(renderer, world_pos, 1); 
+			} else if (current_map == map2) {
+				createTenant(renderer, world_pos, 2);
+			} else if (current_map == map3) {
+				createTenant(renderer, world_pos, 3);
+			} else if (current_map == map4) {
+				createTenant(renderer, world_pos, 4);
+			} else {
+				tenant = false;
+			}
+			
 		}
-		Entity tenant = registry.tenants.entities[0];
-		if (registry.tutorialIcons.size() == 0 && registry.tenants.get(tenant).player_in_radius && !cutscene)
-		{
-			createInteractKey(renderer, {registry.motions.get(tenant).position.x, registry.motions.get(tenant).position.y + 60});
-		}
-		if (!registry.tenants.get(tenant).player_in_radius)
-		{
-			while (registry.tutorialIcons.entities.size() != 0)
+		if (tenant) {
+			Entity tenant = registry.tenants.entities[0];
+			if (registry.tutorialIcons.size() == 0 && registry.tenants.get(tenant).player_in_radius && !cutscene)
 			{
-				registry.remove_all_components_of(registry.tutorialIcons.entities.back());
+				createInteractKey(renderer, {registry.motions.get(tenant).position.x, registry.motions.get(tenant).position.y + 60});
+			}
+			if (!registry.tenants.get(tenant).player_in_radius)
+			{
+				while (registry.tutorialIcons.entities.size() != 0)
+				{
+					registry.remove_all_components_of(registry.tutorialIcons.entities.back());
+				}
 			}
 		}
+		
 	}
 
 	if (current_map != map_final || registry.bosses.get(final_boss).stage != FinalLevelStage::STAGE1)
@@ -1234,7 +1263,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 	}
 
-	Player &player = registry.players.get(my_player);
 
 	// handle dash cooldown
 	if (!player.is_dash_up)
@@ -1568,6 +1596,7 @@ void WorldSystem::restart_game()
 	player_controller.set_world(this);
 
 	load_player_data(SAVE_FILENAME);
+	levels_unlocked = registry.players.components[0].levels_unlocked;
 
 	registry.cameras.clear();
 	camera = createCamera(renderer, vec2(window_width_px / 2, window_height_px / 2));
@@ -2580,7 +2609,7 @@ void WorldSystem::on_mouse_button(int button, int action, int mods)
 					// TODO: need to more thoroughly track which levels have been unlocked to player
 					
 
-					if (button.level > 2) {
+					if (std::find(levels_unlocked.begin(), levels_unlocked.end(), button.level) == levels_unlocked.end()) {
 						registry.animationSets.get(e).current_animation = "elevator_locked";
 						registry.elevatorDisplays.get(e).message = 0;
 					} else {

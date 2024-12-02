@@ -625,11 +625,9 @@ Entity createRangedHomingProjectile(RenderSystem *renderer, vec2 position)
 	auto &health = registry.healths.emplace(entity);
 	health.hit_points = 1.f;
 	registry.projectiles.emplace(entity);
-	auto &color = registry.colors.emplace(entity);
-	color = vec3(1.f, 0, 0);
 	registry.renderRequests.insert(
 		entity,
-		{TEXTURE_ASSET_ID::RANGED_PROJECTILE,
+		{TEXTURE_ASSET_ID::HOMING_PROJECTILE,
 		 SPRITE_ASSET_ID::SPRITE_COUNT,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
@@ -2247,10 +2245,25 @@ Entity createTenant(RenderSystem *renderer, vec2 pos, int level)
 		tenant.extra_dialogues = tenant_extra_dialogue_1;
 		sprite = SPRITE_ASSET_ID::TENANT_1;
 		break;
-	default:
+	case (2):
 		tenant.dialogues = tenant_dialogue_2;
 		tenant.extra_dialogues = tenant_extra_dialogue_2;
 		sprite = SPRITE_ASSET_ID::TENANT_2;
+		break;
+	case (3):
+		tenant.dialogues = tenant_dialogue_3;
+		tenant.extra_dialogues = tenant_extra_dialogue_3;
+		sprite = SPRITE_ASSET_ID::TENANT_3;
+		break;
+	case (4):
+		tenant.dialogues = tenant_dialogue_4;
+		tenant.extra_dialogues = tenant_extra_dialogue_4;
+		sprite = SPRITE_ASSET_ID::TENANT_4;
+		break;
+	default:
+		tenant.dialogues = tenant_dialogue_1;
+		tenant.extra_dialogues = tenant_extra_dialogue_1;
+		sprite = SPRITE_ASSET_ID::TENANT_1;
 	}
 
 	registry.renderRequests.insert(

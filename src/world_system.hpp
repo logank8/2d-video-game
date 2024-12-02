@@ -100,6 +100,8 @@ public:
 
 	bool cutscene = false;
 
+	std::vector<int> levels_unlocked = {1};
+
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);

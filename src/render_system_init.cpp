@@ -239,6 +239,8 @@ void RenderSystem::initializeSpriteSheets()
 	sprite_sheets[SPRITE_ASSET_ID::ELEVATOR_DISPLAY] = {TEXTURE_ASSET_ID::ELEVATOR_DISPLAY, 2, 5, 352, 142};
 	sprite_sheets[SPRITE_ASSET_ID::TENANT_1] = {TEXTURE_ASSET_ID::TENANT_1, 6, 6, 64, 64};
 	sprite_sheets[SPRITE_ASSET_ID::TENANT_2] = {TEXTURE_ASSET_ID::TENANT_2, 6, 6, 64, 64};
+	sprite_sheets[SPRITE_ASSET_ID::TENANT_3] = {TEXTURE_ASSET_ID::TENANT_3, 6, 6, 64, 64};
+	sprite_sheets[SPRITE_ASSET_ID::TENANT_4] = {TEXTURE_ASSET_ID::TENANT_4, 6, 6, 64, 64};
 }
 
 void RenderSystem::initializeGlEffects()

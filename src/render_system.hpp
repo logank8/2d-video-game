@@ -41,7 +41,8 @@ class RenderSystem
 		textures_path("Skeleton.png"),
 		textures_path("adventurer.png"),
 		textures_path("mini_golem.png"),
-		textures_path("bubble_closed.png"), // ranged projectile
+		textures_path("projectile.png"), // ranged projectile
+		textures_path("homing_projectile.png"),
 		textures_path("boss_run.png"),
 		textures_path("boss_death.png"),
 		textures_path("boss_attack.png"),
@@ -101,7 +102,10 @@ class RenderSystem
 		textures_path("artifact_background.png"),
 		textures_path("artifact_center.png"),
 		textures_path("tenant_1.png"),
-		textures_path("tenant_2.png")};
+		textures_path("tenant_2.png"),
+		textures_path("tenant_3.png"),
+		textures_path("tenant_4.png")
+		};
 
 	std::array<GLuint, effect_count> effects;
 	// Make sure these paths remain in sync with the associated enumerators.
