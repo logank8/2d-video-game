@@ -629,7 +629,7 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
                 {
                     registry.remove_all_components_of(entity);
                 }
-
+                world->save_player_data(SAVE_FILENAME);
                 world->set_level_up_state(false);
                 break;
 

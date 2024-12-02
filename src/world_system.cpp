@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <nlohmann/json.hpp>
 
 #include "physics_system.hpp"
 #include "animation_system.hpp"
@@ -51,6 +52,8 @@ std::vector<int> current_door_pos;
 std::vector<int> current_tenant_pos;
 
 PhysicsSystem physics;
+
+using json = nlohmann::json;
 
 void pauseMenuText()
 {
@@ -416,6 +419,56 @@ void WorldSystem::create_experience_bar()
 	vec2 bar_pos = vec2(-0.94f + bar_offset, 0.525f);
 	// vec2 bar_pos = {-0.74f, 0.55f};
 	experience_bar = createUIBar(bar_pos, vec2(progress * 0.4f, 0.205f), 0);
+}
+
+void WorldSystem::save_player_data(const std::string &filename)
+{
+	auto &player = registry.players.get(my_player);
+
+	json j = {
+		{"dash_cooldown_ms", player.dash_cooldown_ms},
+		{"damage_multiplier", player.damage_multiplier},
+		{"attack_duration_ms", player.attack_duration_ms},
+		{"knockback_strength", player.knockback_strength},
+		{"attack_size", player.attack_size},
+		{"collection_distance", player.collection_distance},
+		{"experience_multiplier", player.experience_multiplier},
+		{"experience", player.experience},
+		{"toNextLevel", player.toNextLevel},
+		{"level", player.level}};
+
+	std::ofstream file(filename);
+	file << j.dump(4);
+
+	std::cout << "saved" << std::endl;
+}
+
+void WorldSystem::load_player_data(const std::string &filename)
+{
+	std::ifstream file(filename);
+
+	if (!file.is_open())
+	{
+		std::cout << "failed to open file for player data" << std::endl;
+		return;
+	}
+
+	json j;
+	file >> j;
+
+	auto &player = registry.players.get(my_player);
+
+	player.dash_cooldown_ms = j["dash_cooldown_ms"];
+	player.damage_multiplier = j["damage_multiplier"];
+	player.knockback_strength = j["knockback_strength"];
+	player.attack_size = j["attack_size"];
+	player.collection_distance = j["collection_distance"];
+	player.experience_multiplier = j["experience_multiplier"];
+	player.experience = j["experience"];
+	player.toNextLevel = j["toNextLevel"];
+	player.level = j["level"];
+
+	std::cout << "loaded" << std::endl;
 }
 
 void WorldSystem::mapSwitch(int map)
@@ -1403,6 +1456,8 @@ void WorldSystem::restart_game()
 	player_controller.set_player_reference(&my_player);
 	player_controller.set_renderer(renderer);
 	player_controller.set_world(this);
+
+	load_player_data(SAVE_FILENAME);
 
 	registry.cameras.clear();
 	camera = createCamera(renderer, vec2(window_width_px / 2, window_height_px / 2));
