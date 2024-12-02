@@ -209,6 +209,8 @@ WorldSystem::~WorldSystem()
 		Mix_FreeChunk(door_sound);
 	if (summon_sound != nullptr)
 		Mix_FreeChunk(summon_sound);
+	if (exp_sound != nullptr)
+		Mix_FreeChunk(exp_sound);
 
 	Mix_CloseAudio();
 
@@ -312,6 +314,7 @@ GLFWwindow *WorldSystem::create_window()
 	level_up_sound = Mix_LoadWAV(audio_path("level_up_select.wav").c_str());
 	door_sound = Mix_LoadWAV(audio_path("door.wav").c_str());
 	summon_sound = Mix_LoadWAV(audio_path("summon.wav").c_str());
+	exp_sound = Mix_LoadWAV(audio_path("exp.wav").c_str());
 
 	if (background_music == nullptr || button_click_sound == nullptr || salmon_eat_sound == nullptr || player_damage_sound == nullptr || enemy_damage_sound == nullptr || level_up_sound == nullptr || summon_sound == nullptr)
 	{
@@ -487,10 +490,10 @@ void WorldSystem::load_player_data(const std::string &filename)
 	player.toNextLevel = j["toNextLevel"];
 	player.level = j["level"];
 	player.levels_unlocked.clear();
-	for (int i : j["levels_unlocked"]) {
+	for (int i : j["levels_unlocked"])
+	{
 		player.levels_unlocked.push_back(i);
 	}
-	
 
 	std::cout << "loaded" << std::endl;
 }
@@ -507,7 +510,8 @@ void WorldSystem::mapSwitch(int map)
 		current_door_pos = {-1, -1};
 		current_tenant_pos = {-1, -1};
 	}
-	if (std::find(levels_unlocked.begin(), levels_unlocked.end(), map) == levels_unlocked.end()) {
+	if (std::find(levels_unlocked.begin(), levels_unlocked.end(), map) == levels_unlocked.end())
+	{
 		levels_unlocked.push_back(map);
 	}
 	switch (map)
@@ -606,30 +610,35 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	{
 		glfwSetWindowTitle(window, "Main Menu");
 
-		if (registry.elevatorDisplays.entities.size() == 0) {
+		if (registry.elevatorDisplays.entities.size() == 0)
+		{
 			createElevatorDisplay(renderer, {window_width_px / 2, window_height_px / 2});
-		} 
+		}
 
 		Entity e = registry.elevatorDisplays.entities[0];
 		ElevatorDisplay &display = registry.elevatorDisplays.get(e);
 
-		if (display.selection_made) {
+		if (display.selection_made)
+		{
 			display.current_ms += elapsed_ms_since_last_update;
 			std::cout << registry.animationSets.get(e).current_animation << std::endl;
 
 			// if display is done - either reset (if locked) or go to level
-			if (display.current_ms >= display.lasting_ms) {
-				
-				if (display.message != 0) {
+			if (display.current_ms >= display.lasting_ms)
+			{
+
+				if (display.message != 0)
+				{
 					stateSwitch(GameState::GAME);
 					mapSwitch(display.message);
-				} else {
+				}
+				else
+				{
 					AnimationSet &animSet = registry.animationSets.get(e);
 					animSet.current_animation = "elevator_empty";
 					display.selection_made = false;
 				}
 			}
-			
 		}
 
 		return true;
@@ -640,7 +649,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	if (current_map != map_final)
 	{
 		title_ss << "Number of Enemies Until Next Level: " << (max(0, enemy_kill_goal - enemies_killed));
-		for (Entity e : registry.killTrackers.entities) {
+		for (Entity e : registry.killTrackers.entities)
+		{
 			KillTracker &track = registry.killTrackers.get(e);
 			track.killed = enemies_killed;
 			track.goal = enemy_kill_goal;
@@ -667,13 +677,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	cameraMotion.position = player_pos;
 
 	// Remove a spawned power up if it has been around for more than 10 seconds
-	if (registry.powerups.entities.size() > 0) {
+	if (registry.powerups.entities.size() > 0)
+	{
 		assert(registry.powerups.size() == 1);
-		Entity& powerupEntity = registry.powerups.entities[0];
-		Powerup& powerup = registry.powerups.get(powerupEntity);
-		if (!powerup.equipped) {
+		Entity &powerupEntity = registry.powerups.entities[0];
+		Powerup &powerup = registry.powerups.get(powerupEntity);
+		if (!powerup.equipped)
+		{
 			powerup.timer -= elapsed_ms_since_last_update;
-			if (powerup.timer < 0) {
+			if (powerup.timer < 0)
+			{
 				registry.remove_all_components_of(powerupEntity);
 			}
 		}
@@ -685,7 +698,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		fps_counter_ms -= elapsed_ms_since_last_update;
 		if (fps_counter_ms <= 0.f)
 		{
-			fps = (int) ((frames * 1000) / (FPS_COUNTER_MS + std::abs(fps_counter_ms)));
+			fps = (int)((frames * 1000) / (FPS_COUNTER_MS + std::abs(fps_counter_ms)));
 			fps_counter_ms = FPS_COUNTER_MS;
 			frames = 0;
 		}
@@ -737,7 +750,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			powerup_name = "Speed Boost";
 		else if (powerup.type == PowerupType::INVINCIBILITY)
 			powerup_name = "Invincibility";
-		
+
 		createText({x, y}, 0.5f, "Powerup active: " + powerup_name + (powerup.multiplier < 1.02f ? "" : " with multiplier x" + floatToString1DP(powerup.multiplier)) + " for " + std::to_string((int)std::ceil(powerup.timer / 1000)) + "s", {1.f, 1.f, 1.f});
 		if (powerup.timer < 0 || goal_reached)
 		{
@@ -821,7 +834,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				tile_vec.push_back(vec2(i, j));
 			}
 
-			if (current_map != map_final || registry.bosses.get(final_boss).stage == FinalLevelStage::STAGE3) {
+			if (current_map != map_final || registry.bosses.get(final_boss).stage == FinalLevelStage::STAGE3)
+			{
 				if (current_map[j][i] == 3 && registry.deadlys.entities.size() < max_num_enemies)
 				{
 					int encounter = rand() % 3;
@@ -916,7 +930,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	}
 
 	// update unlocked levels - easier to do in step function than miss something small
-	Player& player = registry.players.components[0];
+	Player &player = registry.players.components[0];
 	player.levels_unlocked = levels_unlocked;
 
 	// Managing tenant appearance and interaction ability stuff
@@ -928,20 +942,29 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			std::cout << "creating tenant" << std::endl;
 			vec2 world_pos = {(640 - (25 * 100)) + (current_tenant_pos[0] * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (current_tenant_pos[1] * TILE_SIZE) + (TILE_SIZE / 2)};
 			// varying tenant based on map
-			if (current_map == map1) {
-				createTenant(renderer, world_pos, 1); 
-			} else if (current_map == map2) {
+			if (current_map == map1)
+			{
+				createTenant(renderer, world_pos, 1);
+			}
+			else if (current_map == map2)
+			{
 				createTenant(renderer, world_pos, 2);
-			} else if (current_map == map3) {
+			}
+			else if (current_map == map3)
+			{
 				createTenant(renderer, world_pos, 3);
-			} else if (current_map == map4) {
+			}
+			else if (current_map == map4)
+			{
 				createTenant(renderer, world_pos, 4);
-			} else {
+			}
+			else
+			{
 				tenant = false;
 			}
-			
 		}
-		if (tenant) {
+		if (tenant)
+		{
 			Entity tenant = registry.tenants.entities[0];
 			if (registry.tutorialIcons.size() == 0 && registry.tenants.get(tenant).player_in_radius && !cutscene)
 			{
@@ -955,7 +978,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				}
 			}
 		}
-		
 	}
 
 	if (current_map != map_final || registry.bosses.get(final_boss).stage != FinalLevelStage::STAGE1)
@@ -1016,7 +1038,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			do
 			{
 				index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
-				ranged_pos = { (640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2) };
+				ranged_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
 				distance_to_player = sqrt(pow(ranged_pos.x - player_pos.x, 2) + pow(ranged_pos.y - player_pos.y, 2));
 			} while (distance_to_player < 300.f);
 			if (uniform_dist(rng) > 0.5)
@@ -1268,15 +1290,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 	}
 
-	if (darken_counter_ms > 0) {
+	if (darken_counter_ms > 0)
+	{
 		darken_counter_ms -= elapsed_ms_since_last_update;
-		if (darken_counter_ms == 0) darken_counter_ms -= 100;
-		if (darken_counter_ms % 500 < 250) {
+		if (darken_counter_ms == 0)
+			darken_counter_ms -= 100;
+		if (darken_counter_ms % 500 < 250)
+		{
 			screen.darken_screen_factor = 0.5;
-		} else {
+		}
+		else
+		{
 			screen.darken_screen_factor = 0;
 		}
-	} else if (darken_counter_ms < 0) {
+	}
+	else if (darken_counter_ms < 0)
+	{
 		screen.darken_screen_factor = 0;
 	}
 
@@ -1287,7 +1316,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			createLine(motion.position, motion.scale);
 		}
 	}
-
 
 	// handle dash cooldown
 	if (!player.is_dash_up)
@@ -1344,10 +1372,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 	}
 
-	if (!cutscene) {
+	if (!cutscene)
+	{
 		player_controller.step(elapsed_ms_since_last_update);
 	}
-	
 
 	if (tutorial.toggle_show_ms_passed < tutorial.toggle_show_ms)
 	{
@@ -1666,11 +1694,11 @@ void WorldSystem::restart_game()
 	vec2 stamina_bar_pos = {-0.74f, 0.7f};
 	stamina_bar = createStaminaBar(renderer, stamina_bar_pos);
 
-	if (current_map != map_final) {
+	if (current_map != map_final)
+	{
 		Entity artifact = createHolyArtifact(renderer);
 		registry.killTrackers.get(artifact).goal = enemy_kill_goal;
 	}
-	
 
 	// set pause correctly
 	is_paused = true;
@@ -1873,7 +1901,8 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 				// check if entity is final boss and if the boss has taken enough damage to go to next stage
 				auto &boss_registry = registry.bosses;
-				if (boss_registry.has(entity_other) && boss_registry.get(entity_other).stage == FinalLevelStage::STAGE1 && deadly_health.hit_points < (2 * deadly_health.max_hp / 3)) {
+				if (boss_registry.has(entity_other) && boss_registry.get(entity_other).stage == FinalLevelStage::STAGE1 && deadly_health.hit_points < (2 * deadly_health.max_hp / 3))
+				{
 					boss_registry.get(entity_other).stage = FinalLevelStage::STAGE2;
 
 					darken_counter_ms = 1000;
@@ -1881,7 +1910,9 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 					// play summon enemies sound
 					Mix_PlayChannel(-1, summon_sound, 0);
-				} else if (boss_registry.has(entity_other) && boss_registry.get(entity_other).stage == FinalLevelStage::STAGE2 && deadly_health.hit_points < (deadly_health.max_hp / 3)) {
+				}
+				else if (boss_registry.has(entity_other) && boss_registry.get(entity_other).stage == FinalLevelStage::STAGE2 && deadly_health.hit_points < (deadly_health.max_hp / 3))
+				{
 					boss_registry.get(entity_other).stage = FinalLevelStage::STAGE3;
 
 					darken_counter_ms = 1000;
@@ -1890,7 +1921,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 					// play summon enemies sound
 					Mix_PlayChannel(-1, summon_sound, 0);
 				}
-				
+
 				createDamageIndicator(renderer, damage_dealt, enemy_motion.position, damage_rng, temp_multiplier);
 
 				// play enemy damage sound
@@ -2305,7 +2336,8 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	// Tutorial
 	if (action == GLFW_RELEASE && key == GLFW_KEY_T)
 	{
-		while (registry.tutorialIcons.entities.size() != 0) {
+		while (registry.tutorialIcons.entities.size() != 0)
+		{
 			registry.remove_all_components_of(registry.tutorialIcons.entities.back());
 		}
 		tutorial = {
@@ -2625,19 +2657,24 @@ void WorldSystem::on_mouse_button(int button, int action, int mods)
 				if (button.level == 0)
 				{
 					exit(0);
-				} else {
-					if (registry.elevatorDisplays.entities.size() == 0) {
+				}
+				else
+				{
+					if (registry.elevatorDisplays.entities.size() == 0)
+					{
 						createElevatorDisplay(renderer, {window_width_px / 2, window_height_px / 2});
-					} 
+					}
 					Entity e = registry.elevatorDisplays.entities[0];
 
 					// TODO: need to more thoroughly track which levels have been unlocked to player
-					
 
-					if (std::find(levels_unlocked.begin(), levels_unlocked.end(), button.level) == levels_unlocked.end()) {
+					if (std::find(levels_unlocked.begin(), levels_unlocked.end(), button.level) == levels_unlocked.end())
+					{
 						registry.animationSets.get(e).current_animation = "elevator_locked";
 						registry.elevatorDisplays.get(e).message = 0;
-					} else {
+					}
+					else
+					{
 						std::cout << "animation changed for level " << button.level << std::endl;
 						registry.animationSets.get(e).current_animation = "elevator_level" + std::to_string(button.level);
 						registry.elevatorDisplays.get(e).message = button.level;

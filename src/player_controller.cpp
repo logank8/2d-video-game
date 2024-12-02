@@ -321,6 +321,7 @@ void PlayerController::step(float elapsed_ms_since_last_update)
                 if (registry.experiences.has(entity))
                 {
                     animation.current_animation = "experience_collect";
+                    Mix_PlayChannel(-1, world->exp_sound, 0);
                     animation.current_frame = 0;
                 }
             }
