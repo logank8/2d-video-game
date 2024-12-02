@@ -93,7 +93,7 @@ public:
 
 	int enemies_killed = 0;
 
-	int enemy_kill_goal = 20;
+	int enemy_kill_goal = 2;
 
 	bool goal_reached = false;
 
@@ -152,7 +152,7 @@ private:
 
 	const std::vector<std::vector<int>> door_positions = {{25, 0}, {25, 2}};
 
-	const std::vector<std::vector<int>> tenant_positions = {{25, 16, 25, 16}};
+	const std::vector<std::vector<int>> tenant_positions = {{25, 16}, {25, 16}};
 
 	const std::vector<std::vector<int>> map1 = {
 		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
