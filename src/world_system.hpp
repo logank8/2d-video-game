@@ -36,7 +36,20 @@ public:
 	// Check for collisions
 	void handle_collisions(float step_seconds);
 
+	// music references
+	Mix_Music *background_music;
+	Mix_Chunk *button_click_sound;
+	Mix_Chunk *salmon_eat_sound;
+	Mix_Chunk *player_damage_sound;
+	Mix_Chunk *enemy_damage_sound;
+	Mix_Chunk *level_up_sound;
+	Mix_Chunk *door_sound;
+
+
 	struct Tutorial {
+		float toggle_show_ms;
+		float toggle_show_ms_passed;
+		int toggle_key;
 		bool movement; // movement keys appear at the immediate start
 		bool attack; // attack arrow appears when in proximity to enemy - maybe pause enemies here or something idk
 		float dash_tut_wait_ms; // amount of time after movement / attack tut to start dash tut
@@ -48,6 +61,9 @@ public:
 	};
 
 	Tutorial tutorial = {
+		4000.f,
+		0.f,
+		1,
 		false,
 		false,
 		4000.f,
@@ -64,6 +80,7 @@ public:
 	static bool is_level_up;
 
 	static vec2 mousePosToNormalizedDevice(vec2 mouse_position);
+	static std::vector<std::string> textToDialogueMode(std::string text);
 
 	void pause();
 	void unpause();
@@ -76,9 +93,11 @@ public:
 
 	int enemies_killed = 0;
 
-	int enemy_kill_goal = 4;
+	int enemy_kill_goal = 2;
 
 	bool goal_reached = false;
+
+	bool cutscene = false;
 
 private:
 	// Input callback functions
@@ -125,16 +144,13 @@ private:
 
 	PlayerController player_controller;
 
-	// music references
-	Mix_Music *background_music;
-	Mix_Chunk *salmon_dead_sound;
-	Mix_Chunk *salmon_eat_sound;
-
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
 	const std::vector<std::vector<int>> door_positions = {{25, 0}, {25, 2}};
+
+	const std::vector<std::vector<int>> tenant_positions = {{25, 16, 25, 16}};
 
 	const std::vector<std::vector<int>> map1 = {
 		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},

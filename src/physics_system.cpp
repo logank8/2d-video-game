@@ -328,7 +328,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == 0)
+            if (!(map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8)))
             {
                 return false;
             }
@@ -352,7 +352,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == 0)
+            if (!(map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8)))
             {
                 return false;
             }
@@ -371,7 +371,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
     {
         return false;
     }
-    return map[y][x] != 0;
+    return map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8);
 }
 
 // Checking for dashing line of sight using Bresenham's algorithm
@@ -731,11 +731,10 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
     const float GRID_OFFSET_Y = (640 - (44 * TILE_SIZE)) - TILE_SIZE / 2;
 
     // Convert to grid coordinates
-    Motion &enemy_motion = registry.motions.get(enemy);
-    int grid_x = static_cast<int>((enemy_motion.position.x - GRID_OFFSET_X) / TILE_SIZE);
-    int grid_y = static_cast<int>((enemy_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE);
-    float raw_x = (enemy_motion.position.x - GRID_OFFSET_X) / TILE_SIZE;
-    float raw_y = (enemy_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE;
+    int grid_x = static_cast<int>((motion.position.x - GRID_OFFSET_X) / TILE_SIZE);
+    int grid_y = static_cast<int>((motion.position.y - GRID_OFFSET_Y) / TILE_SIZE);
+    float raw_x = (motion.position.x - GRID_OFFSET_X) / TILE_SIZE;
+    float raw_y = (motion.position.y - GRID_OFFSET_Y) / TILE_SIZE;
 
     // Recalculate path if all below are true:
     // - update time has elapsed
@@ -744,13 +743,11 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
     // - OR of enemy was knocked back recently
     if (((!registry.paths.has(enemy) || timer.timer >= PATH_UPDATE_TIME) &&
         (grid_x == raw_x && grid_y == raw_y) &&
-        phsyics.has_los(enemy_motion.position, player_motion.position)) || knocked_back)
+        phsyics.has_los(motion.position, player_motion.position)) || knocked_back)
     {
         // adjust pathfinding coordinates if knocked back recently
         if ((grid_x != raw_x || grid_y != raw_y)) {
-            int adjusted_x = (static_cast<int>(enemy_motion.position.x) - (640 - (25 * TILE_SIZE))) / TILE_SIZE;
-            int adjusted_y = (static_cast<int>(enemy_motion.position.y) - (640 - (44 * TILE_SIZE))) / TILE_SIZE;
-            enemy_motion.position = { (640 - (25 * 100)) + (adjusted_x * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (adjusted_y * TILE_SIZE) + (TILE_SIZE / 2) };
+            motion.position = registry.deadlys.get(enemy).knocked_back_pos;
             timer.timer = 0.f;
         }
 
@@ -908,12 +905,24 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
         }
     }
 
+
+    // check for door collision
     for (Entity e : registry.doors.entities) {
         Door& door = registry.doors.get(e);
         if (door.touching) {
             if (!collides(registry.motions.get(e), player_motion)) {
                 door.touching = false;
             }
+        }
+    }
+
+    // Check for tenant within radius
+    for (Entity e : registry.tenants.entities) {
+        Tenant& tenant = registry.tenants.get(e);
+        if (distance(registry.motions.get(e).position, player_motion.position) <= 100) {
+            tenant.player_in_radius = true;
+        } else {
+            tenant.player_in_radius = false;
         }
     }
 
@@ -1023,10 +1032,10 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                             if (has_dashing_los(registry.motions.get(entity).position, player_motion.position)) {
                                 if (dashing_enemy.current_charge_timer < dashing_enemy.charge_time) {
                                     registry.motions.get(entity).velocity = { 0, 0 };
-                                    if (!registry.lightUps.has(entity)) {
-                                        auto& lights_up = registry.lightUps.emplace(entity);
-                                        lights_up.duration_ms = dashing_enemy.charge_time;
+                                    if (registry.lightUps.has(entity)) {
+                                        registry.lightUps.remove(entity);
                                     }
+                                    // TODO: change animation so it just changes to dash mode when charging
                                     int grid_x = static_cast<int>((player_motion.position.x - GRID_OFFSET_X) / TILE_SIZE);
                                     int grid_y = static_cast<int>((player_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE);
                                     dashing_enemy.target_pos = { (640 - (25 * 100)) + (grid_x * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (grid_y * TILE_SIZE) + (TILE_SIZE / 2) };
@@ -1034,8 +1043,10 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                                 }
                                 else {
                                     registry.motions.get(entity).velocity = { 500.f, 500.f };
-                                    if (registry.lightUps.has(entity)) {
-                                        registry.lightUps.remove(entity);
+                                    // TODO: edit here as well for dash anim
+                                    if (!registry.lightUps.has(entity)) {
+                                        auto& lights_up = registry.lightUps.emplace(entity);
+                                        lights_up.duration_ms = dashing_enemy.charge_time;
                                     }
                                     vec2 direction = {
                                         dashing_enemy.target_pos.x - motion.position.x,

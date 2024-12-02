@@ -654,7 +654,7 @@ Entity createSlowingEnemy(RenderSystem *renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({EEL_BB_WIDTH * sign(motion.velocity.x), EEL_BB_HEIGHT});
+	motion.scale = vec2({24, 24});
 
 	// create an empty Eel component to be able to refer to all eels
 	Deadly &deadly = registry.deadlys.emplace(entity);
@@ -663,15 +663,13 @@ Entity createSlowingEnemy(RenderSystem *renderer, vec2 position)
 	auto &damage = registry.damages.emplace(entity);
 	// TODO: adjust	 damage amounts
 	damage.damage = 25.0;
-	auto &color = registry.colors.emplace(entity);
-	color = vec3(0, 0, 50.f);
 	auto &slows = registry.slows.emplace(entity);
 	slows.speed_dec = 0.5;
 	slows.duration = 1000.f;
 	registry.renderRequests.insert(
 		entity,
 		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
-		 SPRITE_ASSET_ID::SLIME,
+		 SPRITE_ASSET_ID::SLOWING_ENEMY,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 1,
@@ -681,21 +679,21 @@ Entity createSlowingEnemy(RenderSystem *renderer, vec2 position)
 	Animation idle_f = {
 		"fastenemy_idle_f",
 		2,
-		SPRITE_ASSET_ID::SLIME,
+		SPRITE_ASSET_ID::SLOWING_ENEMY,
 		idle_f_vec};
 
-	std::vector<int> run_f_vec = {10, 11, 12, 13, 14};
+	std::vector<int> run_f_vec = {4, 5, 6, 7};
 	Animation run_f = {
 		"fastenemy_run_f",
-		8,
-		SPRITE_ASSET_ID::SLIME,
+		13,
+		SPRITE_ASSET_ID::SLOWING_ENEMY,
 		run_f_vec};
 
-	std::vector<int> die_vec = {1, 2, 3, 4, 4};
+	std::vector<int> die_vec = {8, 9, 10};
 	Animation die = {
 		"fastenemy_die",
-		7,
-		SPRITE_ASSET_ID::SLIME,
+		5,
+		SPRITE_ASSET_ID::SLOWING_ENEMY,
 		die_vec};
 
 	auto &animSet = registry.animationSets.emplace(entity);
@@ -707,62 +705,59 @@ Entity createSlowingEnemy(RenderSystem *renderer, vec2 position)
 	return entity;
 }
 
-Entity createDashingEnemy(RenderSystem* renderer, vec2 position)
+Entity createDashingEnemy(RenderSystem *renderer, vec2 position)
 {
 	// Reserve en entity
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initialize the position, scale, and physics components
-	auto& motion = registry.motions.emplace(entity);
+	auto &motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 100.f, 100.f };
+	motion.velocity = {100.f, 100.f};
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ ENEMY_1_BB_WIDTH * sign(motion.velocity.x), ENEMY_1_BB_HEIGHT });
+	motion.scale = vec2({24, 24});
 
-	// Create an (empty) Bug component to be able to refer to all bug
-	Deadly& deadly = registry.deadlys.emplace(entity);
+	Deadly &deadly = registry.deadlys.emplace(entity);
 	deadly.enemy_type = ENEMY_TYPES::DASHING;
 	registry.enemyDashes.emplace(entity);
 	registry.healths.emplace(entity);
 	registry.damages.emplace(entity);
-	auto& color = registry.colors.emplace(entity);
-	color = vec3(0, 0.3f, 0);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
-		 SPRITE_ASSET_ID::SKELETON,
+		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 SPRITE_ASSET_ID::DASHING_ENEMY,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 1,
-		 RENDER_LAYER::CREATURES });
+		 RENDER_LAYER::CREATURES});
 
-	std::vector<int> idle_f_vec = { 0, 1, 2, 3, 4, 5 };
+	std::vector<int> idle_f_vec = {0, 1};
 	Animation idle_f = {
 		"slowenemy_idle_f",
-		15,
-		SPRITE_ASSET_ID::SKELETON,
-		idle_f_vec };
+		2,
+		SPRITE_ASSET_ID::DASHING_ENEMY,
+		idle_f_vec};
 
-	std::vector<int> run_f_vec = { 18, 19, 20, 21, 22, 23 };
+	std::vector<int> run_f_vec = {7, 8, 9, 10};
 	Animation run_f = {
 		"slowenemy_run_f",
-		10,
-		SPRITE_ASSET_ID::SKELETON,
-		run_f_vec };
-	std::vector<int> die_vec = { 36, 37, 38, 39, 39 };
+		13,
+		SPRITE_ASSET_ID::DASHING_ENEMY,
+		run_f_vec};
+	std::vector<int> die_vec = {14, 15, 16, 17, 18, 19, 20};
 	Animation die = {
 		"slowenemy_die",
 		7,
-		SPRITE_ASSET_ID::PLAYER,
-		die_vec };
+		SPRITE_ASSET_ID::DASHING_ENEMY,
+		die_vec};
 
-	auto& animSet = registry.animationSets.emplace(entity);
+	auto &animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;
 	animSet.animations[run_f.name] = run_f;
 	animSet.animations[die.name] = die;
@@ -862,15 +857,15 @@ Entity createLine(vec2 position, vec2 scale)
 	return entity;
 }
 
-Entity createUILine(vec2 position, vec2 scale)
+Entity createUIBar(vec2 position, vec2 scale, int index)
 {
 	Entity entity = Entity();
 
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
-				 SPRITE_ASSET_ID::SPRITE_COUNT,
-				 EFFECT_ASSET_ID::COLOURED,
-				 GEOMETRY_BUFFER_ID::DEBUG_LINE});
+				 SPRITE_ASSET_ID::BARS,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE, index});
 
 	auto &uiComponent = registry.userInterfaces.emplace(entity);
 	uiComponent.position = position;
@@ -1662,6 +1657,8 @@ Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, 
 	upgradeCardComponent.icon = createUpgradeIcon(renderer, pos + vec2(0.f, 0.05f), size, sprite_index);
 	upgradeCardComponent.description = createText(screen_pos + vec2(5.0f, -225.f), 0.5f, description, vec3(0.9f, 0.9f, 0.9f));
 
+	upgradeCardComponent.original_scale = size;
+
 	return entity;
 }
 
@@ -1684,6 +1681,31 @@ Entity createUpgradeIcon(RenderSystem *renderer, vec2 pos, vec2 scale, int sprit
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 sprite});
+
+	return entity;
+}
+
+Entity createUpgradeConfirm(RenderSystem *renderer, vec2 pos, vec2 scale)
+{
+	auto entity = Entity();
+
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	auto &ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = pos;
+	ui.scale = scale * vec2(0.2f, 0.1f);
+
+	registry.upgradeConfirms.emplace(entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{TEXTURE_ASSET_ID::CARD,
+		 SPRITE_ASSET_ID::SPRITE_COUNT,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 1});
 
 	return entity;
 }
@@ -2163,6 +2185,141 @@ Entity createPauseKey(RenderSystem *renderer, vec2 pos)
 	auto &animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle.name] = idle;
 	animSet.current_animation = idle.name;
+
+	return entity;
+}
+
+Entity createTutorialToggleKey(RenderSystem *renderer, vec2 pos)
+{
+	auto entity = Entity();
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0;
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2({300, 50});
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
+				 SPRITE_ASSET_ID::TUTORIAL_TOGGLE_KEY,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 0,
+				 RENDER_LAYER::EFFECTS});
+
+	registry.tutorialIcons.emplace(entity);
+
+	std::vector<int> idle_vec = {0, 1};
+	Animation idle = {
+		"idle",
+		2,
+		SPRITE_ASSET_ID::TUTORIAL_TOGGLE_KEY,
+		idle_vec};
+
+	auto &animSet = registry.animationSets.emplace(entity);
+	animSet.animations[idle.name] = idle;
+	animSet.current_animation = idle.name;
+
+	return entity;
+}
+
+Entity createTenant(RenderSystem *renderer, vec2 pos, int level)
+{
+	auto entity = Entity();
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto &motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = {0, 0};
+	motion.position = pos;
+	motion.scale = vec2({PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT});
+
+	Tenant &tenant = registry.tenants.emplace(entity);
+
+	switch (level)
+	{
+	case (1):
+		tenant.dialogues = tenant_dialogue_1;
+		tenant.extra_dialogues = tenant_extra_dialogue_1;
+		break;
+	default:
+		tenant.dialogues = tenant_dialogue_2;
+		tenant.extra_dialogues = tenant_extra_dialogue_2;
+	}
+
+	registry.renderRequests.insert(
+		entity,
+		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 SPRITE_ASSET_ID::PLAYER,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 1, // Sprite index  => 0 INDEXED (L->R, T->B)
+		 RENDER_LAYER::CREATURES});
+
+	// Initialize animations
+	std::vector<int> run_s_vec = {24, 25, 26, 27, 28, 29};
+	Animation run_s = {
+		"tenant_run_s",
+		15,
+		SPRITE_ASSET_ID::PLAYER,
+		run_s_vec};
+	std::vector<int> run_f_vec = {18, 19, 20, 21, 22, 23};
+	Animation run_f = {
+		"tenant_run_f",
+		15,
+		SPRITE_ASSET_ID::PLAYER,
+		run_f_vec};
+	std::vector<int> run_b_vec = {30, 31, 32, 33, 34, 35};
+	Animation run_b = {
+		"tenant_run_b",
+		15,
+		SPRITE_ASSET_ID::PLAYER,
+		run_b_vec};
+
+	std::vector<int> idle_f_vec = {0, 1, 2, 3, 4, 5};
+	Animation idle_f = {
+		"tenant_idle_f",
+		15,
+		SPRITE_ASSET_ID::PLAYER,
+		idle_f_vec};
+
+	auto &animSet = registry.animationSets.emplace(entity);
+	animSet.animations[run_s.name] = run_s;
+	animSet.animations[run_f.name] = run_f;
+	animSet.animations[run_b.name] = run_b;
+	animSet.animations[idle_f.name] = idle_f;
+
+	return entity;
+}
+
+Entity createDialogueBox(RenderSystem *renderer)
+{
+	auto entity = Entity();
+
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = {window_width_px / 2, 50};
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2(0.1, 0.1);
+
+	UserInterface &ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = {0, -0.7};
+	ui.scale = vec2({2.0, -0.5});
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::DIALOGUE_BOX,
+				 SPRITE_ASSET_ID::SPRITE_COUNT,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 -1,
+				 RENDER_LAYER::EFFECTS});
+
+	registry.dialogueBoxes.emplace(entity);
 
 	return entity;
 }

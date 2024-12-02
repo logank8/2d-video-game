@@ -323,7 +323,7 @@ void PlayerController::step(float elapsed_ms_since_last_update)
 
             player.experience += (collectible_experience.experience * player.experience_multiplier);
 
-            if (player.experience >= player.toNextLevel)
+            if (player.experience >= player.toNextLevel && !registry.deathTimers.has(*my_player))
             {
                 player.level++;
 
@@ -358,6 +358,7 @@ void PlayerController::displayStatCard()
     float y = 475;
 
     std::vector<std::pair<std::string, float>> attack_stats = {
+        {"Level: ", player.level},
         {"Attack: ", player.damage_multiplier},
         {"Area: ", player.attack_size},
         {"Dash CD: ", player.dash_cooldown_ms}};
@@ -425,6 +426,8 @@ void PlayerController::displayUpgradeCards()
                                         currCard.description,
                                         currCard.onClick);
     }
+
+    createUpgradeConfirm(renderer, vec2(0.25f, -0.55f), vec2(1.5f, 1.5f));
 }
 
 void PlayerController::on_key(int key, int action, int mod)
@@ -511,6 +514,19 @@ bool mouseOverButton(vec2 mouse_position, Entity button)
             mouse_position_ndc.y >= ui.position.y - (-ui.scale.y / 2) && mouse_position_ndc.y <= ui.position.y + (-ui.scale.y / 2));
 }
 
+// dont know why i need two of these and why this function doesnt work properly for the upgradecards
+bool mouseOverConfirmButton(vec2 mouse_position, Entity button)
+{
+    if (!registry.userInterfaces.has(button))
+        return false;
+
+    auto &ui = registry.userInterfaces.get(button);
+    vec2 mouse_position_ndc = WorldSystem::mousePosToNormalizedDevice(mouse_position);
+
+    return (mouse_position_ndc.x >= ui.position.x - (ui.scale.x / 2) && mouse_position_ndc.x <= ui.position.x + (ui.scale.x / 2) &&
+            mouse_position_ndc.y >= ui.position.y - (ui.scale.y / 2) && mouse_position_ndc.y <= ui.position.y + (ui.scale.y / 2));
+}
+
 void PlayerController::on_mouse_move(vec2 mouse_position)
 {
     // Update player attack direction
@@ -526,28 +542,31 @@ void PlayerController::on_mouse_move(vec2 mouse_position)
         for (Entity entity : registry.upgradeCards.entities)
         {
             auto &ui = registry.userInterfaces.get(entity);
+            auto &upgradeCard = registry.upgradeCards.get(entity);
 
             if (mouseOverButton(mouse_position, entity))
             {
-                if (!registry.selectedCards.has(entity))
-                {
-                    auto &selected = registry.selectedCards.emplace(entity);
-                    auto &upgradeCard = registry.upgradeCards.get(entity);
-                    auto &titleText = registry.motions.get(upgradeCard.name);
-                    selected.scale = ui.scale;
-                    ui.scale = selected.scale * vec2(1.02f, 1.02f);
-                }
+
+                upgradeCard.hovering = true;
             }
             else
             {
-                if (registry.selectedCards.has(entity))
-                {
-                    auto &selected = registry.selectedCards.get(entity);
-                    ui.scale = selected.scale;
+                upgradeCard.hovering = false;
+            }
+        }
 
-                    auto &upgradeCard = registry.upgradeCards.get(entity);
-                    registry.selectedCards.remove(entity);
-                }
+        for (Entity entity : registry.upgradeConfirms.entities)
+        {
+            auto &ui = registry.userInterfaces.get(entity);
+            auto &upgradeConfirm = registry.upgradeConfirms.get(entity);
+
+            if (mouseOverConfirmButton(mouse_position, entity))
+            {
+                upgradeConfirm.hovering = true;
+            }
+            else
+            {
+                upgradeConfirm.hovering = false;
             }
         }
     }
@@ -559,7 +578,7 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
     {
         Player &player = registry.players.get(*my_player);
 
-        if (player.is_attacking == false)
+        if (player.is_attacking == false && !world->is_level_up && !world->is_paused)
         {
             vec2 player_pos = registry.motions.get(*my_player).position;
             vec2 attack_direction = player.attack_direction;
@@ -579,27 +598,67 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
         // debugging.in_debug_mode = !debugging.in_debug_mode;
     }
 
-    if (world->is_level_up && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    if (world->is_level_up && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
     {
-        for (Entity entity : registry.selectedCards.entities)
+        for (Entity entity : registry.upgradeConfirms.entities)
+        {
+            auto &upgradeConfirm = registry.upgradeConfirms.get(entity);
+
+            if (upgradeConfirm.hovering && registry.selectedCards.entities.size() > 0)
+            {
+                Entity selectedCardEntity = registry.selectedCards.entities[0];
+
+                auto &upgradeCardComponent = registry.upgradeCards.get(selectedCardEntity);
+
+                upgradeCardComponent.onClick();
+
+                // Play upgrade sound
+                Mix_PlayChannel(-1, world->level_up_sound, 0);
+
+                for (Entity entity : registry.upgradeCards.entities)
+                {
+                    auto &upgradeCardComponent = registry.upgradeCards.get(entity);
+
+                    registry.remove_all_components_of(upgradeCardComponent.icon);
+                    registry.remove_all_components_of(upgradeCardComponent.name);
+                    registry.remove_all_components_of(upgradeCardComponent.description);
+                    registry.remove_all_components_of(entity);
+                }
+
+                for (Entity entity : registry.upgradeConfirms.entities)
+                {
+                    registry.remove_all_components_of(entity);
+                }
+
+                world->set_level_up_state(false);
+                break;
+
+                return;
+            }
+        }
+
+        for (Entity entity : registry.upgradeCards.entities)
         {
             auto &upgradeCardComponent = registry.upgradeCards.get(entity);
+            auto &uiComponent = registry.userInterfaces.get(entity);
 
-            std::cout << upgradeCardComponent.name << std::endl;
-            upgradeCardComponent.onClick();
-
-            for (Entity entity : registry.upgradeCards.entities)
+            if (upgradeCardComponent.hovering && !registry.selectedCards.has(entity))
             {
-                auto &upgradeCardComponent = registry.upgradeCards.get(entity);
+                // std::cout << "selected a card" << std::endl;
+                // Play click button sound
+                Mix_PlayChannel(-1, world->button_click_sound, 0);
 
-                registry.remove_all_components_of(upgradeCardComponent.icon);
-                registry.remove_all_components_of(upgradeCardComponent.name);
-                registry.remove_all_components_of(upgradeCardComponent.description);
-                registry.remove_all_components_of(entity);
+                registry.selectedCards.emplace(entity);
+                uiComponent.scale = upgradeCardComponent.original_scale * vec2(1.03f, 1.03f);
             }
-
-            world->set_level_up_state(false);
-            break;
+            else
+            {
+                if (registry.selectedCards.has(entity))
+                {
+                    registry.selectedCards.remove(entity);
+                    uiComponent.scale = upgradeCardComponent.original_scale;
+                }
+            }
         }
     }
 }
