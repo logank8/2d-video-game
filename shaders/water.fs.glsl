@@ -38,9 +38,9 @@ void main()
 	vec3 viewPos1 = 2 * viewPos;
 
 	// ambient calculation
-	float lightStrength = 0.2;
+	float lightStrength = 0.1;
 	if (darkenedmode == 1) {
-		lightStrength = 0.4;
+		lightStrength = 0.5;
 	}
 	vec3 ambient = lightStrength * vec3(1.0, 1.0, 1.0);
 	// ambient done
@@ -116,6 +116,25 @@ void main()
 				} else if ((fragPos.x >= -0.54) && (fragPos.y >= 0.72)) {
 					color = color;
 				} else if ((fragPos.x >= -0.55) && (fragPos.y >= 0.71)) {
+					color = color;
+				}
+				else {
+					color = in_color;
+				}
+			}
+		}
+
+		// XP Bar
+
+		if ((fragPos.x >= -0.96) && (fragPos.x <= -0.52)) {
+			if ((fragPos.y >= 0.5) && (fragPos.y <= 0.585)) {
+				if ((fragPos.x <= -0.94) && (fragPos.y >= 0.57)) {
+					color = color;
+				} else if ((fragPos.x <= -0.95) && (fragPos.y >=0.56)) {
+					color = color;
+				} else if ((fragPos.x >= -0.54) && (fragPos.y >= 0.57)) {
+					color = color;
+				} else if ((fragPos.x >= -0.55) && (fragPos.y >= 0.56)) {
 					color = color;
 				}
 				else {

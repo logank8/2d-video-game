@@ -50,12 +50,16 @@ public:
 	ComponentContainer<Powerup> powerups;
 	ComponentContainer<UpgradeCard> upgradeCards;
 	ComponentContainer<SelectedCard> selectedCards;
+	ComponentContainer<UpgradeConfirm> upgradeConfirms;
 	ComponentContainer<HealthBuff> healthBuffs;
 	ComponentContainer<Camera> cameras;
 	ComponentContainer<Door> doors;
 	ComponentContainer<DamageIndicator> damageIndicators;
 	ComponentContainer<TutorialIcon> tutorialIcons;
 	ComponentContainer<EnemyDash> enemyDashes;
+	ComponentContainer<ElevatorButton> elevatorButtons;
+	ComponentContainer<Tenant> tenants;
+	ComponentContainer<DialogueBox> dialogueBoxes;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -100,12 +104,16 @@ public:
 		registry_list.push_back(&powerups);
 		registry_list.push_back(&upgradeCards);
 		registry_list.push_back(&selectedCards);
+		registry_list.push_back(&upgradeConfirms);
 		registry_list.push_back(&healthBuffs);
 		registry_list.push_back(&cameras);
 		registry_list.push_back(&doors);
 		registry_list.push_back(&damageIndicators);
 		registry_list.push_back(&tutorialIcons);
 		registry_list.push_back(&enemyDashes);
+		registry_list.push_back(&elevatorButtons);
+		registry_list.push_back(&tenants);
+		registry_list.push_back(&dialogueBoxes);
 	}
 
 	void clear_all_components()

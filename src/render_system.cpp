@@ -28,11 +28,11 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	if (registry.deadlys.has(entity))
 	{
 		Deadly &enemy = registry.deadlys.get(entity);
-		if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG || enemy.enemy_type == ENEMY_TYPES::DASHING)
+		if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG)
 		{
 			transform.scale(vec2(2.5f, 1.6f));
 		}
-		else if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG_2 || enemy.enemy_type == ENEMY_TYPES::SLOWING_CONTACT)
+		else if (enemy.enemy_type == ENEMY_TYPES::CONTACT_DMG_2 || enemy.enemy_type == ENEMY_TYPES::SLOWING_CONTACT || enemy.enemy_type == ENEMY_TYPES::DASHING)
 		{
 			transform.scale(vec2(2.4f, 2.2f));
 		}
@@ -59,6 +59,11 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 				transform.scale(vec2(1.5, 1.5));
 			}
 		}
+	}
+
+	if (registry.walls.has(entity))
+	{
+		transform.scale(vec2(1.125, 1.125));
 	}
 
 	if (registry.healthBuffs.has(entity))
@@ -180,7 +185,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			glUniform2f(uv_scale_loc, (u1 - u0), (v1 - v0));
 		}
 	}
-	else if (render_request.used_effect == EFFECT_ASSET_ID::SALMON || render_request.used_effect == EFFECT_ASSET_ID::EGG)
+	else if (render_request.used_effect == EFFECT_ASSET_ID::SALMON || render_request.used_effect == EFFECT_ASSET_ID::EGG || render_request.used_effect == EFFECT_ASSET_ID::EGG)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_color_loc = glGetAttribLocation(program, "in_color");
@@ -315,10 +320,11 @@ void RenderSystem::drawScreenSpaceObject(Entity entity)
 	UserInterface &userInterface = registry.userInterfaces.get(entity);
 
 	mat3 screen_projection = mat3(1.0f); // Identity for 2D rendering
-	screen_projection[0][0] = userInterface.scale.x;
-	screen_projection[1][1] = userInterface.scale.y;
-	screen_projection[2][0] = userInterface.position.x;
-	screen_projection[2][1] = userInterface.position.y;
+
+	Transform transform;
+	transform.translate(userInterface.position);
+	transform.scale(userInterface.scale);
+	transform.rotate(userInterface.angle);
 
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest &render_request = registry.renderRequests.get(entity);
@@ -333,8 +339,6 @@ void RenderSystem::drawScreenSpaceObject(Entity entity)
 	assert(render_request.used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
 	const GLuint vbo = vertex_buffers[(GLuint)render_request.used_geometry];
 	const GLuint ibo = index_buffers[(GLuint)render_request.used_geometry];
-
-	mat3 transform = mat3(1.0f);
 
 	// Setting vertex and index buffers
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -636,7 +640,7 @@ void RenderSystem::draw()
 	// Clearing backbuffer
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
-	glClearColor(GLfloat(120 / 255.0), GLfloat(120 / 255.0), GLfloat(117 / 255.0), 1.0);
+	glClearColor(GLfloat(26 / 255.0), GLfloat(20 / 255.0), GLfloat(15 / 255.0), 1.0);
 	glClearDepth(10.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);

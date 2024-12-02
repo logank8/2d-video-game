@@ -79,7 +79,8 @@ struct Player
 
 	// Other
 	float collection_distance = 100.f;
-	int experience = 0;
+	float experience_multiplier = 1.0f;
+	int experience = 1;
 	int toNextLevel = 5;
 	int level = 0;
 };
@@ -112,12 +113,14 @@ struct Deadly
 	float drop_chance = 1.0f;
 	int experience = 1;
 	ENEMY_STATE state = ENEMY_STATE::IDLE;
+	vec2 knocked_back_pos = {INFINITY, INFINITY};
 };
 
-struct EnemyDash {
+struct EnemyDash
+{
 	float charge_time = 3000.f;
 	float current_charge_timer = 0.f;
-	vec2 target_pos = { 0, 0 };
+	vec2 target_pos = {0, 0};
 };
 
 // anything that is deadly to the player
@@ -187,7 +190,7 @@ struct Ground
 // Door component
 struct Door
 {
-	bool touching = true;
+	bool touching = false;
 };
 
 // Ground component
@@ -372,19 +375,56 @@ struct TutorialIcon
 {
 };
 
+struct ElevatorButton
+{
+	int level = 0;
+	bool hovering = false;
+};
+
+struct ElevatorDisplay
+{
+	float lasting_ms = 4000.f;
+	float current_ms = 0.f;
+	int message = 0;
+	/*
+	messages
+	 - 0    -> exit
+	 - >= 1 -> level
+	*/
+};
+
+struct DialogueBox
+{
+};
+
 struct UpgradeCard
 {
 	int tier = 1;
-	GLuint textureID;
+	int icon_sprite_index;
 	Entity icon;
 	Entity name;
 	Entity description;
 	std::function<void()> onClick;
+	bool hovering = false;
+	vec2 original_scale;
 };
 
 struct SelectedCard
 {
 	vec2 scale;
+};
+
+struct Tenant
+{
+	std::vector<std::string> dialogues;
+	int dialogue_progress = -1;
+	std::vector<std::string> extra_dialogues;
+	bool player_in_radius = false;
+};
+
+struct UpgradeConfirm
+{
+	bool hovering = false;
 };
 
 struct Camera
@@ -477,7 +517,16 @@ enum class TEXTURE_ASSET_ID
 	WASD_KEYS = FLOOR + 1,
 	DASH_KEYS = WASD_KEYS + 1,
 	ATTACK_CURSOR = DASH_KEYS + 1,
-	TEXTURE_COUNT = ATTACK_CURSOR + 1
+	INTERACT_KEY = ATTACK_CURSOR + 1,
+	PAUSE_KEY = INTERACT_KEY + 1,
+	UPGRADE_ICONS = PAUSE_KEY + 1,
+	HOMING_ENEMY = UPGRADE_ICONS + 1,
+	DASHING_ENEMY = HOMING_ENEMY + 1,
+	SLOWING_ENEMY = DASHING_ENEMY + 1,
+	DIALOGUE_BOX = SLOWING_ENEMY + 1,
+	TUTORIAL_TOGGLE_KEY = DIALOGUE_BOX + 1,
+	BARS = TUTORIAL_TOGGLE_KEY + 1,
+	TEXTURE_COUNT = BARS + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -501,7 +550,15 @@ enum class SPRITE_ASSET_ID
 	WALL = HP_BAR + 1,
 	WASD_KEYS = WALL + 1,
 	DASH_KEYS = WASD_KEYS + 1,
-	SPRITE_COUNT = DASH_KEYS + 1
+	INTERACT_KEY = DASH_KEYS + 1,
+	PAUSE_KEY = INTERACT_KEY + 1,
+	UPGRADE_ICONS = PAUSE_KEY + 1,
+	HOMING_ENEMY = UPGRADE_ICONS + 1,
+	DASHING_ENEMY = HOMING_ENEMY + 1,
+	SLOWING_ENEMY = DASHING_ENEMY + 1,
+	TUTORIAL_TOGGLE_KEY = SLOWING_ENEMY + 1,
+	BARS = TUTORIAL_TOGGLE_KEY + 1,
+	SPRITE_COUNT = BARS + 1
 };
 const int sprite_count = (int)SPRITE_ASSET_ID::SPRITE_COUNT;
 

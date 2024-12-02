@@ -552,7 +552,7 @@ Entity createRangedHomingEnemy(RenderSystem *renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({RANGED_BB_WIDTH, RANGED_BB_HEIGHT});
+	motion.scale = vec2({32, 32});
 
 	// Create an (empty) Bug component to be able to refer to all bug
 	auto &enemy = registry.deadlys.emplace(entity);
@@ -560,32 +560,30 @@ Entity createRangedHomingEnemy(RenderSystem *renderer, vec2 position)
 	registry.healths.emplace(entity);
 	registry.damages.emplace(entity);
 	registry.ranged.emplace(entity);
-	auto &color = registry.colors.emplace(entity);
-	color = vec3(1.f, 0, 0);
 	registry.renderRequests.insert(
 		entity,
 		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
-		 SPRITE_ASSET_ID::RANGED_ENEMY,
+		 SPRITE_ASSET_ID::HOMING_ENEMY,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 0,
 		 RENDER_LAYER::CREATURES});
 
-	std::vector<int> idle_f_vec = {0, 1, 2, 3, 4};
+	std::vector<int> idle_f_vec = {0, 1};
 	Animation idle_f = {
 		"rangedenemy_idle_f",
-		12,
+		5,
 		SPRITE_ASSET_ID::RANGED_ENEMY,
 		idle_f_vec};
 
-	std::vector<int> run_f_vec = {8, 9, 10, 11, 12, 13, 14, 15};
+	std::vector<int> run_f_vec = {6, 7, 8, 9};
 	Animation run_f = {
 		"rangedenemy_run_f",
-		10,
+		9,
 		SPRITE_ASSET_ID::RANGED_ENEMY,
 		run_f_vec};
 
-	std::vector<int> die_vec = {32, 33, 34, 35, 36};
+	std::vector<int> die_vec = {12, 13, 14, 15, 16, 17};
 	Animation die = {
 		"rangedenemy_die",
 		7,
@@ -656,7 +654,7 @@ Entity createSlowingEnemy(RenderSystem *renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({EEL_BB_WIDTH * sign(motion.velocity.x), EEL_BB_HEIGHT});
+	motion.scale = vec2({24, 24});
 
 	// create an empty Eel component to be able to refer to all eels
 	Deadly &deadly = registry.deadlys.emplace(entity);
@@ -665,15 +663,13 @@ Entity createSlowingEnemy(RenderSystem *renderer, vec2 position)
 	auto &damage = registry.damages.emplace(entity);
 	// TODO: adjust	 damage amounts
 	damage.damage = 25.0;
-	auto &color = registry.colors.emplace(entity);
-	color = vec3(0, 0, 50.f);
 	auto &slows = registry.slows.emplace(entity);
 	slows.speed_dec = 0.5;
 	slows.duration = 1000.f;
 	registry.renderRequests.insert(
 		entity,
 		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
-		 SPRITE_ASSET_ID::SLIME,
+		 SPRITE_ASSET_ID::SLOWING_ENEMY,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 1,
@@ -683,21 +679,21 @@ Entity createSlowingEnemy(RenderSystem *renderer, vec2 position)
 	Animation idle_f = {
 		"fastenemy_idle_f",
 		2,
-		SPRITE_ASSET_ID::SLIME,
+		SPRITE_ASSET_ID::SLOWING_ENEMY,
 		idle_f_vec};
 
-	std::vector<int> run_f_vec = {10, 11, 12, 13, 14};
+	std::vector<int> run_f_vec = {4, 5, 6, 7};
 	Animation run_f = {
 		"fastenemy_run_f",
-		8,
-		SPRITE_ASSET_ID::SLIME,
+		13,
+		SPRITE_ASSET_ID::SLOWING_ENEMY,
 		run_f_vec};
 
-	std::vector<int> die_vec = {1, 2, 3, 4, 4};
+	std::vector<int> die_vec = {8, 9, 10};
 	Animation die = {
 		"fastenemy_die",
-		7,
-		SPRITE_ASSET_ID::SLIME,
+		5,
+		SPRITE_ASSET_ID::SLOWING_ENEMY,
 		die_vec};
 
 	auto &animSet = registry.animationSets.emplace(entity);
@@ -709,62 +705,59 @@ Entity createSlowingEnemy(RenderSystem *renderer, vec2 position)
 	return entity;
 }
 
-Entity createDashingEnemy(RenderSystem* renderer, vec2 position)
+Entity createDashingEnemy(RenderSystem *renderer, vec2 position)
 {
 	// Reserve en entity
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initialize the position, scale, and physics components
-	auto& motion = registry.motions.emplace(entity);
+	auto &motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 100.f, 100.f };
+	motion.velocity = {100.f, 100.f};
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ ENEMY_1_BB_WIDTH * sign(motion.velocity.x), ENEMY_1_BB_HEIGHT });
+	motion.scale = vec2({24, 24});
 
-	// Create an (empty) Bug component to be able to refer to all bug
-	Deadly& deadly = registry.deadlys.emplace(entity);
+	Deadly &deadly = registry.deadlys.emplace(entity);
 	deadly.enemy_type = ENEMY_TYPES::DASHING;
 	registry.enemyDashes.emplace(entity);
 	registry.healths.emplace(entity);
 	registry.damages.emplace(entity);
-	auto& color = registry.colors.emplace(entity);
-	color = vec3(0, 0.3f, 0);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
-		 SPRITE_ASSET_ID::SKELETON,
+		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 SPRITE_ASSET_ID::DASHING_ENEMY,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 1,
-		 RENDER_LAYER::CREATURES });
+		 RENDER_LAYER::CREATURES});
 
-	std::vector<int> idle_f_vec = { 0, 1, 2, 3, 4, 5 };
+	std::vector<int> idle_f_vec = {0, 1};
 	Animation idle_f = {
 		"slowenemy_idle_f",
-		15,
-		SPRITE_ASSET_ID::SKELETON,
-		idle_f_vec };
+		2,
+		SPRITE_ASSET_ID::DASHING_ENEMY,
+		idle_f_vec};
 
-	std::vector<int> run_f_vec = { 18, 19, 20, 21, 22, 23 };
+	std::vector<int> run_f_vec = {7, 8, 9, 10};
 	Animation run_f = {
 		"slowenemy_run_f",
-		10,
-		SPRITE_ASSET_ID::SKELETON,
-		run_f_vec };
-	std::vector<int> die_vec = { 36, 37, 38, 39, 39 };
+		13,
+		SPRITE_ASSET_ID::DASHING_ENEMY,
+		run_f_vec};
+	std::vector<int> die_vec = {14, 15, 16, 17, 18, 19, 20};
 	Animation die = {
 		"slowenemy_die",
 		7,
-		SPRITE_ASSET_ID::PLAYER,
-		die_vec };
+		SPRITE_ASSET_ID::DASHING_ENEMY,
+		die_vec};
 
-	auto& animSet = registry.animationSets.emplace(entity);
+	auto &animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;
 	animSet.animations[run_f.name] = run_f;
 	animSet.animations[die.name] = die;
@@ -864,21 +857,19 @@ Entity createLine(vec2 position, vec2 scale)
 	return entity;
 }
 
-Entity createUILine(vec2 position, vec2 scale)
+Entity createUIBar(vec2 position, vec2 scale, int index)
 {
 	Entity entity = Entity();
 
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
-				 SPRITE_ASSET_ID::SPRITE_COUNT,
-				 EFFECT_ASSET_ID::COLOURED,
-				 GEOMETRY_BUFFER_ID::DEBUG_LINE});
+				 SPRITE_ASSET_ID::BARS,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE, index});
 
 	auto &uiComponent = registry.userInterfaces.emplace(entity);
 	uiComponent.position = position;
 	uiComponent.scale = scale;
-
-	registry.debugComponents.emplace(entity);
 
 	return entity;
 }
@@ -1190,111 +1181,111 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos, int type)
 	TEXTURE_ASSET_ID texture;
 
 	// Selecting asset and scale based on furniture type
-	if (type == 2)
+	if (type == 20)
 	{
 		motion.scale = vec2({PLANT_BB_WIDTH, PLANT_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::PLANT;
 	}
-	else if (type == 9)
+	else if (type == 21)
 	{
 		motion.scale = vec2({COAT_RACK_BB_WIDTH, COAT_RACK_BB_HEIGHT});
 		motion.position.y += 50.f;
 		texture = TEXTURE_ASSET_ID::COAT_RACK;
 	}
-	else if (type == 10)
+	else if (type == 22)
 	{
 		motion.scale = vec2({LONG_TABLE_BB_WIDTH, LONG_TABLE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::FURNITURE;
 	}
-	else if (type == 11)
+	else if (type == 23)
 	{
 		motion.scale = vec2({CHAIR_FRONT_BB_WIDTH, CHAIR_FRONT_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::CHAIR_FRONT;
 	}
-	else if (type == 12)
+	else if (type == 24)
 	{
 		motion.scale = vec2({CHAIR_BACK_BB_WIDTH, CHAIR_BACK_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::CHAIR_BACK;
 		motion.position.y -= 20;
 	}
-	else if (type == 13)
+	else if (type == 25)
 	{
 		motion.scale = vec2({CHAIR_SIDE_BB_WIDTH, CHAIR_SIDE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::CHAIR_SIDE;
 	}
-	else if (type == 14)
+	else if (type == 26)
 	{
 		motion.scale = vec2({-CHAIR_SIDE_BB_WIDTH, CHAIR_SIDE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::CHAIR_SIDE;
 	}
-	else if (type == 15)
+	else if (type == 27)
 	{
 		motion.scale = vec2({KITCHEN_COUNTER_1_BB_WIDTH, KITCHEN_COUNTER_1_BB_HEIGHT});
 		motion.position.x += 50;
 		motion.position.y += 17;
 		texture = TEXTURE_ASSET_ID::KITCHEN_COUNTER_1;
 	}
-	else if (type == 16)
+	else if (type == 28)
 	{
 		motion.scale = vec2({KITCHEN_COUNTER_2_BB_WIDTH, KITCHEN_COUNTER_2_BB_HEIGHT});
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::KITCHEN_COUNTER_2;
 	}
-	else if (type == 17)
+	else if (type == 29)
 	{
 		motion.scale = vec2({FRIDGE_BB_WIDTH, FRIDGE_BB_HEIGHT});
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::FRIDGE;
 	}
-	else if (type == 18)
+	else if (type == 30)
 	{
 		motion.scale = vec2({STOVE_BB_WIDTH, STOVE_BB_HEIGHT});
 		motion.position.y += 17;
 		texture = TEXTURE_ASSET_ID::STOVE;
 	}
-	else if (type == 19)
+	else if (type == 31)
 	{
 		motion.scale = vec2({BOOK_CASE_BB_WIDTH, BOOK_CASE_BB_HEIGHT});
 		motion.position.x += 50;
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::BOOK_CASE;
 	}
-	else if (type == 20)
+	else if (type == 32)
 	{
 		motion.scale = vec2({COFFEE_TABLE_BB_WIDTH, COFFEE_TABLE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::COFFEE_TABLE;
 	}
-	else if (type == 21)
+	else if (type == 33)
 	{
 		motion.scale = vec2({COUCH_BB_WIDTH, COUCH_BB_HEIGHT});
 		motion.position.x += 50;
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::COUCH;
 	}
-	else if (type == 22)
+	else if (type == 34)
 	{
 		motion.scale = vec2({DRESSER_BB_WIDTH, DRESSER_BB_HEIGHT});
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::DRESSER;
 	}
-	else if (type == 23)
+	else if (type == 35)
 	{
 		motion.scale = vec2({GRANDFATHER_CLOCK_BB_WIDTH, GRANDFATHER_CLOCK_BB_HEIGHT});
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::GRANDFATHER_CLOCK;
 	}
-	else if (type == 24)
+	else if (type == 36)
 	{
 		motion.scale = vec2({LAMP_BB_WIDTH, LAMP_BB_HEIGHT});
 		motion.position.y -= 50;
 		texture = TEXTURE_ASSET_ID::LAMP;
 	}
-	else if (type == 25)
+	else if (type == 37)
 	{
 		motion.scale = vec2({ROUND_TABLE_BB_WIDTH, ROUND_TABLE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::ROUND_TABLE;
 	}
-	else if (type == 26)
+	else if (type == 38)
 	{
 		motion.scale = vec2({SIDE_TABLE_BB_WIDTH, SIDE_TABLE_BB_HEIGHT});
 		texture = TEXTURE_ASSET_ID::SIDE_TABLE;
@@ -1634,7 +1625,7 @@ vec2 screenToNDC(vec2 pos)
 	return vec2(ndc_x, ndc_y);
 }
 
-Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, TEXTURE_ASSET_ID texture_id, std::string title, std::string description, OnClickCallback onClick)
+Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, int sprite_index, std::string title, std::string description, OnClickCallback onClick)
 {
 	auto entity = Entity();
 
@@ -1644,7 +1635,7 @@ Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, 
 	auto &ui = registry.userInterfaces.emplace(entity);
 	ui.angle = 0.f;
 	ui.position = pos;
-	ui.scale = vec2({0.5, -1.25});
+	ui.scale = size;
 
 	registry.renderRequests.insert(
 		entity,
@@ -1659,7 +1650,60 @@ Entity createUpgradeCard(RenderSystem *renderer, vec2 pos, vec2 size, int tier, 
 	upgradeCardComponent.onClick = onClick;
 
 	vec2 screen_pos = screenToNDC(pos + (ui.scale / vec2(2.0f, 2.0f)) - vec2(ui.scale.x - 0.05f, UPGRADE_CARD_TITLE_Y));
-	upgradeCardComponent.name = createText(screen_pos, 0.65f, title, vec3(0.9f, 0.9f, 0.9f));
+
+	upgradeCardComponent.name = createText(screen_pos + vec2(5.0f, 0.f), 0.5f, title, vec3(0.9f, 0.9f, 0.9f));
+	upgradeCardComponent.icon = createUpgradeIcon(renderer, pos + vec2(0.f, 0.05f), size, sprite_index);
+	upgradeCardComponent.description = createText(screen_pos + vec2(5.0f, -225.f), 0.5f, description, vec3(0.9f, 0.9f, 0.9f));
+
+	upgradeCardComponent.original_scale = size;
+
+	return entity;
+}
+
+Entity createUpgradeIcon(RenderSystem *renderer, vec2 pos, vec2 scale, int sprite)
+{
+	auto entity = Entity();
+
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	auto &ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = pos;
+	ui.scale = scale * vec2(0.5f, 0.5f);
+
+	registry.renderRequests.insert(
+		entity,
+		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 SPRITE_ASSET_ID::UPGRADE_ICONS,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 sprite});
+
+	return entity;
+}
+
+Entity createUpgradeConfirm(RenderSystem *renderer, vec2 pos, vec2 scale)
+{
+	auto entity = Entity();
+
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	auto &ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = pos;
+	ui.scale = scale * vec2(0.2f, 0.1f);
+
+	registry.upgradeConfirms.emplace(entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{TEXTURE_ASSET_ID::CARD,
+		 SPRITE_ASSET_ID::SPRITE_COUNT,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 1});
 
 	return entity;
 }
@@ -1674,7 +1718,7 @@ Entity createTempPowerup(RenderSystem *renderer, vec2 pos, PowerupType type, flo
 	Motion &motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.velocity = {0.f, 0.f};
-	motion.scale = vec2(32, 32);
+	motion.scale = vec2(48, 48);
 
 	registry.eatables.emplace(entity);
 
@@ -1775,7 +1819,7 @@ Entity createDoor(RenderSystem *renderer, vec2 pos)
 	Camera &camera = registry.cameras.emplace(entity);
 
 	Motion &motion = registry.motions.emplace(entity);
-	motion.position = {pos.x, pos.y - 25};
+	motion.position = {pos.x, pos.y - 10};
 	motion.velocity = {0.f, 0.f};
 	motion.scale = vec2(150, 150);
 
@@ -1876,7 +1920,7 @@ void createElevatorButtons(RenderSystem *renderer, int num_levels)
 			return;
 		}
 
-		createLevelButton(renderer, vec2(top_pos.x, top_pos.y - (0.25 * i)), i);
+		createLevelButton(renderer, vec2(top_pos.x, top_pos.y - (0.25 * i)), num_levels - i + 1);
 		// figure out motion pos and pass to text
 		createText({top_pos_world.x, top_pos_world.y + (90 * (num_levels - i))}, 0.9f, "Level " + std::to_string(num_levels - i + 1), vec3(0.2, 0.2, 0.2));
 	}
@@ -1892,6 +1936,8 @@ Entity createLevelButton(RenderSystem *renderer, vec2 pos, int level)
 	ui.angle = 0.f;
 	ui.position = pos;
 	ui.scale = vec2({0.09, -0.15});
+
+	registry.elevatorButtons.insert(entity, {level});
 
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::LEVEL_BUTTON,
@@ -1912,6 +1958,8 @@ Entity createExitButton(RenderSystem *renderer, vec2 pos)
 	ui.angle = 0.f;
 	ui.position = pos;
 	ui.scale = vec2({0.2, -0.2});
+
+	registry.elevatorButtons.emplace(entity);
 
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::EXIT_BUTTON,
@@ -1941,7 +1989,7 @@ Entity createDamageIndicator(RenderSystem *renderer, int damage, vec2 pos, float
 	return entity;
 }
 
-Entity createFloor(RenderSystem *renderer, vec2 pos)
+Entity createFloor(RenderSystem *renderer)
 {
 	auto entity = Entity();
 	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -1949,10 +1997,10 @@ Entity createFloor(RenderSystem *renderer, vec2 pos)
 
 	// Setting initial motion values
 	Motion &motion = registry.motions.emplace(entity);
-	motion.position = pos;
+	motion.position = {(640 - (25 * 100)) + (100 / 2), (640 - (44 * 100)) + (100 / 2)};
 	motion.angle = 0;
 	motion.velocity = {0.f, 0.f};
-	motion.scale = vec2({100, 100});
+	motion.scale = vec2({56000 * 0.7, 45000 * 0.7});
 
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::FLOOR,
@@ -2039,6 +2087,43 @@ Entity createDashKey(RenderSystem *renderer, vec2 pos)
 	return entity;
 }
 
+Entity createInteractKey(RenderSystem *renderer, vec2 pos)
+{
+	auto entity = Entity();
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0;
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2({50, 50});
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
+				 SPRITE_ASSET_ID::INTERACT_KEY,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 0,
+				 RENDER_LAYER::EFFECTS});
+
+	registry.tutorialIcons.emplace(entity);
+
+	std::vector<int> idle_vec = {0, 1};
+	Animation idle = {
+		"idle",
+		2,
+		SPRITE_ASSET_ID::INTERACT_KEY,
+		idle_vec};
+
+	auto &animSet = registry.animationSets.emplace(entity);
+	animSet.animations[idle.name] = idle;
+	animSet.current_animation = idle.name;
+
+	return entity;
+}
+
 Entity createAttackCursor(RenderSystem *renderer, vec2 pos)
 {
 	auto entity = Entity();
@@ -2061,6 +2146,178 @@ Entity createAttackCursor(RenderSystem *renderer, vec2 pos)
 				 RENDER_LAYER::EFFECTS});
 
 	registry.tutorialIcons.emplace(entity);
+
+	return entity;
+}
+
+Entity createPauseKey(RenderSystem *renderer, vec2 pos)
+{
+	auto entity = Entity();
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0;
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2({150, 50});
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
+				 SPRITE_ASSET_ID::PAUSE_KEY,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 0,
+				 RENDER_LAYER::EFFECTS});
+
+	registry.tutorialIcons.emplace(entity);
+
+	std::vector<int> idle_vec = {0, 1};
+	Animation idle = {
+		"idle",
+		2,
+		SPRITE_ASSET_ID::PAUSE_KEY,
+		idle_vec};
+
+	auto &animSet = registry.animationSets.emplace(entity);
+	animSet.animations[idle.name] = idle;
+	animSet.current_animation = idle.name;
+
+	return entity;
+}
+
+Entity createTutorialToggleKey(RenderSystem *renderer, vec2 pos)
+{
+	auto entity = Entity();
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0;
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2({300, 50});
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
+				 SPRITE_ASSET_ID::TUTORIAL_TOGGLE_KEY,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 0,
+				 RENDER_LAYER::EFFECTS});
+
+	registry.tutorialIcons.emplace(entity);
+
+	std::vector<int> idle_vec = {0, 1};
+	Animation idle = {
+		"idle",
+		2,
+		SPRITE_ASSET_ID::TUTORIAL_TOGGLE_KEY,
+		idle_vec};
+
+	auto &animSet = registry.animationSets.emplace(entity);
+	animSet.animations[idle.name] = idle;
+	animSet.current_animation = idle.name;
+
+	return entity;
+}
+
+Entity createTenant(RenderSystem *renderer, vec2 pos, int level)
+{
+	auto entity = Entity();
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto &motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = {0, 0};
+	motion.position = pos;
+	motion.scale = vec2({PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT});
+
+	Tenant &tenant = registry.tenants.emplace(entity);
+
+	switch (level)
+	{
+	case (1):
+		tenant.dialogues = tenant_dialogue_1;
+		tenant.extra_dialogues = tenant_extra_dialogue_1;
+		break;
+	default:
+		tenant.dialogues = tenant_dialogue_2;
+		tenant.extra_dialogues = tenant_extra_dialogue_2;
+	}
+
+	registry.renderRequests.insert(
+		entity,
+		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 SPRITE_ASSET_ID::PLAYER,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 1, // Sprite index  => 0 INDEXED (L->R, T->B)
+		 RENDER_LAYER::CREATURES});
+
+	// Initialize animations
+	std::vector<int> run_s_vec = {24, 25, 26, 27, 28, 29};
+	Animation run_s = {
+		"tenant_run_s",
+		15,
+		SPRITE_ASSET_ID::PLAYER,
+		run_s_vec};
+	std::vector<int> run_f_vec = {18, 19, 20, 21, 22, 23};
+	Animation run_f = {
+		"tenant_run_f",
+		15,
+		SPRITE_ASSET_ID::PLAYER,
+		run_f_vec};
+	std::vector<int> run_b_vec = {30, 31, 32, 33, 34, 35};
+	Animation run_b = {
+		"tenant_run_b",
+		15,
+		SPRITE_ASSET_ID::PLAYER,
+		run_b_vec};
+
+	std::vector<int> idle_f_vec = {0, 1, 2, 3, 4, 5};
+	Animation idle_f = {
+		"tenant_idle_f",
+		15,
+		SPRITE_ASSET_ID::PLAYER,
+		idle_f_vec};
+
+	auto &animSet = registry.animationSets.emplace(entity);
+	animSet.animations[run_s.name] = run_s;
+	animSet.animations[run_f.name] = run_f;
+	animSet.animations[run_b.name] = run_b;
+	animSet.animations[idle_f.name] = idle_f;
+
+	return entity;
+}
+
+Entity createDialogueBox(RenderSystem *renderer)
+{
+	auto entity = Entity();
+
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = {window_width_px / 2, 50};
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2(0.1, 0.1);
+
+	UserInterface &ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = {0, -0.7};
+	ui.scale = vec2({2.0, -0.5});
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::DIALOGUE_BOX,
+				 SPRITE_ASSET_ID::SPRITE_COUNT,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 -1,
+				 RENDER_LAYER::EFFECTS});
+
+	registry.dialogueBoxes.emplace(entity);
 
 	return entity;
 }

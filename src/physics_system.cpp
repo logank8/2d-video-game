@@ -43,6 +43,47 @@ bool collides(const Motion &motion1, const Motion &motion2)
     return false;
 }
 
+// Returns horizontal overlap of bounding boxes
+float horiz_overlap(const Motion &motion1, const Motion &motion2) {
+    float left_1 = motion1.position.x - (abs(motion1.scale.x) / 2);
+    float right_1 = motion1.position.x + (abs(motion1.scale.x) / 2);
+
+    float left_2 = motion2.position.x - (abs(motion2.scale.x) / 2);
+    float right_2 = motion2.position.x + (abs(motion2.scale.x) / 2);
+
+    float overlap = 0;
+
+    if ((left_1 < right_2) && (left_1 > left_2))  {
+        overlap = (abs(right_2 - left_1));
+    } 
+    
+    if ((left_2 < right_1) && (left_2 > left_1)) {
+        overlap = max(overlap, (abs(right_1 - left_2)));
+    }
+
+    return overlap;
+}
+
+float vert_overlap(const Motion &motion1, const Motion &motion2) {
+    float bottom_1 = motion1.position.y - (abs(motion1.scale.y) / 2);
+    float top_1 = motion1.position.y + (abs(motion1.scale.y) / 2);
+
+    float bottom_2 = motion2.position.y - (abs(motion2.scale.y) / 2);
+    float top_2 = motion2.position.y + (abs(motion2.scale.y) / 2);
+
+    float overlap = 0;
+
+    if ((top_1 > bottom_2) && (top_1 < top_2)) {
+        overlap = abs(abs(bottom_2) - abs(top_1));
+    }
+
+    if ((top_2 > bottom_1) && (top_2 < top_1)) {
+        overlap = max(overlap, abs(abs(bottom_1) - abs(top_2)));
+    }
+
+    return overlap;
+}
+
 // use stricter separating axis theorem collision for enemy/player collisions
 bool enemy_player_collides(const Motion& motion1, const Motion& motion2)
 {
@@ -231,30 +272,22 @@ bool is_walkable(const vec2 &pos, vec2 dir)
     if (dir == diagonals[0]) {  // Moving top-right
         if (map[grid_y][grid_x - 1] == -1 || map[grid_y - 1][grid_x] == -1) return false;
         if (map[grid_y][grid_x - 1] == 0 || map[grid_y - 1][grid_x] == 0) return false;
-        if (map[grid_y][grid_x - 1] == 2 || map[grid_y - 1][grid_x] == 2) return false;
-        if (map[grid_y][grid_x - 1] == 9 || map[grid_y - 1][grid_x] == 9) return false;
-        if ((map[grid_y][grid_x - 1] >= 10 && map[grid_y][grid_x - 1] <= 26) || (map[grid_y - 1][grid_x] >= 2 && map[grid_y - 1][grid_x] <= 26)) return false;
+        if ((map[grid_y][grid_x - 1] >= 20 && map[grid_y][grid_x - 1] <= 38) || (map[grid_y - 1][grid_x] >= 20 && map[grid_y - 1][grid_x] <= 38)) return false;
     }
     else if (dir == diagonals[1]) {  // Moving top-left
         if (map[grid_y][grid_x + 1] == -1 || map[grid_y - 1][grid_x] == -1) return false;
         if (map[grid_y][grid_x + 1] == 0 || map[grid_y - 1][grid_x] == 0) return false;
-        if (map[grid_y][grid_x + 1] == 2 || map[grid_y - 1][grid_x] == 2) return false;
-        if (map[grid_y][grid_x + 1] == 9 || map[grid_y - 1][grid_x] == 9) return false;
-        if ((map[grid_y][grid_x + 1] >= 10 && map[grid_y][grid_x + 1] <= 26) || (map[grid_y - 1][grid_x] >= 2 && map[grid_y - 1][grid_x] <= 9)) return false;
+        if ((map[grid_y][grid_x + 1] >= 20 && map[grid_y][grid_x + 1] <= 38) || (map[grid_y - 1][grid_x] >= 20 && map[grid_y - 1][grid_x] <= 38)) return false;
     }
     else if (dir == diagonals[2]) {  // Moving bottom-right
         if (map[grid_y + 1][grid_x] == -1 || map[grid_y + 1][grid_x] == -1) return false;
         if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x - 1] == 0) return false;
-        if (map[grid_y + 1][grid_x] == 2 || map[grid_y][grid_x - 1] == 2) return false;
-        if (map[grid_y + 1][grid_x] == 9 || map[grid_y + 1][grid_x] == 9) return false;
-        if ((map[grid_y][grid_x + 1] >= 10 && map[grid_y + 1][grid_x] <= 26) || (map[grid_y + 1][grid_x] >= 2 && map[grid_y + 1][grid_x] <= 26)) return false;
+        if ((map[grid_y][grid_x + 1] >= 20 && map[grid_y + 1][grid_x] <= 38) || (map[grid_y + 1][grid_x] >= 20 && map[grid_y + 1][grid_x] <= 38)) return false;
     }
     else if (dir == diagonals[3]) {  // Moving bottom-left
         if (map[grid_y + 1][grid_x] == -1 || map[grid_y][grid_x + 1] == -1) return false;
         if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x + 1] == 0) return false;
-        if (map[grid_y + 1][grid_x] == 2 || map[grid_y][grid_x + 1] == 2) return false;
-        if (map[grid_y + 1][grid_x] == 9 || map[grid_y][grid_x + 1] == 9) return false;
-        if ((map[grid_y][grid_x + 1] >= 10 && map[grid_y + 1][grid_x] <= 26) || (map[grid_y][grid_x + 1] >= 2 && map[grid_y][grid_x + 1] <= 26)) return false;
+        if ((map[grid_y][grid_x + 1] >= 20 && map[grid_y + 1][grid_x] <= 38) || (map[grid_y][grid_x + 1] >= 20 && map[grid_y][grid_x + 1] <= 38)) return false;
     }
 
     return map[grid_y][grid_x] == 1 || (map[grid_y][grid_x] >= 3 && map[grid_y][grid_x] <= 8);
@@ -295,7 +328,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == 0)
+            if (!(map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8)))
             {
                 return false;
             }
@@ -319,7 +352,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
                 return false;
             }
 
-            if (map[y][x] == 0)
+            if (!(map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8)))
             {
                 return false;
             }
@@ -338,7 +371,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
     {
         return false;
     }
-    return map[y][x] != 0;
+    return map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8);
 }
 
 // Checking for dashing line of sight using Bresenham's algorithm
@@ -668,7 +701,9 @@ void PhysicsSystem::update_swarm_movement(Entity swarm_member, float step_second
     int grid_y = static_cast<int>((entity_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE);
 
     // TODO: need collision correction
-    if (map[grid_y][grid_x] == 0 || map[grid_y][grid_x] == 2) {
+    if (grid_x > map[0].size() || grid_y > map.size() || grid_x < 0 || grid_y < 0) {
+        registry.remove_all_components_of(swarm_member);
+    } else if (map[grid_y][grid_x] == 0 || map[grid_y][grid_x] == 2) {
         registry.remove_all_components_of(swarm_member);
     }
 }
@@ -698,11 +733,10 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
     const float GRID_OFFSET_Y = (640 - (44 * TILE_SIZE)) - TILE_SIZE / 2;
 
     // Convert to grid coordinates
-    Motion &enemy_motion = registry.motions.get(enemy);
-    int grid_x = static_cast<int>((enemy_motion.position.x - GRID_OFFSET_X) / TILE_SIZE);
-    int grid_y = static_cast<int>((enemy_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE);
-    float raw_x = (enemy_motion.position.x - GRID_OFFSET_X) / TILE_SIZE;
-    float raw_y = (enemy_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE;
+    int grid_x = static_cast<int>((motion.position.x - GRID_OFFSET_X) / TILE_SIZE);
+    int grid_y = static_cast<int>((motion.position.y - GRID_OFFSET_Y) / TILE_SIZE);
+    float raw_x = (motion.position.x - GRID_OFFSET_X) / TILE_SIZE;
+    float raw_y = (motion.position.y - GRID_OFFSET_Y) / TILE_SIZE;
 
     // Recalculate path if all below are true:
     // - update time has elapsed
@@ -711,13 +745,11 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
     // - OR of enemy was knocked back recently
     if (((!registry.paths.has(enemy) || timer.timer >= PATH_UPDATE_TIME) &&
         (grid_x == raw_x && grid_y == raw_y) &&
-        phsyics.has_los(enemy_motion.position, player_motion.position)) || knocked_back)
+        phsyics.has_los(motion.position, player_motion.position)) || knocked_back)
     {
         // adjust pathfinding coordinates if knocked back recently
         if ((grid_x != raw_x || grid_y != raw_y)) {
-            int adjusted_x = (static_cast<int>(enemy_motion.position.x) - (640 - (25 * TILE_SIZE))) / TILE_SIZE;
-            int adjusted_y = (static_cast<int>(enemy_motion.position.y) - (640 - (44 * TILE_SIZE))) / TILE_SIZE;
-            enemy_motion.position = { (640 - (25 * 100)) + (adjusted_x * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (adjusted_y * TILE_SIZE) + (TILE_SIZE / 2) };
+            motion.position = registry.deadlys.get(enemy).knocked_back_pos;
             timer.timer = 0.f;
         }
 
@@ -809,6 +841,7 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
 void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current_map)
 {
     map = current_map;
+    std::vector<Entity> collided_solids;
 	// Check for collisions between all moving entities
     ComponentContainer<Motion> &motion_container = registry.motions;
     for (uint i = 0; i < motion_container.components.size(); i++)
@@ -840,8 +873,13 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                             registry.collisions.emplace_with_duplicates(entity_i, entity_j);
                             registry.collisions.emplace_with_duplicates(entity_j, entity_i);
                         }
-                    }
-                    else {
+                    } else if ((registry.solidObjs.has(entity_i) && registry.players.has(entity_j)) || (registry.solidObjs.has(entity_j) && registry.players.has(entity_i))) {
+                        if (registry.solidObjs.has(entity_i)) {
+                            collided_solids.push_back(entity_i);
+                        } else {
+                            collided_solids.push_back(entity_j);
+                        }
+                    } else {
                         // Create a collisions event
                     // We are abusing the ECS system a bit in that we potentially insert multiple collisions for the same entity
                         registry.collisions.emplace_with_duplicates(entity_i, entity_j);
@@ -869,12 +907,24 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
         }
     }
 
+
+    // check for door collision
     for (Entity e : registry.doors.entities) {
         Door& door = registry.doors.get(e);
         if (door.touching) {
             if (!collides(registry.motions.get(e), player_motion)) {
                 door.touching = false;
             }
+        }
+    }
+
+    // Check for tenant within radius
+    for (Entity e : registry.tenants.entities) {
+        Tenant& tenant = registry.tenants.get(e);
+        if (distance(registry.motions.get(e).position, player_motion.position) <= 100) {
+            tenant.player_in_radius = true;
+        } else {
+            tenant.player_in_radius = false;
         }
     }
 
@@ -903,6 +953,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
 		Entity entity = motion_registry.entities[i];
 		float step_seconds = elapsed_ms / 1000.f;
     if (registry.players.has(entity)) {
+        auto& player = registry.players.get(entity);
         // Updating speed to make sure most recent value is applied to motion
         if (distance({0, 0}, motion.velocity) != 0) {
             motion.velocity = (1 / distance({0, 0}, motion.velocity)) * motion.velocity;
@@ -911,20 +962,60 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
         float temp_multiplier = 1.f;
         if (registry.powerups.has(entity)) {
             Powerup& powerup = registry.powerups.get(entity);
-            if (powerup.type == PowerupType::SPEED_BOOST) {
+            if (powerup.type == PowerupType::SPEED_BOOST && (player.is_dash_up || (!player.is_dash_up && (player.curr_dash_cooldown_ms < (player.dash_cooldown_ms - player.dash_time))))) {
                 temp_multiplier *= powerup.multiplier;
             }
         }
-        auto& player = registry.players.get(entity);
+        
         if (player.slowed_duration_ms <= 0.f) {
             motion.velocity = motion.speed * temp_multiplier * motion.velocity;
         }
         else {
             motion.velocity = motion.speed * motion.velocity * temp_multiplier * player.slowed_amount;
         }
-        
-		motion.position[0] += motion.velocity[0] * step_seconds;
+
+        // PLAYER x SOLID COLLISION HANDLING
+
+        // check if new x value will collide with any solid objects
+        float new_x = motion.position[0] + (motion.velocity[0] * step_seconds);
+        Motion new_motion_x = {{new_x, motion.position.y}, motion.angle, motion.velocity, motion.scale, motion.speed};
+        for (Entity solid : registry.solidObjs.entities) {
+            Motion& motion_solid = registry.motions.get(solid);
+
+            // just trying to make it so we're not checking for collision on every single solid object in the scene
+            if (distance(motion_solid.position, motion.position) > 3 * max(abs(motion.scale.x), abs(motion.scale.y))) {
+                continue;
+            }
+
+            if (collides(motion_solid, new_motion_x)) {
+                motion.velocity.x = 0;
+                break;
+            }
+        }
+
+        // update x value
+        motion.position[0] += motion.velocity[0] * step_seconds;
+
+        // check if new y value will collide with any solid objects
+        float new_y = motion.position[1] + (motion.velocity[1] * step_seconds);
+        Motion new_motion_y = {{motion.position.x, new_y}, motion.angle, motion.velocity, motion.scale, motion.speed};
+        for (Entity solid : registry.solidObjs.entities) {
+            Motion& motion_solid = registry.motions.get(solid);
+
+            // just trying to make it so we're not checking for collision on every single solid object in the scene
+            if (distance(motion_solid.position, motion.position) > 3 * max(abs(motion.scale.x), abs(motion.scale.y))) {
+                continue;
+            }
+
+            if (collides(motion_solid, new_motion_y)) {
+                motion.velocity.y = 0;
+                break;
+            }
+        }
+
+        // update y value
 		motion.position[1] += motion.velocity[1] * step_seconds;
+
     } else {
 			//Handle contact damage enemies
 			if (registry.deadlys.has(entity)) {
@@ -943,10 +1034,10 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                             if (has_dashing_los(registry.motions.get(entity).position, player_motion.position)) {
                                 if (dashing_enemy.current_charge_timer < dashing_enemy.charge_time) {
                                     registry.motions.get(entity).velocity = { 0, 0 };
-                                    if (!registry.lightUps.has(entity)) {
-                                        auto& lights_up = registry.lightUps.emplace(entity);
-                                        lights_up.duration_ms = dashing_enemy.charge_time;
+                                    if (registry.lightUps.has(entity)) {
+                                        registry.lightUps.remove(entity);
                                     }
+                                    // TODO: change animation so it just changes to dash mode when charging
                                     int grid_x = static_cast<int>((player_motion.position.x - GRID_OFFSET_X) / TILE_SIZE);
                                     int grid_y = static_cast<int>((player_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE);
                                     dashing_enemy.target_pos = { (640 - (25 * 100)) + (grid_x * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (grid_y * TILE_SIZE) + (TILE_SIZE / 2) };
@@ -954,8 +1045,10 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                                 }
                                 else {
                                     registry.motions.get(entity).velocity = { 500.f, 500.f };
-                                    if (registry.lightUps.has(entity)) {
-                                        registry.lightUps.remove(entity);
+                                    // TODO: edit here as well for dash anim
+                                    if (!registry.lightUps.has(entity)) {
+                                        auto& lights_up = registry.lightUps.emplace(entity);
+                                        lights_up.duration_ms = dashing_enemy.charge_time;
                                     }
                                     vec2 direction = {
                                         dashing_enemy.target_pos.x - motion.position.x,
