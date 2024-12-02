@@ -849,22 +849,23 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			// tile_vec.push_back(spawnable_tiles[index]);
 		}
 
-	// Spawn dashing enemy
-	next_dashing_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (next_dashing_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
-	{
-		next_dashing_spawn = (DASHING_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (DASHING_ENEMY_SPAWN_DELAY_MS / 2);
-		vec2 dashing_pos;
-		float distance_to_player;
-		float index;
-		do
+		// Spawn dashing enemy
+		next_dashing_spawn -= elapsed_ms_since_last_update * current_speed;
+		if (next_dashing_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
 		{
-			index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
-			dashing_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
-			distance_to_player = sqrt(pow(dashing_pos.x - player_pos.x, 2) + pow(dashing_pos.y - player_pos.y, 2));
-		} while (distance_to_player < 300.f);
-		createDashingEnemy(renderer, dashing_pos);
-		// tile_vec.push_back(spawnable_tiles[index]);
+			next_dashing_spawn = (DASHING_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (DASHING_ENEMY_SPAWN_DELAY_MS / 2);
+			vec2 dashing_pos;
+			float distance_to_player;
+			float index;
+			do
+			{
+				index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
+				dashing_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
+				distance_to_player = sqrt(pow(dashing_pos.x - player_pos.x, 2) + pow(dashing_pos.y - player_pos.y, 2));
+			} while (distance_to_player < 300.f);
+			createDashingEnemy(renderer, dashing_pos);
+			// tile_vec.push_back(spawnable_tiles[index]);
+		}
 	}
 
 	// Spawn projectiles for ranged enemies
