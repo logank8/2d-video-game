@@ -1720,7 +1720,7 @@ Entity createTempPowerup(RenderSystem *renderer, vec2 pos, PowerupType type, flo
 	Motion &motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.velocity = {0.f, 0.f};
-	motion.scale = vec2(32, 32);
+	motion.scale = vec2(48, 48);
 
 	registry.eatables.emplace(entity);
 

@@ -123,6 +123,25 @@ void main()
 				}
 			}
 		}
+
+		// XP Bar
+
+		if ((fragPos.x >= -0.96) && (fragPos.x <= -0.52)) {
+			if ((fragPos.y >= 0.5) && (fragPos.y <= 0.585)) {
+				if ((fragPos.x <= -0.94) && (fragPos.y >= 0.57)) {
+					color = color;
+				} else if ((fragPos.x <= -0.95) && (fragPos.y >=0.56)) {
+					color = color;
+				} else if ((fragPos.x >= -0.54) && (fragPos.y >= 0.57)) {
+					color = color;
+				} else if ((fragPos.x >= -0.55) && (fragPos.y >= 0.56)) {
+					color = color;
+				}
+				else {
+					color = in_color;
+				}
+			}
+		}
 	}
 	
 }
