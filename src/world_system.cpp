@@ -452,6 +452,9 @@ void WorldSystem::save_player_data(const std::string &filename)
 		{"attack_duration_ms", player.attack_duration_ms},
 		{"knockback_strength", player.knockback_strength},
 		{"attack_size", player.attack_size},
+		{"crit_chance", player.crit_chance},
+		{"crit_multiplier", player.crit_multiplier},
+		{"lifesteal", player.lifesteal},
 		{"collection_distance", player.collection_distance},
 		{"experience_multiplier", player.experience_multiplier},
 		{"experience", player.experience},
@@ -484,6 +487,9 @@ void WorldSystem::load_player_data(const std::string &filename)
 	player.damage_multiplier = j["damage_multiplier"];
 	player.knockback_strength = j["knockback_strength"];
 	player.attack_size = j["attack_size"];
+	player.crit_chance = j["crit_chance"];
+	player.crit_multiplier = j["crit_multiplier"];
+	player.lifesteal = j["lifesteal"];
 	player.collection_distance = j["collection_distance"];
 	player.experience_multiplier = j["experience_multiplier"];
 	player.experience = j["experience"];
@@ -513,9 +519,9 @@ void WorldSystem::mapSwitch(int map)
 	if (std::find(levels_unlocked.begin(), levels_unlocked.end(), map) == levels_unlocked.end())
 	{
 		levels_unlocked.push_back(map);
-		
 	}
-	for (int i : levels_unlocked) {
+	for (int i : levels_unlocked)
+	{
 		std::cout << i << std::endl;
 	}
 
@@ -1652,14 +1658,14 @@ void WorldSystem::restart_game()
 	player_controller.set_world(this);
 
 	load_player_data(SAVE_FILENAME);
-	for (int i : registry.players.components[0].levels_unlocked) {
+	for (int i : registry.players.components[0].levels_unlocked)
+	{
 
-		if (std::find(levels_unlocked.begin(), levels_unlocked.end(), i) == levels_unlocked.end()) {
+		if (std::find(levels_unlocked.begin(), levels_unlocked.end(), i) == levels_unlocked.end())
+		{
 			levels_unlocked.push_back(i);
-		
 		}
 	}
-	
 
 	registry.cameras.clear();
 	camera = createCamera(renderer, vec2(window_width_px / 2, window_height_px / 2));
@@ -1905,7 +1911,23 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 				float damage_dealt = (damage.damage + (damage.damage * damage_rng)) * temp_multiplier;
 
+				float crit_rng = uniform_dist(rng);
+
+				if (crit_rng <= player.crit_chance)
+				{
+					damage_dealt *= player.crit_multiplier;
+					// tells indicator to go red
+					temp_multiplier = 1.1f;
+				}
+
 				deadly_health.hit_points = std::max(0.0f, deadly_health.hit_points - damage_dealt);
+
+				float &player_hp = registry.healths.get(my_player).hit_points;
+				player_hp += damage_dealt * player.lifesteal;
+				player_hp = std::min(player_hp, 200.f);
+				int hp_level = int(player_hp / 25);
+				std::string new_anim = "hpbar_" + std::to_string(hp_level);
+				registry.animationSets.get(hp_bar).current_animation = new_anim;
 
 				// std::cout << damage_rng << std::endl;
 

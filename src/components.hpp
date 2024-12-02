@@ -77,6 +77,9 @@ struct Player
 	float curr_attack_duration_ms = attack_duration_ms;
 	float knockback_strength = 0.08;
 	float attack_size = 100.f;
+	float crit_chance = 0.05f;
+	float crit_multiplier = 1.5f;
+	float lifesteal = 0.0f;
 
 	// Other
 	float collection_distance = 100.f;
@@ -426,7 +429,7 @@ struct SelectedCard
 	vec2 scale;
 };
 
-struct KillTracker 
+struct KillTracker
 {
 	int goal;
 	int killed = 0;
