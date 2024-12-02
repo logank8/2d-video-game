@@ -191,6 +191,8 @@ WorldSystem::~WorldSystem()
 		Mix_FreeChunk(level_up_sound);
 	if (door_sound != nullptr)
 		Mix_FreeChunk(door_sound);
+	if (summon_sound != nullptr)
+		Mix_FreeChunk(summon_sound);
 
 	Mix_CloseAudio();
 
@@ -293,8 +295,9 @@ GLFWwindow *WorldSystem::create_window()
 	enemy_damage_sound = Mix_LoadWAV(audio_path("enemy_damage.wav").c_str());
 	level_up_sound = Mix_LoadWAV(audio_path("level_up_select.wav").c_str());
 	door_sound = Mix_LoadWAV(audio_path("door.wav").c_str());
+	summon_sound = Mix_LoadWAV(audio_path("summon.wav").c_str());
 
-	if (background_music == nullptr || button_click_sound == nullptr || salmon_eat_sound == nullptr || player_damage_sound == nullptr || enemy_damage_sound == nullptr || level_up_sound == nullptr)
+	if (background_music == nullptr || button_click_sound == nullptr || salmon_eat_sound == nullptr || player_damage_sound == nullptr || enemy_damage_sound == nullptr || level_up_sound == nullptr || summon_sound == nullptr)
 	{
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
 				audio_path("music.wav").c_str(),
@@ -1642,7 +1645,13 @@ void WorldSystem::handle_collisions(float step_seconds)
 				// std::cout << damage_rng << std::endl;
 
 				// check if entity is final boss and if the boss has taken enough damage to go to next stage
-				if (registry.bosses.has(entity_other) && deadly_health.hit_points < (deadly_health.max_hp / 2)) registry.bosses.get(entity_other).stage = FinalLevelStage::STAGE2;
+				auto &boss_registry = registry.bosses;
+				if (boss_registry.has(entity_other) && boss_registry.get(entity_other).stage == FinalLevelStage::STAGE1 && deadly_health.hit_points < (deadly_health.max_hp / 2)) {
+					boss_registry.get(entity_other).stage = FinalLevelStage::STAGE2;
+
+					// play summon enemies sound
+					Mix_PlayChannel(-1, summon_sound, 0);
+				}
 				
 				createDamageIndicator(renderer, damage_dealt, enemy_motion.position, damage_rng, temp_multiplier);
 

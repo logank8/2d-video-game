@@ -44,6 +44,7 @@ public:
 	Mix_Chunk *enemy_damage_sound;
 	Mix_Chunk *level_up_sound;
 	Mix_Chunk *door_sound;
+	Mix_Chunk *summon_sound;
 
 
 	struct Tutorial {
