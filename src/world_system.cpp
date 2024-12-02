@@ -631,6 +631,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	if (current_map != map_final)
 	{
 		title_ss << "Number of Enemies Until Next Level: " << (max(0, enemy_kill_goal - enemies_killed));
+		for (Entity e : registry.killTrackers.entities) {
+			KillTracker &track = registry.killTrackers.get(e);
+			track.killed = enemies_killed;
+			track.goal = enemy_kill_goal;
+		}
 	}
 	else
 	{
@@ -1607,8 +1612,11 @@ void WorldSystem::restart_game()
 	vec2 stamina_bar_pos = {-0.74f, 0.7f};
 	stamina_bar = createStaminaBar(renderer, stamina_bar_pos);
 
-	Entity artifact = createHolyArtifact(renderer);
-	registry.killTrackers.get(artifact).goal = enemy_kill_goal;
+	if (current_map != map_final) {
+		Entity artifact = createHolyArtifact(renderer);
+		registry.killTrackers.get(artifact).goal = enemy_kill_goal;
+	}
+	
 
 	// set pause correctly
 	is_paused = true;

@@ -354,6 +354,8 @@ void RenderSystem::drawScreenSpaceObject(Entity entity)
 		gl_has_errors();
 		assert(in_texcoord_loc >= 0);
 
+		gl_has_errors();
+
 		glEnableVertexAttribArray(in_position_loc);
 		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
 							  sizeof(TexturedVertex), (void *)0);
@@ -385,6 +387,7 @@ void RenderSystem::drawScreenSpaceObject(Entity entity)
 		// Using ms_passed / lifespan to edit alpha for artifact loading
 		if (registry.killTrackers.has(entity)) {
 			if (registry.killTrackers.get(entity).goal != 0) {
+				
 				ms_passed = registry.killTrackers.get(entity).goal - registry.killTrackers.get(entity).killed;
 				lifespan = registry.killTrackers.get(entity).goal;
 			}
