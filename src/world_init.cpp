@@ -258,8 +258,8 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 	enemy.enemy_type = ENEMY_TYPES::FINAL_BOSS;
 
 	auto &health = registry.healths.emplace(entity);
-	health.hit_points = 2000.f;
-	health.max_hp = 2000.f;
+	health.hit_points = 5000.f;
+	health.max_hp = 5000.f;
 
 	auto &damage = registry.damages.emplace(entity);
 	damage.damage = 50.f;

@@ -806,74 +806,76 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				tile_vec.push_back(vec2(i, j));
 			}
 
-			if (current_map[j][i] == 3 && registry.deadlys.entities.size() < max_num_enemies)
-			{
-				int encounter = rand() % 3;
-				if (encounter == 0)
+			if (current_map != map_final || registry.bosses.get(final_boss).stage == FinalLevelStage::STAGE3) {
+				if (current_map[j][i] == 3 && registry.deadlys.entities.size() < max_num_enemies)
 				{
-					createContactSlow(renderer, world_pos);
-				}
-				else if (encounter == 1)
-				{
+					int encounter = rand() % 3;
+					if (encounter == 0)
+					{
+						createContactSlow(renderer, world_pos);
+					}
+					else if (encounter == 1)
+					{
 
-					createContactFast(renderer, world_pos);
-				}
-				else
-				{
+						createContactFast(renderer, world_pos);
+					}
+					else
+					{
 
-					createContactSlow(renderer, world_pos);
-					std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG};
-					spawn_nearby_tile(vec2(i, j), additional_enemies);
+						createContactSlow(renderer, world_pos);
+						std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG};
+						spawn_nearby_tile(vec2(i, j), additional_enemies);
+					}
+					tile_vec.push_back(vec2(i, j));
 				}
-				tile_vec.push_back(vec2(i, j));
-			}
-			if (current_map[j][i] == 4 && registry.deadlys.entities.size() < max_num_enemies)
-			{
-				int encounter = rand() % 3;
-				if (encounter == 0)
+				if (current_map[j][i] == 4 && registry.deadlys.entities.size() < max_num_enemies)
 				{
+					int encounter = rand() % 3;
+					if (encounter == 0)
+					{
 
-					createContactSlow(renderer, world_pos);
-					std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG_2};
-					spawn_nearby_tile(vec2(i, j), additional_enemies);
-				}
-				else if (encounter == 1)
-				{
+						createContactSlow(renderer, world_pos);
+						std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG_2};
+						spawn_nearby_tile(vec2(i, j), additional_enemies);
+					}
+					else if (encounter == 1)
+					{
 
-					createContactFast(renderer, world_pos);
-					std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG_2};
-					spawn_nearby_tile(vec2(i, j), additional_enemies);
+						createContactFast(renderer, world_pos);
+						std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG_2};
+						spawn_nearby_tile(vec2(i, j), additional_enemies);
+					}
+					else
+					{
+						createRangedEnemy(renderer, world_pos);
+						std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG, ENEMY_TYPES::CONTACT_DMG};
+						spawn_nearby_tile(vec2(i, j), additional_enemies);
+					}
+					tile_vec.push_back(vec2(i, j));
 				}
-				else
+				if (current_map[j][i] == 5 && registry.deadlys.entities.size() < max_num_enemies)
 				{
-					createRangedEnemy(renderer, world_pos);
-					std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG, ENEMY_TYPES::CONTACT_DMG};
-					spawn_nearby_tile(vec2(i, j), additional_enemies);
+					int encounter = rand() % 3;
+					if (encounter == 0)
+					{
+						createContactFast(renderer, world_pos);
+						std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::RANGED, ENEMY_TYPES::RANGED};
+						spawn_nearby_tile(vec2(i, j), additional_enemies);
+					}
+					else if (encounter == 1)
+					{
+						createContactSlow(renderer, world_pos);
+						std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG_2, ENEMY_TYPES::CONTACT_DMG_2};
+						spawn_nearby_tile(vec2(i, j), additional_enemies);
+					}
+					else
+					{
+						createRangedEnemy(renderer, world_pos);
+						std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG_2, ENEMY_TYPES::CONTACT_DMG, ENEMY_TYPES::CONTACT_DMG};
+						spawn_nearby_tile(vec2(i, j), additional_enemies);
+					}
+					tile_vec.push_back(vec2(i, j));
 				}
-				tile_vec.push_back(vec2(i, j));
-			}
-			if (current_map[j][i] == 5 && registry.deadlys.entities.size() < max_num_enemies)
-			{
-				int encounter = rand() % 3;
-				if (encounter == 0)
-				{
-					createContactFast(renderer, world_pos);
-					std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::RANGED, ENEMY_TYPES::RANGED};
-					spawn_nearby_tile(vec2(i, j), additional_enemies);
-				}
-				else if (encounter == 1)
-				{
-					createContactSlow(renderer, world_pos);
-					std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG_2, ENEMY_TYPES::CONTACT_DMG_2};
-					spawn_nearby_tile(vec2(i, j), additional_enemies);
-				}
-				else
-				{
-					createRangedEnemy(renderer, world_pos);
-					std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG_2, ENEMY_TYPES::CONTACT_DMG, ENEMY_TYPES::CONTACT_DMG};
-					spawn_nearby_tile(vec2(i, j), additional_enemies);
-				}
-				tile_vec.push_back(vec2(i, j));
 			}
 
 			if (current_map[j][i] == 6)
@@ -1784,6 +1786,11 @@ void WorldSystem::handle_collisions(float step_seconds)
 				auto &boss_registry = registry.bosses;
 				if (boss_registry.has(entity_other) && boss_registry.get(entity_other).stage == FinalLevelStage::STAGE1 && deadly_health.hit_points < (2 * deadly_health.max_hp / 3)) {
 					boss_registry.get(entity_other).stage = FinalLevelStage::STAGE2;
+
+					// play summon enemies sound
+					Mix_PlayChannel(-1, summon_sound, 0);
+				} else if (boss_registry.has(entity_other) && boss_registry.get(entity_other).stage == FinalLevelStage::STAGE2 && deadly_health.hit_points < (deadly_health.max_hp / 3)) {
+					boss_registry.get(entity_other).stage = FinalLevelStage::STAGE3;
 
 					// play summon enemies sound
 					Mix_PlayChannel(-1, summon_sound, 0);
