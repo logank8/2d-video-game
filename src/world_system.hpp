@@ -47,6 +47,9 @@ public:
 
 
 	struct Tutorial {
+		float toggle_show_ms;
+		float toggle_show_ms_passed;
+		int toggle_key;
 		bool movement; // movement keys appear at the immediate start
 		bool attack; // attack arrow appears when in proximity to enemy - maybe pause enemies here or something idk
 		float dash_tut_wait_ms; // amount of time after movement / attack tut to start dash tut
@@ -58,6 +61,9 @@ public:
 	};
 
 	Tutorial tutorial = {
+		4000.f,
+		0.f,
+		1,
 		false,
 		false,
 		4000.f,

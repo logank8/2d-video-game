@@ -234,6 +234,7 @@ void RenderSystem::initializeSpriteSheets()
 	sprite_sheets[SPRITE_ASSET_ID::HOMING_ENEMY] = {TEXTURE_ASSET_ID::HOMING_ENEMY, 3, 6, 16, 16};
 	sprite_sheets[SPRITE_ASSET_ID::DASHING_ENEMY] = {TEXTURE_ASSET_ID::DASHING_ENEMY, 4, 7, 16, 16};
 	sprite_sheets[SPRITE_ASSET_ID::SLOWING_ENEMY] = {TEXTURE_ASSET_ID::SLOWING_ENEMY, 3, 4, 16, 16};
+	sprite_sheets[SPRITE_ASSET_ID::TUTORIAL_TOGGLE_KEY] = {TEXTURE_ASSET_ID::TUTORIAL_TOGGLE_KEY, 1, 2, 128, 16};
 }
 
 void RenderSystem::initializeGlEffects()

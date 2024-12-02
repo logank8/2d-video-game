@@ -1131,6 +1131,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 	player_controller.step(elapsed_ms_since_last_update);
 
+	if (tutorial.toggle_show_ms_passed < tutorial.toggle_show_ms) {
+		if (tutorial.toggle_key == 1) {
+			createText({800, 680},0.6, "Press T to disable tutorial mode", vec3(1.0, 1.0, 1.0));
+		}
+		tutorial.toggle_show_ms_passed += elapsed_ms_since_last_update;
+		if (tutorial.toggle_show_ms_passed >= tutorial.toggle_show_ms) {
+			tutorial.toggle_key = 0;
+		}
+	}
+
 	if (!tutorial.movement)
 	{
 		if (registry.tutorialIcons.entities.size() == 0)
@@ -2030,29 +2040,21 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	// Tutorial
 	if (action == GLFW_RELEASE && key == GLFW_KEY_T)
 	{
-		// if the game is already paused then this shouldn't work
-		if (screen.state != GameState::PAUSED)
-		{
-			pause();
-			float tutorial_header_x = window_width_px / 2 - 120;
-			float tutorial_header_y = 620;
-			glm::vec3 white = glm::vec3(1.f, 1.f, 1.f);
-			createText({tutorial_header_x, tutorial_header_y}, 0.8f, "TUTORIAL", white);
-			std::vector<std::string> lines = read_file(PROJECT_SOURCE_DIR + std::string("data/tutorial/tutorial.txt"));
-			float y_spacer = 40.f;
-			for (std::string line : lines)
-			{
-				line = line.substr(0, line.size() - 1);
-				// Render each line
-				createText({tutorial_header_x - 400.f, tutorial_header_y - y_spacer}, 0.5f, line, white);
-				y_spacer += 30.f;
-			}
-		}
-		else if (is_tutorial_on)
-		{
-			unpause();
-		}
+		tutorial = {
+			4000.f,
+			4000.f,
+			0,
+			true,
+			true,
+			4000.f,
+			4000.f,
+			true,
+			true, 
+			true,
+			true
+		};
 	}
+	
 
 	// Debugging
 	/*

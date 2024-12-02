@@ -214,6 +214,8 @@ Entity createInteractKey(RenderSystem *renderer, vec2 pos);
 
 Entity createAttackCursor(RenderSystem *renderer, vec2 pos);
 
+Entity createTutorialToggleKey(RenderSystem *renderer, vec2 pos);
+
 Entity createPauseKey(RenderSystem *renderer, vec2 pos);
 
 Entity createTenant(RenderSystem *renderer, vec2 pos, int level);
