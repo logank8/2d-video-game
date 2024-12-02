@@ -369,7 +369,7 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 	fprintf(stderr, "Loaded music\n");
 	fps_counter_ms = FPS_COUNTER_MS;
 
-	current_map = map1;
+	current_map = map3;
 	current_door_pos = door_positions[0];
 	current_tenant_pos = tenant_positions[0];
 
@@ -481,7 +481,7 @@ void WorldSystem::load_player_data(const std::string &filename)
 
 void WorldSystem::mapSwitch(int map)
 {
-	if (map < 3)
+	if (map < 4)
 	{
 		current_door_pos = door_positions[map - 1];
 		current_tenant_pos = tenant_positions[map - 1];
@@ -501,6 +501,9 @@ void WorldSystem::mapSwitch(int map)
 		break;
 	case 3:
 		current_map = map3;
+		break;
+	case 4:
+		current_map = map_final;
 		break;
 	default:
 		current_map = map1;
@@ -612,7 +615,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 	// Updating window title with points
 	std::stringstream title_ss;
-	if (current_map != map3)
+	if (current_map != map_final)
 	{
 		title_ss << "Number of Enemies Until Next Level: " << (max(0, enemy_kill_goal - enemies_killed));
 	}
@@ -906,7 +909,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 	}
 
-	if (current_map != map3 || registry.bosses.get(final_boss).stage != FinalLevelStage::STAGE1)
+	if (current_map != map_final || registry.bosses.get(final_boss).stage != FinalLevelStage::STAGE1)
 	{
 		// TODO: spawn frequencies and spawn radius to be adjusted
 		//  Spawn Level 1 type enemy: slow with contact damage
@@ -1118,7 +1121,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 				registry.remove_all_components_of(entity);
 				enemies_killed++;
-				if (enemies_killed >= enemy_kill_goal && current_map != map3)
+				if (enemies_killed >= enemy_kill_goal && current_map != map_final)
 				{
 					for (Entity enemy : registry.deadlys.entities)
 					{
@@ -1443,7 +1446,7 @@ void WorldSystem::restart_game()
 
 	enemies_killed = 0;
 	goal_reached = false;
-	if (current_map == map3)
+	if (current_map == map_final)
 	{
 		max_num_enemies = 15;
 	}
@@ -2268,7 +2271,11 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			{
 				Mix_PlayChannel(-1, door_sound, 0);
 				tutorial.door = true;
-				if (current_map == map2)
+				if (current_map == map3)
+				{
+					mapSwitch(4);
+				}
+				else if (current_map == map2)
 				{
 					mapSwitch(3);
 				}
@@ -2388,7 +2395,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	if (key == GLFW_KEY_M && action == GLFW_RELEASE)
 	{
 		map_counter++;
-		if (map_counter == 4)
+		if (map_counter == 5)
 		{
 			map_counter = 1;
 		}

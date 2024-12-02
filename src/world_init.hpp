@@ -53,8 +53,8 @@ const float FRIDGE_BB_HEIGHT = 3.636f * 55.f;
 const float STOVE_BB_WIDTH = 3.125f * 30.f;
 const float STOVE_BB_HEIGHT = 3.125f * 43.f;
 
-const float BOOK_CASE_BB_WIDTH = 3.f * 46.f;
-const float BOOK_CASE_BB_HEIGHT = 3.f * 45.f;
+const float BOOK_CASE_BB_WIDTH = 4.3f * 46.f;
+const float BOOK_CASE_BB_HEIGHT = 4.3f * 45.f;
 
 const float COFFEE_TABLE_BB_WIDTH = 4.f * 24.f;
 const float COFFEE_TABLE_BB_HEIGHT = 4.f * 19.f;
