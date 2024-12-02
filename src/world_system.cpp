@@ -1763,7 +1763,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 				// check if entity is final boss and if the boss has taken enough damage to go to next stage
 				auto &boss_registry = registry.bosses;
-				if (boss_registry.has(entity_other) && boss_registry.get(entity_other).stage == FinalLevelStage::STAGE1 && deadly_health.hit_points < (deadly_health.max_hp / 2)) {
+				if (boss_registry.has(entity_other) && boss_registry.get(entity_other).stage == FinalLevelStage::STAGE1 && deadly_health.hit_points < (2 * deadly_health.max_hp / 3)) {
 					boss_registry.get(entity_other).stage = FinalLevelStage::STAGE2;
 
 					// play summon enemies sound
