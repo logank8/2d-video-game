@@ -2410,3 +2410,60 @@ Entity createElevatorDisplay(RenderSystem *renderer,vec2 pos) {
 
 	return entity;
 }
+
+Entity createHolyArtifact(RenderSystem *renderer) {
+	createArtifactBackground(renderer);
+
+	Entity center = createArtifactCenter(renderer);
+
+	return center;
+}
+
+Entity createArtifactBackground(RenderSystem *renderer) {
+	auto entity = Entity();
+
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	auto &ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = {0.9, 0.85};
+	ui.scale = vec2({0.15, -0.15 * 1.7});
+
+	registry.renderRequests.insert(
+		entity,
+		{TEXTURE_ASSET_ID::ARTIFACT_BACKGROUND,
+		 SPRITE_ASSET_ID::SPRITE_COUNT,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 -1, 
+		 RENDER_LAYER::UI_LAYER_1});
+
+
+	return entity;
+}
+
+Entity createArtifactCenter(RenderSystem *renderer) {
+	auto entity = Entity();
+
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	auto &ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = {0.9, 0.85};
+	ui.scale = vec2({0.15, -0.15 * 1.7});
+
+	registry.renderRequests.insert(
+		entity,
+		{TEXTURE_ASSET_ID::ARTIFACT_CENTER,
+		 SPRITE_ASSET_ID::SPRITE_COUNT,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 -1, 
+		 RENDER_LAYER::UI_LAYER_2});
+
+	registry.killTrackers.emplace(entity);
+
+	return entity;
+}

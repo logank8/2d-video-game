@@ -1286,13 +1286,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 	}
 
-	player_controller.step(elapsed_ms_since_last_update);
+	if (!cutscene) {
+		player_controller.step(elapsed_ms_since_last_update);
+	}
+	
 
 	if (tutorial.toggle_show_ms_passed < tutorial.toggle_show_ms)
 	{
 		if (tutorial.toggle_key == 1)
 		{
-			createText({800, 680}, 0.6, "Press T to disable tutorial mode", vec3(1.0, 1.0, 1.0));
+			createText({500, 680}, 0.6, "Press T to disable tutorial mode", vec3(1.0, 1.0, 1.0));
 		}
 		tutorial.toggle_show_ms_passed += elapsed_ms_since_last_update;
 		if (tutorial.toggle_show_ms_passed >= tutorial.toggle_show_ms)
@@ -1603,6 +1606,9 @@ void WorldSystem::restart_game()
 
 	vec2 stamina_bar_pos = {-0.74f, 0.7f};
 	stamina_bar = createStaminaBar(renderer, stamina_bar_pos);
+
+	Entity artifact = createHolyArtifact(renderer);
+	registry.killTrackers.get(artifact).goal = enemy_kill_goal;
 
 	// set pause correctly
 	is_paused = true;
@@ -2237,6 +2243,9 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	// Tutorial
 	if (action == GLFW_RELEASE && key == GLFW_KEY_T)
 	{
+		while (registry.tutorialIcons.entities.size() != 0) {
+			registry.remove_all_components_of(registry.tutorialIcons.entities.back());
+		}
 		tutorial = {
 			4000.f,
 			4000.f,
@@ -2372,6 +2381,9 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 					if (tenant.dialogue_progress == -1)
 					{
 						cutscene = true;
+						player.is_moving = false;
+						registry.motions.get(my_player).velocity = {0, 0};
+						registry.motions.get(my_player).speed = 0;
 						createDialogueBox(renderer);
 					}
 					tenant.dialogue_progress += 1;
@@ -2432,6 +2444,9 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 						}
 
 						cutscene = true;
+						player.is_moving = false;
+						registry.motions.get(my_player).velocity = {0, 0};
+						registry.motions.get(my_player).speed = 0;
 						createDialogueBox(renderer);
 					}
 				}

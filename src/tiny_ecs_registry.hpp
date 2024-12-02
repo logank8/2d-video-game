@@ -61,6 +61,7 @@ public:
 	ComponentContainer<Tenant> tenants;
 	ComponentContainer<DialogueBox> dialogueBoxes;
 	ComponentContainer<ElevatorDisplay> elevatorDisplays;
+	ComponentContainer<KillTracker> killTrackers;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -116,6 +117,7 @@ public:
 		registry_list.push_back(&tenants);
 		registry_list.push_back(&dialogueBoxes);
 		registry_list.push_back(&elevatorDisplays);
+		registry_list.push_back(&killTrackers);
 	}
 
 	void clear_all_components()

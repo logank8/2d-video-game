@@ -124,7 +124,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			}
 		}
 
-		// Using ms_passed / lifespan to edit alpha for artifact loading
 		
 
 		glUniform1f(time_passed_uloc, ms_passed);
@@ -382,6 +381,14 @@ void RenderSystem::drawScreenSpaceObject(Entity entity)
 
 		float ms_passed = 1.f;
 		float lifespan = 1.f;
+
+		// Using ms_passed / lifespan to edit alpha for artifact loading
+		if (registry.killTrackers.has(entity)) {
+			if (registry.killTrackers.get(entity).goal != 0) {
+				ms_passed = registry.killTrackers.get(entity).goal - registry.killTrackers.get(entity).killed;
+				lifespan = registry.killTrackers.get(entity).goal;
+			}
+		}
 
 		glUniform1f(time_passed_uloc, ms_passed);
 		glUniform1f(lifespan_uloc, lifespan);
@@ -658,19 +665,29 @@ void RenderSystem::draw()
 	mat3 projection_2D = createPlayerProjectionMatrix(camera_position);
 	// mat3 projection_2D = createProjectionMatrix();
 	// Draw all textured meshes that have a position and size component
-	std::vector<Entity> uiEntities;
+	std::vector<Entity> uiEntities_1;
+	std::vector<Entity> uiEntities_2;
 
 	// separate by layer - visible_layers establishes order, inclusion
-	std::vector<RENDER_LAYER> visible_layers = {RENDER_LAYER::FLOOR, RENDER_LAYER::FLOOR_DECOR, RENDER_LAYER::CREATURES, RENDER_LAYER::OBSTACLES, RENDER_LAYER::EFFECTS, RENDER_LAYER::DEFAULT_LAYER, RENDER_LAYER::UI_LAYER};
+	std::vector<RENDER_LAYER> visible_layers = {RENDER_LAYER::FLOOR, RENDER_LAYER::FLOOR_DECOR, RENDER_LAYER::CREATURES, RENDER_LAYER::OBSTACLES, RENDER_LAYER::EFFECTS, RENDER_LAYER::DEFAULT_LAYER, RENDER_LAYER::UI_LAYER_1, RENDER_LAYER::UI_LAYER_2};
 
 	for (RENDER_LAYER layer : visible_layers)
 	{
 		for (Entity entity : registry.renderRequests.entities)
 		{
-			if (registry.userInterfaces.has(entity) && layer == RENDER_LAYER::UI_LAYER)
+			if (registry.userInterfaces.has(entity) && layer == RENDER_LAYER::UI_LAYER_1)
 			{
-				uiEntities.push_back(entity);
-				continue;
+				if (!(registry.renderRequests.get(entity).layer == RENDER_LAYER::UI_LAYER_2)) {
+					uiEntities_1.push_back(entity);
+					continue;
+				}
+			}
+			if (registry.userInterfaces.has(entity) && layer == RENDER_LAYER::UI_LAYER_2) { // layer 2 of ui is explicitly stated in RR
+				if (registry.renderRequests.get(entity).layer == layer) {
+					uiEntities_2.push_back(entity);
+					continue;
+				}
+				
 			}
 			if (registry.renderRequests.get(entity).layer != layer)
 			{
@@ -688,7 +705,12 @@ void RenderSystem::draw()
 		}
 	}
 
-	for (Entity entity : uiEntities)
+	for (Entity entity : uiEntities_1)
+	{
+		drawScreenSpaceObject(entity);
+	}
+
+	for (Entity entity : uiEntities_2)
 	{
 		drawScreenSpaceObject(entity);
 	}

@@ -43,7 +43,8 @@ enum class RENDER_LAYER
 	CREATURES = EFFECTS + 1,
 	OBSTACLES = CREATURES + 1,
 	DEFAULT_LAYER = OBSTACLES + 1,
-	UI_LAYER = DEFAULT_LAYER + 1
+	UI_LAYER_1 = DEFAULT_LAYER + 1,
+	UI_LAYER_2 = UI_LAYER_1 + 1
 };
 
 // Player component
@@ -424,6 +425,12 @@ struct SelectedCard
 	vec2 scale;
 };
 
+struct KillTracker 
+{
+	int goal;
+	int killed = 0;
+};
+
 struct Tenant
 {
 	std::vector<std::string> dialogues;
@@ -537,7 +544,9 @@ enum class TEXTURE_ASSET_ID
 	TUTORIAL_TOGGLE_KEY = DIALOGUE_BOX + 1,
 	BARS = TUTORIAL_TOGGLE_KEY + 1,
 	ELEVATOR_DISPLAY = BARS + 1,
-	TEXTURE_COUNT = ELEVATOR_DISPLAY + 1
+	ARTIFACT_BACKGROUND = ELEVATOR_DISPLAY + 1,
+	ARTIFACT_CENTER = ARTIFACT_BACKGROUND + 1,
+	TEXTURE_COUNT = ARTIFACT_CENTER + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
