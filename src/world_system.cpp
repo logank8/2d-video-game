@@ -8,7 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <nlohmann/json.hpp>
+#include "../ext/nlohmann/json.hpp"
 // mac config: run  brew install nlohmann-json
 
 #include "physics_system.hpp"
@@ -58,7 +58,8 @@ using json = nlohmann::json;
 
 void pauseMenuText()
 {
-	// need to figure out how to clear powerup texts when paused or something
+	while (registry.debugComponents.entities.size() > 0)
+		registry.remove_all_components_of(registry.debugComponents.entities.back());
 	createText(vec2(475, 450), 0.8f, "PRESS P TO UNPAUSE", vec3(1.0f, 1.0f, 1.0f));
 	createText(vec2(410, 370), 0.8f, "PRESS ESC TO EXIT TO MENU", vec3(1.0f, 1.0f, 1.0f));
 	createText(vec2(245, 300), 0.6f, "(If you exit to menu your progress in the level will be lost!)", vec3(1.0f, 1.0f, 1.0f));
@@ -604,6 +605,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	auto &cameraMotion = motions_registry.get(camera);
 	cameraMotion.position = player_pos;
 
+	// Remove a spawned power up if it has been around for more than 10 seconds
+	if (registry.powerups.entities.size() > 0) {
+		assert(registry.powerups.size() == 1);
+		Entity& powerupEntity = registry.powerups.entities[0];
+		Powerup& powerup = registry.powerups.get(powerupEntity);
+		if (!powerup.equipped) {
+			powerup.timer -= elapsed_ms_since_last_update;
+			if (powerup.timer < 0) {
+				registry.remove_all_components_of(powerupEntity);
+			}
+		}
+	}
+
 	if (display_fps)
 	{
 		fps_counter_ms -= elapsed_ms_since_last_update;
@@ -645,12 +659,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 	// Update timer on equipped powerups, if any
 	// Also show active powerup
-	if (registry.powerups.has(my_player))
+	if (registry.powerups.has(my_player) && !is_paused)
 	{
 		Powerup &powerup = registry.powerups.get(my_player);
 		powerup.timer -= elapsed_ms_since_last_update;
-		float x = 40;
-		float y = 500;
+
+		float x = 30;
+		float y = 480;
 
 		std::string powerup_name = "";
 		if (powerup.type == PowerupType::DAMAGE_BOOST)
@@ -659,8 +674,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			powerup_name = "Speed Boost";
 		else if (powerup.type == PowerupType::INVINCIBILITY)
 			powerup_name = "Invincibility";
-
-		createText({x, y}, 0.5f, "Powerup active: " + powerup_name + (powerup.multiplier < 1.02f ? "" : " with multiplier x" + floatToString1DP(powerup.multiplier)), {1.f, 1.f, 1.f});
+		
+		createText({x, y}, 0.5f, "Powerup active: " + powerup_name + (powerup.multiplier < 1.02f ? "" : " with multiplier x" + floatToString1DP(powerup.multiplier)) + " for " + std::to_string((int)std::ceil(powerup.timer / 1000)) + "s", {1.f, 1.f, 1.f});
 		if (powerup.timer < 0 || goal_reached)
 		{
 			registry.powerups.remove(my_player);
@@ -1014,11 +1029,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				}
 
 				float roll_powerup = uniform_dist(rng);
-				if (roll_powerup <= POWERUP_DROP_CHANCE && !registry.projectiles.has(entity) && !registry.swarms.has(entity) && !goal_reached)
+				if (roll_powerup <= POWERUP_DROP_CHANCE && !registry.projectiles.has(entity) && !registry.swarms.has(entity) && !goal_reached && registry.powerups.entities.size() == 0)
 				{
 					PowerupType type = (PowerupType)randomInt(2); // Change this if more powerups
 					float multiplier = 1.f;
-					float timer = POWERUP_TIMER;
 					if (type == PowerupType::DAMAGE_BOOST || type == PowerupType::SPEED_BOOST)
 					{
 						int multiplier_roll = randomInt(10);
@@ -1027,7 +1041,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 						else
 							multiplier *= 1.3f;
 					}
-					createTempPowerup(renderer, enemy_motion.position, type, multiplier, timer);
+					createTempPowerup(renderer, enemy_motion.position, type, multiplier, 10000); // spawned powerup clears after 10 seconds if not picked up
 				}
 
 				// replace dead leader with new swarm member
@@ -1626,7 +1640,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 				{
 					Powerup &powerup = registry.powerups.get(entity_other);
 					PowerupType type = powerup.type;
-					float timer = powerup.timer;
+					float timer = POWERUP_TIMER;
 					float multiplier = powerup.multiplier;
 
 					registry.remove_all_components_of(entity_other);
@@ -1637,6 +1651,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 					player_powerup.multiplier = multiplier;
 					player_powerup.timer = timer;
+					player_powerup.equipped = true;
 
 					Mix_PlayChannel(-1, salmon_eat_sound, 0);
 				}

@@ -290,6 +290,14 @@ void PlayerController::step(float elapsed_ms_since_last_update)
         }
     }
 
+    //  Powerup magnet
+    for (Entity entity : registry.powerups.entities) {
+        Motion& motion = registry.motions.get(entity);
+        if (glm::distance(motion.position, pmotion.position) < player.collection_distance) {
+            motion.position = glm::mix(motion.position, pmotion.position, 0.1f);
+        }
+    }
+
     // collectibles
 
     for (Entity entity : registry.collectibles.entities)
