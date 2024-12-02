@@ -369,7 +369,7 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 	fprintf(stderr, "Loaded music\n");
 	fps_counter_ms = FPS_COUNTER_MS;
 
-	current_map = map3;
+	current_map = map1;
 	current_door_pos = door_positions[0];
 	current_tenant_pos = tenant_positions[0];
 
