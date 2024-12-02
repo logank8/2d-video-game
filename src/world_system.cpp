@@ -9,6 +9,7 @@
 #include <fstream>
 #include <string>
 #include <nlohmann/json.hpp>
+// mac config: run  brew install nlohmann-json
 
 #include "physics_system.hpp"
 #include "animation_system.hpp"
@@ -1274,7 +1275,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			registry.motions.get(pause_key).position = {registry.motions.get(my_player).position.x + 100, registry.motions.get(my_player).position.y - 100};
 		}
 	}
-	else if (!tutorial.door)
+	if (!tutorial.door)
 	{
 		std::cout << "creating door" << std::endl;
 		if (registry.tutorialIcons.entities.size() == 0 && registry.doors.entities.size() != 0)
