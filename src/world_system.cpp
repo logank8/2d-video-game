@@ -407,7 +407,7 @@ void createHPBar(Entity enemy)
 	}
 }
 
-void WorldSystem::create_experience_bar()
+void WorldSystem::update_experience_bar()
 {
 	auto &player = registry.players.get(my_player);
 	auto &pmotion = registry.motions.get(my_player);
@@ -418,8 +418,10 @@ void WorldSystem::create_experience_bar()
 
 	float bar_offset = (progress * 0.2f);
 	vec2 bar_pos = vec2(-0.94f + bar_offset, 0.525f);
-	// vec2 bar_pos = {-0.74f, 0.55f};
-	experience_bar = createUIBar(bar_pos, vec2(progress * 0.4f, 0.205f), 0);
+
+	auto &ui = registry.userInterfaces.get(experience_in);
+	ui.scale = vec2(progress * 0.4f, 0.205f);
+	ui.position = bar_pos;
 }
 
 void WorldSystem::save_player_data(const std::string &filename)
@@ -1392,9 +1394,12 @@ void WorldSystem::restart_game()
 
 	enemies_killed = 0;
 	goal_reached = false;
-	if (current_map == map3) {
+	if (current_map == map3)
+	{
 		max_num_enemies = 15;
-	} else {
+	}
+	else
+	{
 		max_num_enemies = 50;
 	}
 
@@ -1508,6 +1513,12 @@ void WorldSystem::restart_game()
 	// create experience bar
 	vec2 exp_bar_pos = {-0.74f, 0.55f};
 	experience_bar = createExperienceBar(renderer, exp_bar_pos);
+
+	auto &player = registry.players.get(my_player);
+	float progress = std::min((float)player.experience / player.toNextLevel, 1.0f);
+	float bar_offset = (progress * 0.2f);
+	vec2 bar_pos = vec2(-0.94f + bar_offset, 0.525f);
+	experience_in = createUIBar(bar_pos, vec2(progress * 0.4f, 0.205f), 0);
 }
 
 // utility functions for dash mvmnt implementation

@@ -336,14 +336,14 @@ void PlayerController::step(float elapsed_ms_since_last_update)
 
                 // temporary increase
                 player.toNextLevel += 5;
-                world->create_experience_bar();
+                world->update_experience_bar();
             }
 
             registry.remove_all_components_of(entity);
         }
     }
 
-    world->create_experience_bar();
+    world->update_experience_bar();
 }
 
 const float STAT_FONT_SIZE = 0.5f;

@@ -84,7 +84,7 @@ public:
 	void pause();
 	void unpause();
 	void set_level_up_state(bool state);
-	void create_experience_bar();
+	void update_experience_bar();
 	void save_player_data(const std::string &filename);
 
 	std::vector<std::vector<int>> current_map;
@@ -141,6 +141,7 @@ private:
 	Entity hp_bar;
 	Entity stamina_bar;
 	Entity experience_bar;
+	Entity experience_in;
 	Entity camera;
 
 	PlayerController player_controller;

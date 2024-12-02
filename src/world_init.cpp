@@ -871,8 +871,6 @@ Entity createUIBar(vec2 position, vec2 scale, int index)
 	uiComponent.position = position;
 	uiComponent.scale = scale;
 
-	registry.debugComponents.emplace(entity);
-
 	return entity;
 }
 
