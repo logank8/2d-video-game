@@ -60,6 +60,7 @@ public:
 	ComponentContainer<ElevatorButton> elevatorButtons;
 	ComponentContainer<Tenant> tenants;
 	ComponentContainer<DialogueBox> dialogueBoxes;
+	ComponentContainer<ElevatorDisplay> elevatorDisplays;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -114,6 +115,7 @@ public:
 		registry_list.push_back(&elevatorButtons);
 		registry_list.push_back(&tenants);
 		registry_list.push_back(&dialogueBoxes);
+		registry_list.push_back(&elevatorDisplays);
 	}
 
 	void clear_all_components()

@@ -576,6 +576,33 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	if (screen.state == GameState::MENU)
 	{
 		glfwSetWindowTitle(window, "Main Menu");
+
+		if (registry.elevatorDisplays.entities.size() == 0) {
+			createElevatorDisplay(renderer, {window_width_px / 2, window_height_px / 2});
+		} 
+
+		Entity e = registry.elevatorDisplays.entities[0];
+		ElevatorDisplay &display = registry.elevatorDisplays.get(e);
+
+		if (display.selection_made) {
+			display.current_ms += elapsed_ms_since_last_update;
+			std::cout << registry.animationSets.get(e).current_animation << std::endl;
+
+			// if display is done - either reset (if locked) or go to level
+			if (display.current_ms >= display.lasting_ms) {
+				
+				if (display.message != 0) {
+					stateSwitch(GameState::GAME);
+					mapSwitch(display.message);
+				} else {
+					AnimationSet &animSet = registry.animationSets.get(e);
+					animSet.current_animation = "elevator_empty";
+					display.selection_made = false;
+				}
+			}
+			
+		}
+
 		return true;
 	}
 
@@ -1293,7 +1320,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	}
 	if (!tutorial.door)
 	{
-		std::cout << "creating door" << std::endl;
 		if (registry.tutorialIcons.entities.size() == 0 && registry.doors.entities.size() != 0)
 		{
 			if (registry.doors.components[0].touching)
@@ -2437,9 +2463,28 @@ void WorldSystem::on_mouse_button(int button, int action, int mods)
 				if (button.level == 0)
 				{
 					exit(0);
+				} else {
+					if (registry.elevatorDisplays.entities.size() == 0) {
+						createElevatorDisplay(renderer, {window_width_px / 2, window_height_px / 2});
+					} 
+					Entity e = registry.elevatorDisplays.entities[0];
+
+					// TODO: need to more thoroughly track which levels have been unlocked to player
+					
+
+					if (button.level > 2) {
+						registry.animationSets.get(e).current_animation = "elevator_locked";
+						registry.elevatorDisplays.get(e).message = 0;
+					} else {
+						std::cout << "animation changed for level " << button.level << std::endl;
+						registry.animationSets.get(e).current_animation = "elevator_level" + std::to_string(button.level);
+						registry.elevatorDisplays.get(e).message = button.level;
+					}
+
+					registry.elevatorDisplays.get(e).selection_made = true;
+					registry.elevatorDisplays.get(e).current_ms = 0.f;
+					return;
 				}
-				stateSwitch(GameState::GAME);
-				mapSwitch(button.level);
 			}
 		}
 	}

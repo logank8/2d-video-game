@@ -2292,6 +2292,8 @@ Entity createTenant(RenderSystem *renderer, vec2 pos, int level)
 	animSet.animations[run_b.name] = run_b;
 	animSet.animations[idle_f.name] = idle_f;
 
+	animSet.current_animation = idle_f.name;
+
 	return entity;
 }
 
@@ -2318,6 +2320,93 @@ Entity createDialogueBox(RenderSystem *renderer)
 				 RENDER_LAYER::EFFECTS});
 
 	registry.dialogueBoxes.emplace(entity);
+
+	return entity;
+}
+
+Entity createElevatorDisplay(RenderSystem *renderer,vec2 pos) {
+	auto entity = Entity();
+
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2(10.0, 10.0);
+
+	UserInterface &ui = registry.userInterfaces.emplace(entity);
+	ui.angle = 0.f;
+	ui.position = {0.485, 0.658};
+	ui.scale = vec2({0.55, -0.397});
+
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
+				 SPRITE_ASSET_ID::ELEVATOR_DISPLAY,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 9,
+				 RENDER_LAYER::DEFAULT_LAYER});
+
+	registry.elevatorDisplays.emplace(entity);
+
+	std::vector<int> empty_vec = {9};
+	Animation empty = {
+		"elevator_empty",
+		2,
+		SPRITE_ASSET_ID::ELEVATOR_DISPLAY,
+		empty_vec};
+
+	std::vector<int> level_1_vec = {0, 9};
+	Animation level_1 = {
+		"elevator_level1",
+		4,
+		SPRITE_ASSET_ID::ELEVATOR_DISPLAY,
+		level_1_vec};
+
+	std::vector<int> level_2_vec = {1, 9};
+	Animation level_2 = {
+		"elevator_level2",
+		4,
+		SPRITE_ASSET_ID::ELEVATOR_DISPLAY,
+		level_2_vec};
+
+	std::vector<int> level_3_vec = {2, 9};
+	Animation level_3 = {
+		"elevator_level3",
+		4,
+		SPRITE_ASSET_ID::ELEVATOR_DISPLAY,
+		level_3_vec};
+
+	std::vector<int> level_4_vec = {3, 9};
+	Animation level_4 = {
+		"elevator_level4",
+		4,
+		SPRITE_ASSET_ID::ELEVATOR_DISPLAY,
+		level_4_vec};
+
+	std::vector<int> level_5_vec = {4, 9};
+	Animation level_5 = {
+		"elevator_level5",
+		4,
+		SPRITE_ASSET_ID::ELEVATOR_DISPLAY,
+		level_5_vec};
+
+	std::vector<int> locked_vec = {5, 6, 7, 8};
+	Animation locked = {
+		"elevator_locked",
+		15,
+		SPRITE_ASSET_ID::ELEVATOR_DISPLAY,
+		locked_vec};
+
+	auto &animSet = registry.animationSets.emplace(entity);
+	animSet.animations[empty.name] = empty;
+	animSet.animations[level_1.name] = level_1;
+	animSet.animations[level_2.name] = level_2;
+	animSet.animations[level_3.name] = level_3;
+	animSet.animations[level_4.name] = level_4;
+	animSet.animations[level_5.name] = level_5;
+	animSet.animations[locked.name] = locked;
+
+	animSet.current_animation = empty.name;
 
 	return entity;
 }

@@ -124,6 +124,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			}
 		}
 
+		// Using ms_passed / lifespan to edit alpha for artifact loading
+		
+
 		glUniform1f(time_passed_uloc, ms_passed);
 		glUniform1f(lifespan_uloc, lifespan);
 
