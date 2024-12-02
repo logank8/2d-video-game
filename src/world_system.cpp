@@ -1729,6 +1729,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 						if (length(new_diff) > length(diff))
 						{
 							enemy_motion.position = grid_knockback_pos;
+							deadly.knocked_back_pos = grid_knockback_pos;
 							physics.update_enemy_movement(entity_other, step_seconds);
 							if (registry.pathTimers.has(entity_other))
 							{

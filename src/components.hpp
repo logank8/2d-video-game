@@ -113,6 +113,7 @@ struct Deadly
 	float drop_chance = 1.0f;
 	int experience = 1;
 	ENEMY_STATE state = ENEMY_STATE::IDLE;
+	vec2 knocked_back_pos = { INFINITY, INFINITY };
 };
 
 struct EnemyDash
