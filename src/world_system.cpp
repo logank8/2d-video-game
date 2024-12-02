@@ -66,6 +66,15 @@ void pauseMenuText()
 	createText(vec2(245, 300), 0.6f, "(If you exit to menu your progress in the level will be lost!)", vec3(1.0f, 1.0f, 1.0f));
 }
 
+void gameWinText()
+{
+	while (registry.debugComponents.entities.size() > 0)
+		registry.remove_all_components_of(registry.debugComponents.entities.back());
+	createText(vec2(500, 450), 1.4f, "!YOU WIN!", vec3(0.f, 1.f, 0.f));
+	createText(vec2(465, 320), 0.8f, "PRESS R TO RESTART", vec3(1.0f, 1.0f, 1.0f));
+	createText(vec2(400, 250), 0.8f, "PRESS ESC TO EXIT TO MENU", vec3(1.0f, 1.0f, 1.0f));
+}
+
 void windowMinimizedCallback(GLFWwindow *window, int iconified)
 {
 	if (iconified)
@@ -1118,8 +1127,25 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				// Check if final boss is dead then stop game
 				if (registry.bosses.has(entity))
 				{
+					for (Entity enemy : registry.deadlys.entities)
+					{
+						registry.healths.get(enemy).hit_points = 0;
+						registry.deadlys.get(enemy).state = ENEMY_STATE::DEAD;
+
+						if (!registry.deathTimers.has(enemy))
+						{
+							DeathTimer &death = registry.deathTimers.emplace(enemy);
+							death.counter_ms = 440.4f;
+						}
+					}
+					goal_reached = true;
+
 					screen.state = GameState::GAME_OVER;
-					createText({window_width_px / 2 - 100, window_height_px / 2}, 1, "!!!You Win!!!", glm::vec3(1.f, 1.f, 1.f));
+
+					screen.darken_screen_factor = 0.9f;
+					gameWinText();
+
+					return true;
 				}
 
 				registry.remove_all_components_of(entity);
@@ -1449,14 +1475,7 @@ void WorldSystem::restart_game()
 
 	enemies_killed = 0;
 	goal_reached = false;
-	if (current_map == map_final)
-	{
-		max_num_enemies = 15;
-	}
-	else
-	{
-		max_num_enemies = 50;
-	}
+	max_num_enemies = 50;
 
 	while (registry.upgradeCards.entities.size() > 0)
 	{
