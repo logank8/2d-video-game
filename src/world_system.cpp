@@ -481,7 +481,7 @@ void WorldSystem::load_player_data(const std::string &filename)
 
 void WorldSystem::mapSwitch(int map)
 {
-	if (map < 4)
+	if (map < 5)
 	{
 		current_door_pos = door_positions[map - 1];
 		current_tenant_pos = tenant_positions[map - 1];
@@ -503,6 +503,9 @@ void WorldSystem::mapSwitch(int map)
 		current_map = map3;
 		break;
 	case 4:
+		current_map = map4;
+		break;
+	case 5:
 		current_map = map_final;
 		break;
 	default:
@@ -2271,7 +2274,11 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			{
 				Mix_PlayChannel(-1, door_sound, 0);
 				tutorial.door = true;
-				if (current_map == map3)
+				if (current_map == map4)
+				{
+					mapSwitch(5);
+				}
+				else if (current_map == map3)
 				{
 					mapSwitch(4);
 				}
