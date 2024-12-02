@@ -38,6 +38,7 @@ int lightflicker_counter_ms;
 int fps_counter_ms;
 int fps = 0;
 bool display_fps = false;
+int frames = 0;
 
 bool is_tutorial_on = false;
 bool WorldSystem::is_paused = false;
@@ -650,11 +651,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 	if (display_fps)
 	{
+		frames += 1;
 		fps_counter_ms -= elapsed_ms_since_last_update;
 		if (fps_counter_ms <= 0.f)
 		{
-			fps = (int)(1000 / elapsed_ms_since_last_update);
+			fps = (int) ((frames * 1000) / (FPS_COUNTER_MS + std::abs(fps_counter_ms)));
 			fps_counter_ms = FPS_COUNTER_MS;
+			frames = 0;
 		}
 		createText({1000.f, 650.f}, 1.f, "FPS: " + std::to_string(fps), glm::vec3(1.0f, 0.f, 0.f));
 	}
