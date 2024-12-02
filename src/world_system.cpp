@@ -8,7 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <nlohmann/json.hpp>
+#include "../ext/nlohmann/json.hpp"
 // mac config: run  brew install nlohmann-json
 
 #include "physics_system.hpp"
