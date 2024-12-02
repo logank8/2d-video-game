@@ -122,9 +122,17 @@ struct EnemyDash
 	vec2 target_pos = {0, 0};
 };
 
+enum FinalLevelStage
+{
+	NOT_FINAL_LEVEL = 0,
+	STAGE1 = NOT_FINAL_LEVEL + 1,
+	STAGE2 = STAGE1 + 1,
+};
+
 // anything that is deadly to the player
 struct FinalBoss
 {
+	FinalLevelStage stage = STAGE1;
 };
 
 struct Effect

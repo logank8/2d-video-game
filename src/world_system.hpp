@@ -122,6 +122,7 @@ private:
 	Entity stamina_bar;
 	Entity experience_bar;
 	Entity camera;
+	Entity final_boss;
 
 	PlayerController player_controller;
 

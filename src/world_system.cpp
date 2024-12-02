@@ -737,67 +737,70 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		createHPBar(enemy);
 	}
 
-	// TODO: spawn frequencies and spawn radius to be adjusted
-	//  Spawn Level 1 type enemy: slow with contact damage
-	next_contact_slow_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (next_contact_slow_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
+	if (current_map != map3 || registry.bosses.get(final_boss).stage != FinalLevelStage::STAGE1)
 	{
-		next_contact_slow_spawn = (CONTACT_SLOW_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_SLOW_SPAWN_DELAY_MS / 2);
-		vec2 contact_slow_pos;
-		float distance_to_player;
-		float index;
-		do
+		// TODO: spawn frequencies and spawn radius to be adjusted
+		//  Spawn Level 1 type enemy: slow with contact damage
+		next_contact_slow_spawn -= elapsed_ms_since_last_update * current_speed;
+		if (next_contact_slow_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
 		{
-			index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
-			contact_slow_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
-			distance_to_player = sqrt(pow(contact_slow_pos.x - player_pos.x, 2) + pow(contact_slow_pos.y - player_pos.y, 2));
-		} while (distance_to_player < 300.f);
+			next_contact_slow_spawn = (CONTACT_SLOW_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_SLOW_SPAWN_DELAY_MS / 2);
+			vec2 contact_slow_pos;
+			float distance_to_player;
+			float index;
+			do
+			{
+				index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
+				contact_slow_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
+				distance_to_player = sqrt(pow(contact_slow_pos.x - player_pos.x, 2) + pow(contact_slow_pos.y - player_pos.y, 2));
+			} while (distance_to_player < 300.f);
 
-		createContactSlow(renderer, contact_slow_pos);
-		// tile_vec.push_back(spawnable_tiles[index]);
-	}
-
-	// Spawn Level 2 type enemy: fast with contact damage
-	next_contact_fast_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (next_contact_fast_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
-	{
-		next_contact_fast_spawn = (CONTACT_FAST_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_FAST_SPAWN_DELAY_MS / 2);
-		vec2 contact_fast_pos;
-		float distance_to_player;
-		float index;
-		do
-		{
-			index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
-			contact_fast_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
-			distance_to_player = sqrt(pow(contact_fast_pos.x - player_pos.x, 2) + pow(contact_fast_pos.y - player_pos.y, 2));
-		} while (distance_to_player < 300.f);
-		if (uniform_dist(rng) > 0.5)
-		{
-			createContactFast(renderer, contact_fast_pos);
+			createContactSlow(renderer, contact_slow_pos);
+			// tile_vec.push_back(spawnable_tiles[index]);
 		}
-		else
-		{
-			createSlowingEnemy(renderer, contact_fast_pos);
-		}
-		// tile_vec.push_back(spawnable_tiles[index]);
-	}
 
-	// Spawn dashing enemy
-	next_dashing_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (next_dashing_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
-	{
-		next_dashing_spawn = (DASHING_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (DASHING_ENEMY_SPAWN_DELAY_MS / 2);
-		vec2 dashing_pos;
-		float distance_to_player;
-		float index;
-		do
+		// Spawn Level 2 type enemy: fast with contact damage
+		next_contact_fast_spawn -= elapsed_ms_since_last_update * current_speed;
+		if (next_contact_fast_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
 		{
-			index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
-			dashing_pos = { (640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2) };
-			distance_to_player = sqrt(pow(dashing_pos.x - player_pos.x, 2) + pow(dashing_pos.y - player_pos.y, 2));
-		} while (distance_to_player < 300.f);
-		createDashingEnemy(renderer, dashing_pos);
-		// tile_vec.push_back(spawnable_tiles[index]);
+			next_contact_fast_spawn = (CONTACT_FAST_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_FAST_SPAWN_DELAY_MS / 2);
+			vec2 contact_fast_pos;
+			float distance_to_player;
+			float index;
+			do
+			{
+				index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
+				contact_fast_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
+				distance_to_player = sqrt(pow(contact_fast_pos.x - player_pos.x, 2) + pow(contact_fast_pos.y - player_pos.y, 2));
+			} while (distance_to_player < 300.f);
+			if (uniform_dist(rng) > 0.5)
+			{
+				createContactFast(renderer, contact_fast_pos);
+			}
+			else
+			{
+				createSlowingEnemy(renderer, contact_fast_pos);
+			}
+			// tile_vec.push_back(spawnable_tiles[index]);
+		}
+
+		// Spawn dashing enemy
+		next_dashing_spawn -= elapsed_ms_since_last_update * current_speed;
+		if (next_dashing_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
+		{
+			next_dashing_spawn = (DASHING_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (DASHING_ENEMY_SPAWN_DELAY_MS / 2);
+			vec2 dashing_pos;
+			float distance_to_player;
+			float index;
+			do
+			{
+				index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
+				dashing_pos = { (640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2) };
+				distance_to_player = sqrt(pow(dashing_pos.x - player_pos.x, 2) + pow(dashing_pos.y - player_pos.y, 2));
+			} while (distance_to_player < 300.f);
+			createDashingEnemy(renderer, dashing_pos);
+			// tile_vec.push_back(spawnable_tiles[index]);
+		}
 	}
 
 	// Spawn projectiles for ranged enemies
@@ -1249,7 +1252,7 @@ void WorldSystem::restart_game()
 	enemies_killed = 0;
 	goal_reached = false;
 	if (current_map == map3) {
-		max_num_enemies = 15;
+		max_num_enemies = 10;
 	} else {
 		max_num_enemies = 50;
 	}
@@ -1302,7 +1305,7 @@ void WorldSystem::restart_game()
 
 			if (current_map[i][j] == 10)
 			{
-				createBossEnemy(renderer, world_pos);
+				final_boss = createBossEnemy(renderer, world_pos);
 			}
 		}
 	}
@@ -1545,6 +1548,9 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 				// std::cout << damage_rng << std::endl;
 
+				// check if entity is final boss and if the boss has taken enough damage to go to next stage
+				if (registry.bosses.has(entity_other) && deadly_health.hit_points < (deadly_health.max_hp / 2)) registry.bosses.get(entity_other).stage = FinalLevelStage::STAGE2;
+				
 				createDamageIndicator(renderer, damage_dealt, enemy_motion.position, damage_rng, temp_multiplier);
 
 				vec2 diff = registry.motions.get(entity_other).position - pmotion.position;
