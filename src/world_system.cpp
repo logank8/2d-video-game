@@ -246,7 +246,7 @@ GLFWwindow *WorldSystem::create_window()
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
 	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(window_width_px, window_height_px, "Salmon Game Assignment", nullptr, nullptr);
+	window = glfwCreateWindow(window_width_px, window_height_px, "Eviction of the Damned", nullptr, nullptr);
 	if (window == nullptr)
 	{
 		fprintf(stderr, "Failed to glfwCreateWindow");
@@ -1006,7 +1006,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				// Check if final boss is dead then stop game
 				if (registry.bosses.has(entity))
 				{
-					screen.state = GameState::PAUSED;
+					screen.state = GameState::GAME_OVER;
 					createText({window_width_px / 2 - 100, window_height_px / 2}, 1, "!!!You Win!!!", glm::vec3(1.f, 1.f, 1.f));
 				}
 
@@ -1338,7 +1338,11 @@ void WorldSystem::restart_game()
 
 	enemies_killed = 0;
 	goal_reached = false;
-	max_num_enemies = 50;
+	if (current_map == map3) {
+		max_num_enemies = 15;
+	} else {
+		max_num_enemies = 50;
+	}
 
 	while (registry.upgradeCards.entities.size() > 0)
 	{
