@@ -80,7 +80,7 @@ struct Player
 	// Other
 	float collection_distance = 100.f;
 	float experience_multiplier = 1.0f;
-	int experience = 0;
+	int experience = 1;
 	int toNextLevel = 5;
 	int level = 0;
 };
@@ -113,6 +113,7 @@ struct Deadly
 	float drop_chance = 1.0f;
 	int experience = 1;
 	ENEMY_STATE state = ENEMY_STATE::IDLE;
+	vec2 knocked_back_pos = {INFINITY, INFINITY};
 };
 
 struct EnemyDash
@@ -388,6 +389,22 @@ struct ElevatorButton
 	bool hovering = false;
 };
 
+struct ElevatorDisplay
+{
+	float lasting_ms = 4000.f;
+	float current_ms = 0.f;
+	int message = 0;
+	/*
+	messages
+	 - 0    -> exit
+	 - >= 1 -> level
+	*/
+};
+
+struct DialogueBox
+{
+};
+
 struct UpgradeCard
 {
 	int tier = 1;
@@ -396,11 +413,26 @@ struct UpgradeCard
 	Entity name;
 	Entity description;
 	std::function<void()> onClick;
+	bool hovering = false;
+	vec2 original_scale;
 };
 
 struct SelectedCard
 {
 	vec2 scale;
+};
+
+struct Tenant
+{
+	std::vector<std::string> dialogues;
+	int dialogue_progress = -1;
+	std::vector<std::string> extra_dialogues;
+	bool player_in_radius = false;
+};
+
+struct UpgradeConfirm
+{
+	bool hovering = false;
 };
 
 struct Camera
@@ -497,7 +529,12 @@ enum class TEXTURE_ASSET_ID
 	PAUSE_KEY = INTERACT_KEY + 1,
 	UPGRADE_ICONS = PAUSE_KEY + 1,
 	HOMING_ENEMY = UPGRADE_ICONS + 1,
-	TEXTURE_COUNT = HOMING_ENEMY + 1
+	DASHING_ENEMY = HOMING_ENEMY + 1,
+	SLOWING_ENEMY = DASHING_ENEMY + 1,
+	DIALOGUE_BOX = SLOWING_ENEMY + 1,
+	TUTORIAL_TOGGLE_KEY = DIALOGUE_BOX + 1,
+	BARS = TUTORIAL_TOGGLE_KEY + 1,
+	TEXTURE_COUNT = BARS + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -525,7 +562,11 @@ enum class SPRITE_ASSET_ID
 	PAUSE_KEY = INTERACT_KEY + 1,
 	UPGRADE_ICONS = PAUSE_KEY + 1,
 	HOMING_ENEMY = UPGRADE_ICONS + 1,
-	SPRITE_COUNT = HOMING_ENEMY + 1
+	DASHING_ENEMY = HOMING_ENEMY + 1,
+	SLOWING_ENEMY = DASHING_ENEMY + 1,
+	TUTORIAL_TOGGLE_KEY = SLOWING_ENEMY + 1,
+	BARS = TUTORIAL_TOGGLE_KEY + 1,
+	SPRITE_COUNT = BARS + 1
 };
 const int sprite_count = (int)SPRITE_ASSET_ID::SPRITE_COUNT;
 

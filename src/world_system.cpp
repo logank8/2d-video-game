@@ -48,6 +48,8 @@ int map_counter = 1;
 
 std::vector<int> current_door_pos;
 
+std::vector<int> current_tenant_pos;
+
 PhysicsSystem physics;
 
 void pauseMenuText()
@@ -177,10 +179,18 @@ WorldSystem::~WorldSystem()
 	// destroy music components
 	if (background_music != nullptr)
 		Mix_FreeMusic(background_music);
-	if (salmon_dead_sound != nullptr)
-		Mix_FreeChunk(salmon_dead_sound);
+	if (button_click_sound != nullptr)
+		Mix_FreeChunk(button_click_sound);
 	if (salmon_eat_sound != nullptr)
 		Mix_FreeChunk(salmon_eat_sound);
+	if (player_damage_sound != nullptr)
+		Mix_FreeChunk(player_damage_sound);
+	if (enemy_damage_sound != nullptr)
+		Mix_FreeChunk(enemy_damage_sound);
+	if (level_up_sound != nullptr)
+		Mix_FreeChunk(level_up_sound);
+	if (door_sound != nullptr)
+		Mix_FreeChunk(door_sound);
 
 	Mix_CloseAudio();
 
@@ -277,10 +287,14 @@ GLFWwindow *WorldSystem::create_window()
 	}
 
 	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
-	salmon_dead_sound = Mix_LoadWAV(audio_path("death_sound.wav").c_str());
+	button_click_sound = Mix_LoadWAV(audio_path("click.wav").c_str());
 	salmon_eat_sound = Mix_LoadWAV(audio_path("eat_sound.wav").c_str());
+	player_damage_sound = Mix_LoadWAV(audio_path("damage.wav").c_str());
+	enemy_damage_sound = Mix_LoadWAV(audio_path("enemy_damage.wav").c_str());
+	level_up_sound = Mix_LoadWAV(audio_path("level_up_select.wav").c_str());
+	door_sound = Mix_LoadWAV(audio_path("door.wav").c_str());
 
-	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr)
+	if (background_music == nullptr || button_click_sound == nullptr || salmon_eat_sound == nullptr || player_damage_sound == nullptr || enemy_damage_sound == nullptr || level_up_sound == nullptr)
 	{
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
 				audio_path("music.wav").c_str(),
@@ -294,9 +308,35 @@ GLFWwindow *WorldSystem::create_window()
 
 vec2 WorldSystem::mousePosToNormalizedDevice(vec2 mouse_position)
 {
-    float normalized_x = (2.0f * mouse_position.x) / window_width_px - 1.0f;
-    float normalized_y = 1.0f - (2.0f * mouse_position.y) / window_height_px;
-    return vec2(normalized_x, normalized_y);
+	float normalized_x = (2.0f * mouse_position.x) / window_width_px - 1.0f;
+	float normalized_y = 1.0f - (2.0f * mouse_position.y) / window_height_px;
+	return vec2(normalized_x, normalized_y);
+}
+
+std::vector<std::string> WorldSystem::textToDialogueMode(std::string text)
+{
+	std::vector<std::string> result;
+
+	std::string current = "";
+
+	for (int i = 0; i < text.size(); i++)
+	{
+		std::string c = {text[i]};
+		if (c == "\n")
+		{
+			result.push_back(current);
+			current = "";
+		}
+		else
+		{
+			current.push_back(text[i]);
+		}
+	}
+	if (current.size() != 0)
+	{
+		result.push_back(current);
+	}
+	return result;
 }
 
 void WorldSystem::restart_world()
@@ -322,6 +362,7 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 
 	current_map = map1;
 	current_door_pos = door_positions[0];
+	current_tenant_pos = tenant_positions[0];
 
 	ScreenState &screen = registry.screenStates.components[0];
 	screen.state = GameState::START;
@@ -372,10 +413,9 @@ void WorldSystem::create_experience_bar()
 	float progress = std::min((float)player.experience / player.toNextLevel, 1.0f);
 
 	float bar_offset = (progress * 0.2f);
-	vec2 bar_pos = vec2(-0.94f + bar_offset, 0.53f);
-	experience_bar = createUILine(bar_pos, vec2(progress * 0.4f, 0.04f));
-	vec3 &color = registry.colors.emplace(experience_bar);
-	color = vec3(0.325f, 0.478f, 0.902f);
+	vec2 bar_pos = vec2(-0.94f + bar_offset, 0.525f);
+	// vec2 bar_pos = {-0.74f, 0.55f};
+	experience_bar = createUIBar(bar_pos, vec2(progress * 0.4f, 0.205f), 0);
 }
 
 void WorldSystem::mapSwitch(int map)
@@ -383,10 +423,12 @@ void WorldSystem::mapSwitch(int map)
 	if (map < 3)
 	{
 		current_door_pos = door_positions[map - 1];
+		current_tenant_pos = tenant_positions[map - 1];
 	}
 	else
 	{
 		current_door_pos = {-1, -1};
+		current_tenant_pos = {-1, -1};
 	}
 	switch (map)
 	{
@@ -484,7 +526,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	std::stringstream title_ss;
 	if (current_map != map3)
 	{
-		title_ss << "Number of Enemies Until Next Level: " << ((enemy_kill_goal - enemies_killed) < 0 ? 0 : (enemy_kill_goal - enemies_killed));
+		title_ss << "Number of Enemies Until Next Level: " << (max(0, enemy_kill_goal - enemies_killed));
 	}
 	else
 	{
@@ -563,7 +605,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			powerup_name = "Invincibility";
 
 		createText({x, y}, 0.5f, "Powerup active: " + powerup_name + (powerup.multiplier < 1.02f ? "" : " with multiplier x" + floatToString1DP(powerup.multiplier)), {1.f, 1.f, 1.f});
-		if (powerup.timer < 0)
+		if (powerup.timer < 0 || goal_reached)
 		{
 			registry.powerups.remove(my_player);
 		}
@@ -737,6 +779,29 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		createHPBar(enemy);
 	}
 
+	// Managing tenant appearance and interaction ability stuff
+	if (goal_reached)
+	{
+		if (registry.tenants.entities.size() == 0)
+		{
+			std::cout << "creating tenant" << std::endl;
+			vec2 world_pos = {(640 - (25 * 100)) + (current_tenant_pos[0] * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (current_tenant_pos[1] * TILE_SIZE) + (TILE_SIZE / 2)};
+			createTenant(renderer, world_pos, 1); // TODO: vary level input based on map
+		}
+		Entity tenant = registry.tenants.entities[0];
+		if (registry.tutorialIcons.size() == 0 && registry.tenants.get(tenant).player_in_radius && !cutscene)
+		{
+			createInteractKey(renderer, {registry.motions.get(tenant).position.x, registry.motions.get(tenant).position.y + 60});
+		}
+		if (!registry.tenants.get(tenant).player_in_radius)
+		{
+			while (registry.tutorialIcons.entities.size() != 0)
+			{
+				registry.remove_all_components_of(registry.tutorialIcons.entities.back());
+			}
+		}
+	}
+
 	if (current_map != map3 || registry.bosses.get(final_boss).stage != FinalLevelStage::STAGE1)
 	{
 		// TODO: spawn frequencies and spawn radius to be adjusted
@@ -784,23 +849,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			// tile_vec.push_back(spawnable_tiles[index]);
 		}
 
-		// Spawn dashing enemy
-		next_dashing_spawn -= elapsed_ms_since_last_update * current_speed;
-		if (next_dashing_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
+	// Spawn dashing enemy
+	next_dashing_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (next_dashing_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
+	{
+		next_dashing_spawn = (DASHING_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (DASHING_ENEMY_SPAWN_DELAY_MS / 2);
+		vec2 dashing_pos;
+		float distance_to_player;
+		float index;
+		do
 		{
-			next_dashing_spawn = (DASHING_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (DASHING_ENEMY_SPAWN_DELAY_MS / 2);
-			vec2 dashing_pos;
-			float distance_to_player;
-			float index;
-			do
-			{
-				index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
-				dashing_pos = { (640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2) };
-				distance_to_player = sqrt(pow(dashing_pos.x - player_pos.x, 2) + pow(dashing_pos.y - player_pos.y, 2));
-			} while (distance_to_player < 300.f);
-			createDashingEnemy(renderer, dashing_pos);
-			// tile_vec.push_back(spawnable_tiles[index]);
-		}
+			index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
+			dashing_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
+			distance_to_player = sqrt(pow(dashing_pos.x - player_pos.x, 2) + pow(dashing_pos.y - player_pos.y, 2));
+		} while (distance_to_player < 300.f);
+		createDashingEnemy(renderer, dashing_pos);
+		// tile_vec.push_back(spawnable_tiles[index]);
 	}
 
 	// Spawn projectiles for ranged enemies
@@ -1030,17 +1094,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			player.is_dash_up = true;
 			stamina_anim.current_animation = "staminabar_full";
 
-			// Player done dashing
-		}
+		} // Player done dashing
 		else if (player.curr_dash_cooldown_ms < (player.dash_cooldown_ms - player.dash_time))
 		{
 			registry.motions.get(my_player).speed = min(registry.motions.get(my_player).speed, 300.f);
+			registry.motions.get(my_player).velocity = {0, 0};
 			registry.lightUps.remove(my_player);
 
 			stamina_anim.current_animation = "staminabar_regen";
 
-			// Player dashing
-		}
+		} // Player dashing
 		else
 		{
 			if (!tutorial.dash)
@@ -1074,6 +1137,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 	player_controller.step(elapsed_ms_since_last_update);
 
+	if (tutorial.toggle_show_ms_passed < tutorial.toggle_show_ms)
+	{
+		if (tutorial.toggle_key == 1)
+		{
+			createText({800, 680}, 0.6, "Press T to disable tutorial mode", vec3(1.0, 1.0, 1.0));
+		}
+		tutorial.toggle_show_ms_passed += elapsed_ms_since_last_update;
+		if (tutorial.toggle_show_ms_passed >= tutorial.toggle_show_ms)
+		{
+			tutorial.toggle_key = 0;
+		}
+	}
+
 	if (!tutorial.movement)
 	{
 		if (registry.tutorialIcons.entities.size() == 0)
@@ -1086,7 +1162,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		if (registry.tutorialIcons.entities.size() == 0)
 		{
 			vec2 attack_direction = registry.players.get(my_player).attack_direction;
-			if (registry.players.get(my_player).attack_direction == vec2(0, 0)) {
+			if (registry.players.get(my_player).attack_direction == vec2(0, 0))
+			{
 				attack_direction = vec2(1, 0);
 			}
 			createAttackCursor(renderer, {registry.motions.get(my_player).position.x + (80.f * attack_direction.x), registry.motions.get(my_player).position.y + (80.f * attack_direction.y)});
@@ -1121,30 +1198,42 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				registry.motions.get(dash).position = {registry.motions.get(my_player).position.x + 80.f, registry.motions.get(my_player).position.y - 80.f};
 			}
 		}
-	} else if (!tutorial.health_buff) {
-		for (Entity e : registry.healthBuffs.entities) {
-			HealthBuff& hb = registry.healthBuffs.get(e);
-			if (hb.touching && registry.tutorialIcons.entities.size() == 0) {
+	}
+	else if (!tutorial.health_buff)
+	{
+		for (Entity e : registry.healthBuffs.entities)
+		{
+			HealthBuff &hb = registry.healthBuffs.get(e);
+			if (hb.touching && registry.tutorialIcons.entities.size() == 0)
+			{
 				createInteractKey(renderer, {registry.motions.get(e).position.x + 50, registry.motions.get(e).position.y - 50});
 				break;
 			}
 		}
-	} else if (!tutorial.pause) {
-		if (registry.tutorialIcons.entities.size() == 0) {
+	}
+	else if (!tutorial.pause)
+	{
+		if (registry.tutorialIcons.entities.size() == 0)
+		{
 			createPauseKey(renderer, {registry.motions.get(my_player).position.x + 100, registry.motions.get(my_player).position.y - 100});
-		} else {
+		}
+		else
+		{
 			Entity pause_key = registry.tutorialIcons.entities[0];
 			registry.motions.get(pause_key).position = {registry.motions.get(my_player).position.x + 100, registry.motions.get(my_player).position.y - 100};
 		}
-	} else if (!tutorial.door) {
+	}
+	else if (!tutorial.door)
+	{
 		std::cout << "creating door" << std::endl;
-		if (registry.tutorialIcons.entities.size() == 0 && registry.doors.entities.size() != 0) {
-			if (registry.doors.components[0].touching) {
+		if (registry.tutorialIcons.entities.size() == 0 && registry.doors.entities.size() != 0)
+		{
+			if (registry.doors.components[0].touching)
+			{
 				createInteractKey(renderer, {registry.motions.get(my_player).position.x + 60, registry.motions.get(my_player).position.y});
 			}
-		} 
+		}
 	}
-
 
 	for (Entity &e : registry.deadlys.entities)
 	{
@@ -1422,6 +1511,8 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 					// player takes damage
 					player_hp -= registry.damages.get(entity_other).damage;
+					// damage sound
+					Mix_PlayChannel(-1, player_damage_sound, 0);
 					// avoid negative hp values for hp bar
 					player_hp = max(0.f, player_hp);
 					// modify hp bar
@@ -1525,7 +1616,8 @@ void WorldSystem::handle_collisions(float step_seconds)
 				Player &player = registry.players.get(my_player);
 				Deadly &deadly = registry.deadlys.get(entity_other);
 
-				if (registry.enemyDashes.has(entity_other)) {
+				if (registry.enemyDashes.has(entity_other))
+				{
 					registry.enemyDashes.get(entity_other).current_charge_timer = 0.f;
 				}
 
@@ -1552,6 +1644,9 @@ void WorldSystem::handle_collisions(float step_seconds)
 				if (registry.bosses.has(entity_other) && deadly_health.hit_points < (deadly_health.max_hp / 2)) registry.bosses.get(entity_other).stage = FinalLevelStage::STAGE2;
 				
 				createDamageIndicator(renderer, damage_dealt, enemy_motion.position, damage_rng, temp_multiplier);
+
+				// play enemy damage sound
+				Mix_PlayChannel(-1, enemy_damage_sound, 0);
 
 				vec2 diff = registry.motions.get(entity_other).position - pmotion.position;
 
@@ -1650,6 +1745,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 						if (length(new_diff) > length(diff))
 						{
 							enemy_motion.position = grid_knockback_pos;
+							deadly.knocked_back_pos = grid_knockback_pos;
 							physics.update_enemy_movement(entity_other, step_seconds);
 							if (registry.pathTimers.has(entity_other))
 							{
@@ -1932,9 +2028,11 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 		if (screen.state != GameState::PAUSED)
 		{
-			if (!tutorial.pause) {
+			if (!tutorial.pause)
+			{
 				tutorial.pause = true;
-				if (tutorial.movement && tutorial.attack && tutorial.dash && tutorial.health_buff) {
+				if (tutorial.movement && tutorial.attack && tutorial.dash && tutorial.health_buff)
+				{
 					registry.remove_all_components_of(registry.tutorialIcons.entities[0]);
 				}
 			}
@@ -1959,28 +2057,18 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	// Tutorial
 	if (action == GLFW_RELEASE && key == GLFW_KEY_T)
 	{
-		// if the game is already paused then this shouldn't work
-		if (screen.state != GameState::PAUSED)
-		{
-			pause();
-			float tutorial_header_x = window_width_px / 2 - 120;
-			float tutorial_header_y = 620;
-			glm::vec3 white = glm::vec3(1.f, 1.f, 1.f);
-			createText({tutorial_header_x, tutorial_header_y}, 0.8f, "TUTORIAL", white);
-			std::vector<std::string> lines = read_file(PROJECT_SOURCE_DIR + std::string("data/tutorial/tutorial.txt"));
-			float y_spacer = 40.f;
-			for (std::string line : lines)
-			{
-				line = line.substr(0, line.size() - 1);
-				// Render each line
-				createText({tutorial_header_x - 400.f, tutorial_header_y - y_spacer}, 0.5f, line, white);
-				y_spacer += 30.f;
-			}
-		}
-		else if (is_tutorial_on)
-		{
-			unpause();
-		}
+		tutorial = {
+			4000.f,
+			4000.f,
+			0,
+			true,
+			true,
+			4000.f,
+			4000.f,
+			true,
+			true,
+			true,
+			true};
 	}
 
 	// Debugging
@@ -1991,7 +2079,6 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
 	*/
-	
 
 	// player key stuff starts here
 
@@ -2004,6 +2091,10 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player) && (screen.state == GameState::GAME) && player.is_dash_up)
 		{
 			pmotion.speed = 5500.f;
+			if (pmotion.velocity == vec2(0.f, 0.f))
+			{
+				pmotion.velocity = player.last_direction;
+			}
 			player.is_dash_up = false;
 			registry.lightUps.emplace(my_player);
 			AnimationSet &stamina_anim = registry.animationSets.get(stamina_bar);
@@ -2023,9 +2114,11 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			{
 				// first interaction with health buff obj - if the interact key is up get rid of it
 				// if any other keys are up don't get rid of them
-				if (tutorial.movement && tutorial.attack && tutorial.dash && !tutorial.health_buff) {
+				if (tutorial.movement && tutorial.attack && tutorial.dash && !tutorial.health_buff)
+				{
 					tutorial.health_buff = true;
-					for (Entity e : registry.tutorialIcons.entities) {
+					for (Entity e : registry.tutorialIcons.entities)
+					{
 						registry.remove_all_components_of(e);
 					}
 				}
@@ -2036,7 +2129,6 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 				{
 					std::cout << "player regained health" << std::endl;
 					p_health.hit_points += min(buff.factor * 25.f, 200.f - p_health.hit_points);
-					
 
 					// Total HP bar is 200
 					int hp_level = int(p_health.hit_points / 25);
@@ -2053,6 +2145,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			Door &door = registry.doors.get(e);
 			if (door.touching)
 			{
+				Mix_PlayChannel(-1, door_sound, 0);
 				tutorial.door = true;
 				if (current_map == map2)
 				{
@@ -2063,6 +2156,101 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 					mapSwitch(2);
 				}
 				return;
+			}
+		}
+
+		// tenant dialogue
+		for (Entity e : registry.tenants.entities)
+		{
+			// if there is already dialogue up, progress index
+			// 	if the current dialogue is the last -> unfreeze player movement and remove current dialogue
+			//  else -> take down curent dialogue and put up next
+
+			// extra dialogue:
+			//  if already dialogue up -> close out of it and progress index
+			//  else -> display next dialogue
+
+			Tenant &tenant = registry.tenants.get(e);
+			if (tenant.player_in_radius)
+			{
+				while (registry.tutorialIcons.entities.size() != 0)
+				{
+					registry.remove_all_components_of(registry.tutorialIcons.entities.back());
+				}
+				// cutscene dialogue
+				if (tenant.dialogue_progress < int(tenant.dialogues.size()))
+				{
+					// player's first time speaking to tenant - freeze player movement/attack
+					if (tenant.dialogue_progress == -1)
+					{
+						cutscene = true;
+						createDialogueBox(renderer);
+					}
+					tenant.dialogue_progress += 1;
+
+					while (registry.texts.size() != 0)
+					{
+						registry.remove_all_components_of(registry.texts.entities.back());
+					}
+					if (tenant.dialogue_progress < int(tenant.dialogues.size()))
+					{
+						// Create dialogue
+						std::vector<std::string> text_lines = textToDialogueMode(tenant.dialogues[tenant.dialogue_progress]);
+						for (int i = 0; i < text_lines.size(); i++)
+						{
+							std::string line = text_lines[i];
+							float offset = 40 * i;
+
+							Entity text = createText({40, 130 - offset}, 0.7, line, vec3(1.0, 1.0, 1.0));
+							registry.debugComponents.remove(text);
+						}
+					}
+					else
+					{
+						cutscene = false;
+						while (registry.dialogueBoxes.size() != 0)
+						{
+							registry.remove_all_components_of(registry.dialogueBoxes.entities.back());
+						}
+					}
+				}
+				else if (tenant.dialogue_progress < int(tenant.dialogues.size() + tenant.extra_dialogues.size()))
+				{
+					while (registry.texts.size() != 0)
+					{
+						registry.remove_all_components_of(registry.texts.entities.back());
+					}
+
+					if (cutscene)
+					{
+						cutscene = false;
+						while (registry.dialogueBoxes.size() != 0)
+						{
+							registry.remove_all_components_of(registry.dialogueBoxes.entities.back());
+						}
+						tenant.dialogue_progress += 1;
+					}
+					else
+					{
+						// Create dialogue
+						std::vector<std::string> text_lines = textToDialogueMode(tenant.extra_dialogues[tenant.dialogue_progress - int(tenant.dialogues.size())]);
+						for (int i = 0; i < text_lines.size(); i++)
+						{
+							std::string line = text_lines[i];
+							float offset = 40 * i;
+
+							Entity text = createText({40, 130 - offset}, 0.7, line, vec3(1.0, 1.0, 1.0));
+							registry.debugComponents.remove(text);
+						}
+
+						cutscene = true;
+						createDialogueBox(renderer);
+					}
+				}
+				else
+				{
+					createEffect(renderer, {registry.motions.get(e).position.x, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);
+				}
 			}
 		}
 	}
@@ -2086,7 +2274,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		mapSwitch(map_counter);
 	}
 
-	if (screen.state != GameState::PAUSED)
+	if (screen.state != GameState::PAUSED && !cutscene)
 		player_controller.on_key(key, action, mod);
 
 	// Manage tutorial input responses
@@ -2122,19 +2310,23 @@ void WorldSystem::on_mouse_move(vec2 mouse_position)
 		player_controller.on_mouse_move(mouse_position);
 	}
 
-	if (screen.state == GameState::MENU) {
-		for (Entity button : registry.elevatorButtons.entities) {
-			 vec2 mouse_position_ndc = mousePosToNormalizedDevice(mouse_position);
-			UserInterface& ui = registry.userInterfaces.get(button);
+	if (screen.state == GameState::MENU)
+	{
+		for (Entity button : registry.elevatorButtons.entities)
+		{
+			vec2 mouse_position_ndc = mousePosToNormalizedDevice(mouse_position);
+			UserInterface &ui = registry.userInterfaces.get(button);
 
 			if (mouse_position_ndc.x >= ui.position.x - (ui.scale.x / 2) && mouse_position_ndc.x <= ui.position.x + (ui.scale.x / 2) &&
-                mouse_position_ndc.y >= ui.position.y - (-ui.scale.y / 2) && mouse_position_ndc.y <= ui.position.y + (-ui.scale.y / 2)) {
-					
-					registry.elevatorButtons.get(button).hovering = true;
-			} else {
+				mouse_position_ndc.y >= ui.position.y - (-ui.scale.y / 2) && mouse_position_ndc.y <= ui.position.y + (-ui.scale.y / 2))
+			{
+
+				registry.elevatorButtons.get(button).hovering = true;
+			}
+			else
+			{
 				registry.elevatorButtons.get(button).hovering = false;
 			}
-			
 		}
 	}
 }
@@ -2142,7 +2334,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position)
 void WorldSystem::on_mouse_button(int button, int action, int mods)
 {
 	ScreenState &screen = registry.screenStates.components[0];
-	if (registry.players.entities.size() > 0)
+	if (registry.players.entities.size() > 0 && !cutscene)
 	{
 		player_controller.on_mouse_button(button, action, mods);
 
@@ -2158,10 +2350,15 @@ void WorldSystem::on_mouse_button(int button, int action, int mods)
 		}
 	}
 
-	if (screen.state == GameState::MENU) {
-		for (ElevatorButton button : registry.elevatorButtons.components) {
-			if (button.hovering) {
-				if (button.level == 0) {
+	if (screen.state == GameState::MENU)
+	{
+		for (ElevatorButton button : registry.elevatorButtons.components)
+		{
+			if (button.hovering)
+			{
+				Mix_PlayChannel(-1, button_click_sound, 0);
+				if (button.level == 0)
+				{
 					exit(0);
 				}
 				stateSwitch(GameState::GAME);
