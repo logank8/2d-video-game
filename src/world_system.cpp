@@ -50,7 +50,6 @@ bool WorldSystem::is_level_up = false;
 
 size_t max_num_enemies = 50;
 
-// For testing purposes only
 int map_counter = 1;
 
 std::vector<int> current_door_pos;
@@ -554,18 +553,23 @@ void WorldSystem::mapSwitch(int map)
 	{
 	case 1:
 		current_map = map1;
+		map_counter = 1;
 		break;
 	case 2:
 		current_map = map2;
+		map_counter = 2;
 		break;
 	case 3:
 		current_map = map3;
+		map_counter = 3;
 		break;
 	case 4:
 		current_map = map4;
+		map_counter = 4;
 		break;
 	case 5:
 		current_map = map_final;
+		map_counter = 5;
 		break;
 	default:
 		current_map = map1;
@@ -1053,14 +1057,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				contact_fast_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
 				distance_to_player = sqrt(pow(contact_fast_pos.x - player_pos.x, 2) + pow(contact_fast_pos.y - player_pos.y, 2));
 			} while (distance_to_player < 300.f);
-			if (uniform_dist(rng) > 0.5)
-			{
+
+			//Introduce slowing enemy from level 2 onwards
+			if (map_counter >= 2) {
+				if (uniform_dist(rng) > 0.75)
+				{
+					createContactFast(renderer, contact_fast_pos);
+				}
+				else
+				{
+					createSlowingEnemy(renderer, contact_fast_pos);
+				}
+			}
+			else {
 				createContactFast(renderer, contact_fast_pos);
 			}
-			else
-			{
-				createSlowingEnemy(renderer, contact_fast_pos);
-			}
+			
 			// tile_vec.push_back(spawnable_tiles[index]);
 		}
 
@@ -1078,33 +1090,44 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				ranged_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
 				distance_to_player = sqrt(pow(ranged_pos.x - player_pos.x, 2) + pow(ranged_pos.y - player_pos.y, 2));
 			} while (distance_to_player < 300.f);
-			if (uniform_dist(rng) > 0.5)
-			{
+			
+			//Introduce ranged homing enemy from level 3 onwards
+			if (map_counter >= 3) {
+				if (uniform_dist(rng) > 0.75)
+				{
+					createRangedEnemy(renderer, ranged_pos);
+				}
+				else
+				{
+					createRangedHomingEnemy(renderer, ranged_pos);
+				}
+			}
+			else {
 				createRangedEnemy(renderer, ranged_pos);
 			}
-			else
-			{
-				createRangedHomingEnemy(renderer, ranged_pos);
-			}
+			
 			// tile_vec.push_back(spawnable_tiles[index]);
 		}
 
-		// Spawn dashing enemy
-		next_dashing_spawn -= elapsed_ms_since_last_update * current_speed;
-		if (next_dashing_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
-		{
-			next_dashing_spawn = (DASHING_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (DASHING_ENEMY_SPAWN_DELAY_MS / 2);
-			vec2 dashing_pos;
-			float distance_to_player;
-			float index;
-			do
+		//Introduce dashing enemy from level 4 onwards
+		if (map_counter >= 4) {
+			// Spawn dashing enemy
+			next_dashing_spawn -= elapsed_ms_since_last_update * current_speed;
+			if (next_dashing_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
 			{
-				index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
-				dashing_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
-				distance_to_player = sqrt(pow(dashing_pos.x - player_pos.x, 2) + pow(dashing_pos.y - player_pos.y, 2));
-			} while (distance_to_player < 300.f);
-			createDashingEnemy(renderer, dashing_pos);
-			// tile_vec.push_back(spawnable_tiles[index]);
+				next_dashing_spawn = (DASHING_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (DASHING_ENEMY_SPAWN_DELAY_MS / 2);
+				vec2 dashing_pos;
+				float distance_to_player;
+				float index;
+				do
+				{
+					index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
+					dashing_pos = { (640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2) };
+					distance_to_player = sqrt(pow(dashing_pos.x - player_pos.x, 2) + pow(dashing_pos.y - player_pos.y, 2));
+				} while (distance_to_player < 300.f);
+				createDashingEnemy(renderer, dashing_pos);
+				// tile_vec.push_back(spawnable_tiles[index]);
+			}
 		}
 	}
 
