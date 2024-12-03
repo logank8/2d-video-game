@@ -348,7 +348,7 @@ void PlayerController::step(float elapsed_ms_since_last_update)
                 player.experience -= player.toNextLevel;
 
                 // temporary increase
-                player.toNextLevel += 5;
+                player.toNextLevel += 1;
                 world->update_experience_bar();
             }
 
@@ -356,6 +356,16 @@ void PlayerController::step(float elapsed_ms_since_last_update)
         }
     }
 
+    // handle stamina regen
+    player.curr_stamina_elapsed_ms -= elapsed_ms_since_last_update;
+
+    if (player.curr_stamina_elapsed_ms < 0.f)
+    {
+        player.currentStamina = std::min(player.totalStamina, player.currentStamina + player.staminaRegen);
+        player.curr_stamina_elapsed_ms = 250.f;
+    }
+
+    world->update_stamina_bar();
     world->update_experience_bar();
 }
 
@@ -603,12 +613,13 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
     {
         Player &player = registry.players.get(*my_player);
 
-        if (player.is_attacking == false && !world->is_level_up && !world->is_paused)
+        if (player.is_attacking == false && !world->is_level_up && !world->is_paused && player.currentStamina >= player.attackCost)
         {
             vec2 player_pos = registry.motions.get(*my_player).position;
             vec2 attack_direction = player.attack_direction;
             player.last_direction = attack_direction;
             player.is_attacking = true;
+            player.currentStamina -= player.attackCost;
             vec2 attack_offset = vec2(player.attack_size / 2, player.attack_size / 2);
             createBasicAttackHitbox(renderer, player_pos + (attack_direction * attack_offset), *my_player);
         }

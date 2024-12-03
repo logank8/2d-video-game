@@ -88,6 +88,7 @@ public:
 	void unpause();
 	void set_level_up_state(bool state);
 	void update_experience_bar();
+	void update_stamina_bar();
 	void save_player_data(const std::string &filename);
 
 	std::vector<std::vector<int>> current_map;
@@ -145,7 +146,9 @@ private:
 	Entity my_player;
 	Entity hp_bar;
 	Entity stamina_bar;
+	Entity stamina_bar_2;
 	Entity experience_bar;
+	Entity stamina_in;
 	Entity experience_in;
 	Entity camera;
 	Entity final_boss;

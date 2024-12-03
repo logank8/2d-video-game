@@ -34,6 +34,9 @@ const int FPS_COUNTER_MS = 1000;
 const float POWERUP_DROP_CHANCE = 0.35;
 const float POWERUP_TIMER = 15000;
 
+const float STAMINA_BAR_Y = 0.675f;
+const float EXPERIENCE_BAR_Y = 0.525f;
+
 int lightflicker_counter_ms;
 int darken_counter_ms = 0;
 int fps_counter_ms;
@@ -437,10 +440,33 @@ void WorldSystem::update_experience_bar()
 
 	float progress = std::min((float)player.experience / player.toNextLevel, 1.0f);
 
+	std::cout << "UPDATING EXP" << progress << std::endl;
+	std::cout << experience_in << std::endl;
+
 	float bar_offset = (progress * 0.2f);
-	vec2 bar_pos = vec2(-0.94f + bar_offset, 0.525f);
+	vec2 bar_pos = vec2(-0.94f + bar_offset, EXPERIENCE_BAR_Y);
 
 	auto &ui = registry.userInterfaces.get(experience_in);
+	ui.scale = vec2(progress * 0.4f, 0.205f);
+	ui.position = bar_pos;
+}
+
+void WorldSystem::update_stamina_bar()
+{
+
+	auto &player = registry.players.get(my_player);
+	auto &pmotion = registry.motions.get(my_player);
+
+	// vec2 exp_bar_pos = {-0.74f, 0.55f};
+
+	float progress = std::min((float)player.currentStamina / player.totalStamina, 1.0f);
+	std::cout << "UPDATING STAM" << progress << std::endl;
+	std::cout << stamina_in << std::endl;
+
+	float bar_offset = (progress * 0.2f);
+	vec2 bar_pos = vec2(-0.94f + bar_offset, STAMINA_BAR_Y);
+
+	auto &ui = registry.userInterfaces.get(stamina_in);
 	ui.scale = vec2(progress * 0.4f, 0.205f);
 	ui.position = bar_pos;
 }
@@ -1709,12 +1735,30 @@ void WorldSystem::restart_game()
 		}
 	}
 
+	// STAMINAR BAR
+	vec2 stamina_bar_pos = {-0.74f, 0.3f};
+	stamina_bar = createStaminaBar(renderer, stamina_bar_pos);
+
+	vec2 exp_bar_pos = {-0.74f, 0.55f};
+	// experience_bar = createEmptyBar(renderer, exp_bar_pos);
+
 	// create health bar
 	vec2 hp_bar_pos = {-0.75, 0.85f};
 	hp_bar = createHPBar(renderer, hp_bar_pos);
 
-	vec2 stamina_bar_pos = {-0.74f, 0.7f};
-	stamina_bar = createStaminaBar(renderer, stamina_bar_pos);
+	auto &player = registry.players.get(my_player);
+
+	// stamina_bar_2 = createEmptyBar(renderer, stamina_bar_pos);
+	float progress = std::min((float)player.currentStamina / player.totalStamina, 1.0f);
+	float bar_offset = (progress * 0.2f);
+	vec2 bar_pos = vec2(-0.94f + bar_offset, STAMINA_BAR_Y);
+	stamina_in = createUIBar(bar_pos, vec2(progress * 0.4f, 0.205f), 1);
+
+	// EXPERIENCE BAR
+	float exp_progress = std::min((float)player.experience / player.toNextLevel, 1.0f);
+	float exp_bar_offset = (exp_progress * 0.2f);
+	vec2 exp_barin_pos = vec2(-0.94f + exp_bar_offset, EXPERIENCE_BAR_Y);
+	experience_in = createUIBar(exp_barin_pos, vec2(exp_progress * 0.4f, 0.205f), 0);
 
 	if (current_map != map_final)
 	{
@@ -1726,14 +1770,6 @@ void WorldSystem::restart_game()
 	is_paused = true;
 	unpause();
 	// create experience bar
-	vec2 exp_bar_pos = {-0.74f, 0.55f};
-	experience_bar = createExperienceBar(renderer, exp_bar_pos);
-
-	auto &player = registry.players.get(my_player);
-	float progress = std::min((float)player.experience / player.toNextLevel, 1.0f);
-	float bar_offset = (progress * 0.2f);
-	vec2 bar_pos = vec2(-0.94f + bar_offset, 0.525f);
-	experience_in = createUIBar(bar_pos, vec2(progress * 0.4f, 0.205f), 0);
 }
 
 // utility functions for dash mvmnt implementation
@@ -2411,7 +2447,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	if (key == GLFW_KEY_SPACE)
 	{
-		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player) && (screen.state == GameState::GAME) && player.is_dash_up && !cutscene)
+		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player) && (screen.state == GameState::GAME) && player.is_dash_up && player.currentStamina >= player.dashCost && !cutscene)
 		{
 			pmotion.speed = 5500.f;
 			if (pmotion.velocity == vec2(0.f, 0.f))
@@ -2425,6 +2461,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 			player.invulnerable = true;
 			player.invulnerable_duration_ms = player.dash_time + 50.f;
+			player.currentStamina -= player.dashCost;
 		}
 	}
 
