@@ -114,6 +114,7 @@ private:
 	void on_mouse_button(int button, int action, int mod);
 
 	void load_player_data(const std::string &filename);
+	void delete_player_data(const std::string &filename);
 	void mapSwitch(int map);
 
 	void spawnDoor();

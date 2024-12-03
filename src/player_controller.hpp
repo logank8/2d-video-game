@@ -41,15 +41,15 @@ public:
     void set_world(WorldSystem *world);
 
     std::vector<Upgrade> upgradePool = {
-        {0, "KNIFE", "+5% damage", 0, 1, [this]()
+        {0, "KNIFE", "+50% damage", 0, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
              player.damage_multiplier += 0.5;
          }},
-        {1, "MAGNET", "+50 collect range", 3, 1, [this]()
+        {1, "MAGNET", "+100 collect dist", 3, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
-             player.collection_distance += 50.0f;
+             player.collection_distance += 100.0f;
          }},
         {2, "ROCK", "+0.5 knockback", 4, 1, [this]()
          {
@@ -61,10 +61,30 @@ public:
              Player &player = registry.players.get(*my_player);
              player.experience_multiplier += 1.0f;
          }},
-        {4, "\"SALT\"", "+25% attack size", 2, 1, [this]()
+        {4, "SALT", "+25% attack size", 2, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
              player.attack_size += 25.f;
+         }},
+        {5, "SALT", "-20% attack cost", 2, 1, [this]()
+         {
+             Player &player = registry.players.get(*my_player);
+             player.attackCost = std::max(0.f, player.attackCost - 5.f);
+         }},
+        {6, "SALT", "-25% dash cost", 2, 1, [this]()
+         {
+             Player &player = registry.players.get(*my_player);
+             player.dashCost = std::max(0.f, player.dashCost - 12.5f);
+         }},
+        {7, "SALT", "+1% lifesteal", 2, 1, [this]()
+         {
+             Player &player = registry.players.get(*my_player);
+             player.lifesteal += 0.1f;
+         }},
+        {8, "SALT", "+20% crit chance", 2, 1, [this]()
+         {
+             Player &player = registry.players.get(*my_player);
+             player.crit_chance = std::min(1.f, player.crit_chance + .2f);
          }}};
 
     // DEAD
