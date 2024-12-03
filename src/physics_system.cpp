@@ -10,6 +10,10 @@ const float TILE_SIZE = 100.0f;
 const float GRID_OFFSET_X = (640 - (25 * TILE_SIZE));
 const float GRID_OFFSET_Y = (640 - (44 * TILE_SIZE));
 
+// C++ random number generator
+std::default_random_engine rng;
+std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+
 #include <iostream>
 
 // Returns the local bounding coordinates (AABB)
@@ -293,6 +297,14 @@ bool is_walkable(const vec2 &pos, vec2 dir)
     return map[grid_y][grid_x] == 1 || (map[grid_y][grid_x] >= 3 && map[grid_y][grid_x] <= 8);
 }
 
+//strictly for checking map tile integers
+bool is_tile_walkable(int x, int y) {
+    if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size()) {
+        return false;
+    }
+    return map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8);
+};
+
 // Checking for line of sight using Bresenham's algorithm
 // adapted to use a TILE_SIZE approximation instead of a pixel based line approximation
 bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
@@ -323,13 +335,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
         err = dx / 2;
         while (x != x2)
         {
-            if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size())
-            {
-                return false;
-            }
-
-            if (!(map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8)))
-            {
+            if (!is_tile_walkable(x, y)) {
                 return false;
             }
 
@@ -347,13 +353,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
         err = dy / 2;
         while (y != y2)
         {
-            if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size())
-            {
-                return false;
-            }
-
-            if (!(map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8)))
-            {
+            if (!is_tile_walkable(x, y)) {
                 return false;
             }
 
@@ -404,13 +404,8 @@ bool has_dashing_los(const vec2& start, const vec2& end)
         err = dx / 2;
         while (x != x2)
         {
-            if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size())
-            {
-                return false;
-            }
-
-            if (!(map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8)))
-            {
+            // Check current tile and adjacent tiles (above and below)
+            if (!is_tile_walkable(x, y) || !is_tile_walkable(x, y + 1) || !is_tile_walkable(x, y - 1)) {
                 return false;
             }
 
@@ -428,13 +423,8 @@ bool has_dashing_los(const vec2& start, const vec2& end)
         err = dy / 2;
         while (y != y2)
         {
-            if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size())
-            {
-                return false;
-            }
-
-            if (!(map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8)))
-            {
+            // Check current tile and adjacent tiles (left and right)
+            if (!is_tile_walkable(x, y) || !is_tile_walkable(x + 1, y) || !is_tile_walkable(x - 1, y)) {
                 return false;
             }
 
@@ -448,11 +438,7 @@ bool has_dashing_los(const vec2& start, const vec2& end)
         }
     }
 
-    if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size())
-    {
-        return false;
-    }
-    return map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8);
+    return is_tile_walkable(x, y);
 }
 
 // Find A* path for enemy
@@ -477,12 +463,24 @@ std::vector<vec2> find_path(const Motion &enemy, const Motion &player)
 
     while (!open_list.empty())
     {
-        // Find node with lowest f_cost
-        auto current_it = std::min_element(open_list.begin(), open_list.end(),
-                                           [](const Node *a, const Node *b)
-                                           { return a->f_cost < b->f_cost; });
+        
+        std::vector<Node*>::iterator current_it;
+        if (open_list.size() < size_t(3)) {
+            // Find node with lowest f_cost
+            current_it = std::min_element(open_list.begin(), open_list.end(),
+                [](const Node* a, const Node* b)
+                { return a->f_cost < b->f_cost; });
 
-        Node *current = *current_it;
+        }
+        else {
+            std::partial_sort(open_list.begin(), open_list.begin() + 3, open_list.end(),
+                [](const Node* a, const Node* b) { return a->f_cost < b->f_cost; });
+
+            int random_path_index = static_cast<int>(uniform_dist(rng) * 3);
+            current_it = open_list.begin() + random_path_index;
+        }
+
+        Node* current = *current_it;
 
         // Check if we reached the goal
         const float GOAL_THRESHOLD = TILE_SIZE * 0.5f;
@@ -535,14 +533,15 @@ std::vector<vec2> find_path(const Motion &enemy, const Motion &player)
 
             // Diagonals cost less since they do 2 tiles of movement in one move
             float g_cost;
-            if (dir.x == 0 || dir.y == 0)
-            {
-                g_cost = current->g_cost + TILE_SIZE;
-            }
-            else
-            {
-                g_cost = current->g_cost + TILE_SIZE / 2;
-            }
+            g_cost = current->g_cost + TILE_SIZE;
+            //if (dir.x == 0 || dir.y == 0)
+            //{
+            //    g_cost = current->g_cost + TILE_SIZE;
+            //}
+            //else
+            //{
+            //    g_cost = current->g_cost + TILE_SIZE / 2;
+            //}
 
             float h_cost = calculate_h_cost(neighbor_pos, goal);
             float f_cost = g_cost + h_cost;
@@ -1030,7 +1029,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                         else if (registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::DASHING || (registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::FINAL_BOSS && registry.bosses.get(entity).stage == FinalLevelStage::STAGE3)) {
                             Motion& player_motion = registry.motions.get(registry.players.entities[0]);
                             auto& dashing_enemy = registry.enemyDashes.get(entity);
-                            if (has_dashing_los(registry.motions.get(entity).position, player_motion.position)) {
+                            if (has_dashing_los(registry.motions.get(entity).position, player_motion.position) || dashing_enemy.current_charge_timer > dashing_enemy.charge_time) {
                                 if (dashing_enemy.current_charge_timer < dashing_enemy.charge_time) {
                                     registry.motions.get(entity).velocity = { 0, 0 };
                                     if (registry.lightUps.has(entity)) {
@@ -1064,7 +1063,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                                         dashing_enemy.current_charge_timer = 0;
                                         continue;
                                     }
-                                    
+
                                     float distance_to_target = sqrt(pow(dashing_enemy.target_pos.x - motion.position.x, 2) + pow(dashing_enemy.target_pos.y - motion.position.y, 2));
 
                                     float step_x = direction.x * motion.velocity.x * step_seconds;
