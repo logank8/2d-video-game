@@ -177,6 +177,7 @@ void WorldSystem::stateSwitch(GameState new_state)
 			registry.remove_all_components_of(registry.motions.entities.back());
 		}
 		is_paused = false;
+		screen.lights_on = 0;
 		restart_game();
 		break;
 	default:
@@ -1285,6 +1286,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					}
 					max_num_enemies = 0;
 					goal_reached = true;
+					screen.lights_on = true;
 
 					return true;
 				}
