@@ -1834,9 +1834,14 @@ void WorldSystem::handle_collisions(float step_seconds)
 					if (registry.powerups.has(entity))
 					{
 						Powerup &powerup = registry.powerups.get(entity);
-						if (powerup.type == PowerupType::INVINCIBILITY)
+						if (powerup.type == PowerupType::INVINCIBILITY) {
+							if (registry.projectiles.has(entity_other))
+							{
+								registry.remove_all_components_of(entity_other);
+							}
 							// In this case, player does not receive damage
 							continue;
+						}	
 					}
 
 					if (registry.bosses.has(entity_other))
