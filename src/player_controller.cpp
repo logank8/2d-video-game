@@ -7,6 +7,7 @@
 #include <iostream>
 #include <random>
 #include <iomanip>
+#include <sstream>
 
 PlayerController::PlayerController() : my_player(nullptr) {}
 

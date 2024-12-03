@@ -2405,7 +2405,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	if (key == GLFW_KEY_SPACE)
 	{
-		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player) && (screen.state == GameState::GAME) && player.is_dash_up)
+		if (action == GLFW_PRESS && !registry.deathTimers.has(my_player) && (screen.state == GameState::GAME) && player.is_dash_up && !cutscene)
 		{
 			pmotion.speed = 5500.f;
 			if (pmotion.velocity == vec2(0.f, 0.f))
