@@ -88,6 +88,11 @@ struct Player
 	int toNextLevel = 5;
 	int level = 0;
 	std::vector<int> levels_unlocked = {1};
+
+	// stamina
+	// int totalStamina = 100;
+	// int attackCost = 25;
+	// int dashCost = 50;
 };
 
 enum class ENEMY_TYPES
@@ -555,7 +560,8 @@ enum class TEXTURE_ASSET_ID
 	TENANT_2 = TENANT_1 + 1,
 	TENANT_3 = TENANT_2 + 1,
 	TENANT_4 = TENANT_3 + 1,
-	TEXTURE_COUNT = TENANT_4 + 1
+	LEVELUP_CONFIRM = TENANT_4 + 1,
+	TEXTURE_COUNT = LEVELUP_CONFIRM + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

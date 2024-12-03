@@ -1691,17 +1691,17 @@ Entity createUpgradeConfirm(RenderSystem *renderer, vec2 pos, vec2 scale)
 	auto &ui = registry.userInterfaces.emplace(entity);
 	ui.angle = 0.f;
 	ui.position = pos;
-	ui.scale = scale * vec2(0.2f, 0.1f);
+	ui.scale = scale * vec2(0.2f, 0.2f);
 
 	registry.upgradeConfirms.emplace(entity);
 
 	registry.renderRequests.insert(
 		entity,
-		{TEXTURE_ASSET_ID::CARD,
+		{TEXTURE_ASSET_ID::LEVELUP_CONFIRM,
 		 SPRITE_ASSET_ID::SPRITE_COUNT,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 1});
+		 0});
 
 	return entity;
 }
@@ -2340,7 +2340,8 @@ Entity createDialogueBox(RenderSystem *renderer)
 	return entity;
 }
 
-Entity createElevatorDisplay(RenderSystem *renderer,vec2 pos) {
+Entity createElevatorDisplay(RenderSystem *renderer, vec2 pos)
+{
 	auto entity = Entity();
 
 	Motion &motion = registry.motions.emplace(entity);
@@ -2352,7 +2353,6 @@ Entity createElevatorDisplay(RenderSystem *renderer,vec2 pos) {
 	ui.angle = 0.f;
 	ui.position = {0.485, 0.658};
 	ui.scale = vec2({0.55, -0.397});
-
 
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
@@ -2427,7 +2427,8 @@ Entity createElevatorDisplay(RenderSystem *renderer,vec2 pos) {
 	return entity;
 }
 
-Entity createHolyArtifact(RenderSystem *renderer) {
+Entity createHolyArtifact(RenderSystem *renderer)
+{
 	createArtifactBackground(renderer);
 
 	Entity center = createArtifactCenter(renderer);
@@ -2435,7 +2436,8 @@ Entity createHolyArtifact(RenderSystem *renderer) {
 	return center;
 }
 
-Entity createArtifactBackground(RenderSystem *renderer) {
+Entity createArtifactBackground(RenderSystem *renderer)
+{
 	auto entity = Entity();
 
 	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -2452,14 +2454,14 @@ Entity createArtifactBackground(RenderSystem *renderer) {
 		 SPRITE_ASSET_ID::SPRITE_COUNT,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 -1, 
+		 -1,
 		 RENDER_LAYER::UI_LAYER_1});
-
 
 	return entity;
 }
 
-Entity createArtifactCenter(RenderSystem *renderer) {
+Entity createArtifactCenter(RenderSystem *renderer)
+{
 	auto entity = Entity();
 
 	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -2476,7 +2478,7 @@ Entity createArtifactCenter(RenderSystem *renderer) {
 		 SPRITE_ASSET_ID::SPRITE_COUNT,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 -1, 
+		 -1,
 		 RENDER_LAYER::UI_LAYER_2});
 
 	registry.killTrackers.emplace(entity);
