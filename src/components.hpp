@@ -78,14 +78,14 @@ struct Player
 	float knockback_strength = 0.08;
 	float attack_size = 100.f;
 	float crit_chance = 0.05f;
-	float crit_multiplier = 1.5f;
+	float crit_multiplier = 2.0f;
 	float lifesteal = 0.0f;
 
 	// Other
 	float collection_distance = 100.f;
 	float experience_multiplier = 1.0f;
-	int experience = 1;
-	int toNextLevel = 5;
+	int experience = 0;
+	int toNextLevel = 2;
 	int level = 0;
 	std::vector<int> levels_unlocked = {1};
 

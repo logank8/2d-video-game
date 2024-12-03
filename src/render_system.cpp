@@ -385,11 +385,14 @@ void RenderSystem::drawScreenSpaceObject(Entity entity)
 		// Using ms_passed / lifespan to edit alpha for artifact loading
 		if (registry.killTrackers.has(entity))
 		{
-			if (registry.killTrackers.get(entity).goal != 0)
+			if (registry.killTrackers.get(entity).goal - registry.killTrackers.get(entity).killed >= 0)
 			{
 
 				ms_passed = registry.killTrackers.get(entity).goal - registry.killTrackers.get(entity).killed;
 				lifespan = registry.killTrackers.get(entity).goal;
+			} else {
+				ms_passed = 2.f;
+				lifespan = 2.f;
 			}
 		}
 

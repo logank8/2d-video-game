@@ -97,9 +97,11 @@ public:
 
 	int enemies_killed = 0;
 
-	int enemy_kill_goal = 20;
+	int enemy_kill_goal = 2;
 
 	bool goal_reached = false;
+
+	bool artifact_loaded = false;
 
 	bool cutscene = false;
 
@@ -112,6 +114,7 @@ private:
 	void on_mouse_button(int button, int action, int mod);
 
 	void load_player_data(const std::string &filename);
+	void delete_player_data(const std::string &filename);
 	void mapSwitch(int map);
 
 	void spawnDoor();

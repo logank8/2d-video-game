@@ -50,7 +50,6 @@ bool WorldSystem::is_level_up = false;
 
 size_t max_num_enemies = 50;
 
-// For testing purposes only
 int map_counter = 1;
 
 std::vector<int> current_door_pos;
@@ -312,7 +311,7 @@ GLFWwindow *WorldSystem::create_window()
 		return nullptr;
 	}
 
-	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
+	background_music = Mix_LoadMUS(audio_path("bg_music_fighting.wav").c_str());
 	button_click_sound = Mix_LoadWAV(audio_path("click.wav").c_str());
 	salmon_eat_sound = Mix_LoadWAV(audio_path("eat_sound.wav").c_str());
 	player_damage_sound = Mix_LoadWAV(audio_path("damage.wav").c_str());
@@ -387,6 +386,7 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 	// Playing background music indefinitely
 	// Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
+	delete_player_data(SAVE_FILENAME);
 	fps_counter_ms = FPS_COUNTER_MS;
 
 	current_map = map1;
@@ -480,6 +480,9 @@ void WorldSystem::save_player_data(const std::string &filename)
 		{"crit_chance", player.crit_chance},
 		{"crit_multiplier", player.crit_multiplier},
 		{"lifesteal", player.lifesteal},
+		{"attack_cost", player.attackCost},
+		{"dash_cost", player.dashCost},
+		{"stamina_regen", player.staminaRegen},
 		{"collection_distance", player.collection_distance},
 		{"experience_multiplier", player.experience_multiplier},
 		{"experience", player.experience},
@@ -515,6 +518,9 @@ void WorldSystem::load_player_data(const std::string &filename)
 	player.crit_chance = j["crit_chance"];
 	player.crit_multiplier = j["crit_multiplier"];
 	player.lifesteal = j["lifesteal"];
+	player.attackCost = j["attack_cost"];
+	player.dashCost = j["dash_cost"];
+	player.staminaRegen = j["stamina_regen"];
 	player.collection_distance = j["collection_distance"];
 	player.experience_multiplier = j["experience_multiplier"];
 	player.experience = j["experience"];
@@ -527,6 +533,18 @@ void WorldSystem::load_player_data(const std::string &filename)
 	}
 
 	std::cout << "loaded" << std::endl;
+}
+
+void WorldSystem::delete_player_data(const std::string &filename)
+{
+	if (std::remove(filename.c_str()) == 0)
+	{
+		std::cout << "Player data file deleted successfully" << std::endl;
+	}
+	else
+	{
+		std::cerr << "Failed to delete player data file" << std::endl;
+	}
 }
 
 void WorldSystem::mapSwitch(int map)
@@ -554,18 +572,23 @@ void WorldSystem::mapSwitch(int map)
 	{
 	case 1:
 		current_map = map1;
+		map_counter = 1;
 		break;
 	case 2:
 		current_map = map2;
+		map_counter = 2;
 		break;
 	case 3:
 		current_map = map3;
+		map_counter = 3;
 		break;
 	case 4:
 		current_map = map4;
+		map_counter = 4;
 		break;
 	case 5:
 		current_map = map_final;
+		map_counter = 5;
 		break;
 	default:
 		current_map = map1;
@@ -1054,14 +1077,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				contact_fast_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
 				distance_to_player = sqrt(pow(contact_fast_pos.x - player_pos.x, 2) + pow(contact_fast_pos.y - player_pos.y, 2));
 			} while (distance_to_player < 300.f);
-			if (uniform_dist(rng) > 0.5)
-			{
+
+			//Introduce slowing enemy from level 2 onwards
+			if (map_counter >= 2) {
+				if (uniform_dist(rng) > 0.75)
+				{
+					createContactFast(renderer, contact_fast_pos);
+				}
+				else
+				{
+					createSlowingEnemy(renderer, contact_fast_pos);
+				}
+			}
+			else {
 				createContactFast(renderer, contact_fast_pos);
 			}
-			else
-			{
-				createSlowingEnemy(renderer, contact_fast_pos);
-			}
+			
 			// tile_vec.push_back(spawnable_tiles[index]);
 		}
 
@@ -1079,33 +1110,44 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				ranged_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
 				distance_to_player = sqrt(pow(ranged_pos.x - player_pos.x, 2) + pow(ranged_pos.y - player_pos.y, 2));
 			} while (distance_to_player < 300.f);
-			if (uniform_dist(rng) > 0.5)
-			{
+			
+			//Introduce ranged homing enemy from level 3 onwards
+			if (map_counter >= 3) {
+				if (uniform_dist(rng) > 0.75)
+				{
+					createRangedEnemy(renderer, ranged_pos);
+				}
+				else
+				{
+					createRangedHomingEnemy(renderer, ranged_pos);
+				}
+			}
+			else {
 				createRangedEnemy(renderer, ranged_pos);
 			}
-			else
-			{
-				createRangedHomingEnemy(renderer, ranged_pos);
-			}
+			
 			// tile_vec.push_back(spawnable_tiles[index]);
 		}
 
-		// Spawn dashing enemy
-		next_dashing_spawn -= elapsed_ms_since_last_update * current_speed;
-		if (next_dashing_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
-		{
-			next_dashing_spawn = (DASHING_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (DASHING_ENEMY_SPAWN_DELAY_MS / 2);
-			vec2 dashing_pos;
-			float distance_to_player;
-			float index;
-			do
+		//Introduce dashing enemy from level 4 onwards
+		if (map_counter >= 4) {
+			// Spawn dashing enemy
+			next_dashing_spawn -= elapsed_ms_since_last_update * current_speed;
+			if (next_dashing_spawn < 0.f && registry.deadlys.entities.size() < max_num_enemies)
 			{
-				index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
-				dashing_pos = {(640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2)};
-				distance_to_player = sqrt(pow(dashing_pos.x - player_pos.x, 2) + pow(dashing_pos.y - player_pos.y, 2));
-			} while (distance_to_player < 300.f);
-			createDashingEnemy(renderer, dashing_pos);
-			// tile_vec.push_back(spawnable_tiles[index]);
+				next_dashing_spawn = (DASHING_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (DASHING_ENEMY_SPAWN_DELAY_MS / 2);
+				vec2 dashing_pos;
+				float distance_to_player;
+				float index;
+				do
+				{
+					index = static_cast<int>(uniform_dist(rng) * spawnable_tiles.size());
+					dashing_pos = { (640 - (25 * 100)) + (spawnable_tiles[index].y * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (spawnable_tiles[index].x * TILE_SIZE) + (TILE_SIZE / 2) };
+					distance_to_player = sqrt(pow(dashing_pos.x - player_pos.x, 2) + pow(dashing_pos.y - player_pos.y, 2));
+				} while (distance_to_player < 300.f);
+				createDashingEnemy(renderer, dashing_pos);
+				// tile_vec.push_back(spawnable_tiles[index]);
+			}
 		}
 	}
 
@@ -1262,6 +1304,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					}
 					goal_reached = true;
 
+					// Halts music
+					Mix_FadeOutMusic(400.f);
+
+
 					screen.state = GameState::GAME_OVER;
 
 					screen.darken_screen_factor = 0.9f;
@@ -1272,22 +1318,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 				registry.remove_all_components_of(entity);
 				enemies_killed++;
-				if (enemies_killed >= enemy_kill_goal && current_map != map_final)
+				if (enemies_killed >= enemy_kill_goal && current_map != map_final && !goal_reached)
 				{
-					for (Entity enemy : registry.deadlys.entities)
-					{
-						registry.healths.get(enemy).hit_points = 0;
-						registry.deadlys.get(enemy).state = ENEMY_STATE::DEAD;
-
-						if (!registry.deathTimers.has(enemy))
-						{
-							DeathTimer &death = registry.deathTimers.emplace(enemy);
-							death.counter_ms = 440.4f;
-						}
-					}
 					max_num_enemies = 0;
-					goal_reached = true;
-					screen.lights_on = true;
+					artifact_loaded = true;
 
 					return true;
 				}
@@ -1409,6 +1443,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				}
 			}
 		}
+	}
+
+	if (artifact_loaded) {
+		createText({500, 680}, 0.6, "Press G to use holy artifact", vec3(1.0, 1.0, 1.0));
 	}
 
 	if (!cutscene)
@@ -1618,6 +1656,7 @@ void WorldSystem::restart_game()
 
 	enemies_killed = 0;
 	goal_reached = false;
+	artifact_loaded = false;
 	if (current_map == map_final)
 	{
 		max_num_enemies = 20;
@@ -1639,6 +1678,12 @@ void WorldSystem::restart_game()
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
+
+	// Start up game music
+	Mix_FadeInMusic(background_music, -1, 400.f);
+	Mix_Volume(-1, 70.f);
+	Mix_VolumeMusic (40.f);
+	
 
 	// clear spawnable_tiles on map switch
 	spawnable_tiles.clear();
@@ -1733,6 +1778,11 @@ void WorldSystem::restart_game()
 		}
 	}
 
+	for (Entity entity : registry.barIns.entities)
+	{
+		registry.remove_all_components_of(entity);
+	}
+
 	// STAMINAR BAR
 	vec2 stamina_bar_pos = {-0.74f, 0.7f};
 	stamina_bar = createStaminaBar(renderer, stamina_bar_pos);
@@ -1812,9 +1862,14 @@ void WorldSystem::handle_collisions(float step_seconds)
 					if (registry.powerups.has(entity))
 					{
 						Powerup &powerup = registry.powerups.get(entity);
-						if (powerup.type == PowerupType::INVINCIBILITY)
+						if (powerup.type == PowerupType::INVINCIBILITY) {
+							if (registry.projectiles.has(entity_other))
+							{
+								registry.remove_all_components_of(entity_other);
+							}
 							// In this case, player does not receive damage
 							continue;
+						}	
 					}
 
 					if (registry.bosses.has(entity_other))
@@ -1994,8 +2049,10 @@ void WorldSystem::handle_collisions(float step_seconds)
 					Mix_PlayChannel(-1, summon_sound, 0);
 				}
 
-				createDamageIndicator(renderer, damage_dealt, enemy_motion.position, damage_rng, temp_multiplier);
-
+				if (!registry.projectiles.has(entity_other)) {
+					createDamageIndicator(renderer, damage_dealt, enemy_motion.position, damage_rng, temp_multiplier);
+				}
+				
 				// play enemy damage sound
 				Mix_PlayChannel(-1, enemy_damage_sound, 0);
 
@@ -2378,7 +2435,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	{
 		if (!is_level_up)
 		{
-			if (screen.state != GameState::PAUSED)
+			if (screen.state != GameState::PAUSED && !cutscene)
 			{
 				if (!tutorial.pause)
 				{
@@ -2436,6 +2493,26 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
 	*/
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_G) {
+		for (Entity enemy : registry.deadlys.entities)
+		{
+			registry.healths.get(enemy).hit_points = 0;
+			registry.deadlys.get(enemy).state = ENEMY_STATE::DEAD;
+
+			if (!registry.deathTimers.has(enemy))
+				{
+					DeathTimer &death = registry.deathTimers.emplace(enemy);
+					death.counter_ms = 440.4f;
+				}
+		}
+		// TODO: add glow animation
+		goal_reached = true;
+		screen.lights_on = true;
+		// Halts music
+		Mix_FadeOutMusic(400.f);
+		artifact_loaded = false;
+	}
 
 	// player key stuff starts here
 

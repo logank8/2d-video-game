@@ -41,30 +41,45 @@ public:
     void set_world(WorldSystem *world);
 
     std::vector<Upgrade> upgradePool = {
-        {0, "KNIFE", "+5% damage", 0, 1, [this]()
+        {0, "KNIFE", "+50% damage", 0, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
              player.damage_multiplier += 0.5;
          }},
-        {1, "MAGNET", "+50 collect range", 3, 1, [this]()
+        {1, "MAGNET", "+100 collect dist", 3, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
-             player.collection_distance += 50.0f;
+             player.collection_distance += 100.0f;
          }},
-        {2, "ROCK", "+0.5 knockback", 4, 1, [this]()
-         {
-             Player &player = registry.players.get(*my_player);
-             player.knockback_strength += .5f;
-         }},
-        {3, "BOOK", "+100% exp gain", 1, 1, [this]()
+        {2, "BOOK", "+100% exp gain", 1, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
              player.experience_multiplier += 1.0f;
          }},
-        {4, "\"SALT\"", "+25% attack size", 2, 1, [this]()
+        {3, "HAMMER", "+25% attack size", 6, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
              player.attack_size += 25.f;
+         }},
+        {4, "RING", "-20% attack cost", 7, 1, [this]()
+         {
+             Player &player = registry.players.get(*my_player);
+             player.attackCost = std::max(0.f, player.attackCost - 5.f);
+         }},
+        {5, "BOOT", "-25% dash cost", 4, 1, [this]()
+         {
+             Player &player = registry.players.get(*my_player);
+             player.dashCost = std::max(0.f, player.dashCost - 12.5f);
+         }},
+        {6, "CUTLERY", "+1% lifesteal", 5, 1, [this]()
+         {
+             Player &player = registry.players.get(*my_player);
+             player.lifesteal += 0.1f;
+         }},
+        {7, "SALT", "+20% crit chance", 2, 1, [this]()
+         {
+             Player &player = registry.players.get(*my_player);
+             player.crit_chance = std::min(1.f, player.crit_chance + .2f);
          }}};
 
     // DEAD
