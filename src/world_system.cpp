@@ -548,6 +548,7 @@ void WorldSystem::mapSwitch(int map)
 	default:
 		current_map = map1;
 	}
+	save_player_data(SAVE_FILENAME);
 	restart_game();
 }
 
@@ -753,8 +754,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		Powerup &powerup = registry.powerups.get(my_player);
 		powerup.timer -= elapsed_ms_since_last_update;
 
-		float x = 30;
-		float y = 480;
+		float x = 40;
+		float y = 500;
 
 		std::string powerup_name = "";
 		if (powerup.type == PowerupType::DAMAGE_BOOST)
@@ -764,7 +765,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		else if (powerup.type == PowerupType::INVINCIBILITY)
 			powerup_name = "Invincibility";
 
-		createText({x, y}, 0.5f, "Powerup active: " + powerup_name + (powerup.multiplier < 1.02f ? "" : " with multiplier x" + floatToString1DP(powerup.multiplier)) + " for " + std::to_string((int)std::ceil(powerup.timer / 1000)) + "s", {1.f, 1.f, 1.f});
+		// createText({x, y}, 0.5f, "Powerup active: " + powerup_name + (powerup.multiplier < 1.02f ? "" : " with multiplier x" + floatToString1DP(powerup.multiplier)) + " for " + std::to_string((int)std::ceil(powerup.timer / 1000)) + "s", {1.f, 1.f, 1.f});
+		createText({x, y}, 0.5f, powerup_name + "(" + std::to_string((int)std::ceil(powerup.timer / 1000)) + "s" + ")", vec3(0.969, 0.588, 0.09));
+
 		if (powerup.timer < 0 || goal_reached)
 		{
 			registry.powerups.remove(my_player);
