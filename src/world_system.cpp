@@ -440,9 +440,6 @@ void WorldSystem::update_experience_bar()
 
 	float progress = std::min((float)player.experience / player.toNextLevel, 1.0f);
 
-	std::cout << "UPDATING EXP" << progress << std::endl;
-	std::cout << experience_in << std::endl;
-
 	float bar_offset = (progress * 0.2f);
 	vec2 bar_pos = vec2(-0.94f + bar_offset, EXPERIENCE_BAR_Y);
 
@@ -460,8 +457,6 @@ void WorldSystem::update_stamina_bar()
 	// vec2 exp_bar_pos = {-0.74f, 0.55f};
 
 	float progress = std::min((float)player.currentStamina / player.totalStamina, 1.0f);
-	std::cout << "UPDATING STAM" << progress << std::endl;
-	std::cout << stamina_in << std::endl;
 
 	float bar_offset = (progress * 0.2f);
 	vec2 bar_pos = vec2(-0.94f + bar_offset, STAMINA_BAR_Y);
@@ -1736,11 +1731,11 @@ void WorldSystem::restart_game()
 	}
 
 	// STAMINAR BAR
-	vec2 stamina_bar_pos = {-0.74f, 0.3f};
+	vec2 stamina_bar_pos = {-0.74f, 0.7f};
 	stamina_bar = createStaminaBar(renderer, stamina_bar_pos);
 
 	vec2 exp_bar_pos = {-0.74f, 0.55f};
-	// experience_bar = createEmptyBar(renderer, exp_bar_pos);
+	experience_bar = createEmptyBar(renderer, exp_bar_pos);
 
 	// create health bar
 	vec2 hp_bar_pos = {-0.75, 0.85f};
@@ -1751,13 +1746,13 @@ void WorldSystem::restart_game()
 	// stamina_bar_2 = createEmptyBar(renderer, stamina_bar_pos);
 	float progress = std::min((float)player.currentStamina / player.totalStamina, 1.0f);
 	float bar_offset = (progress * 0.2f);
-	vec2 bar_pos = vec2(-0.94f + bar_offset, STAMINA_BAR_Y);
+	vec2 bar_pos = vec2(-0.94f + bar_offset, STAMINA_BAR_Y + 1.f);
 	stamina_in = createUIBar(bar_pos, vec2(progress * 0.4f, 0.205f), 1);
 
 	// EXPERIENCE BAR
 	float exp_progress = std::min((float)player.experience / player.toNextLevel, 1.0f);
 	float exp_bar_offset = (exp_progress * 0.2f);
-	vec2 exp_barin_pos = vec2(-0.94f + exp_bar_offset, EXPERIENCE_BAR_Y);
+	vec2 exp_barin_pos = vec2(-0.94f + exp_bar_offset, EXPERIENCE_BAR_Y + 1.f);
 	experience_in = createUIBar(exp_barin_pos, vec2(exp_progress * 0.4f, 0.205f), 0);
 
 	if (current_map != map_final)
