@@ -1091,7 +1091,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			else {
 				createContactFast(renderer, contact_fast_pos);
 			}
-			
+
 			// tile_vec.push_back(spawnable_tiles[index]);
 		}
 
@@ -2059,9 +2059,9 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 				if (!registry.projectiles.has(entity_other) && deadly_health.hit_points > 0)
 				{
-					vec2 kockback_pos = registry.motions.get(entity_other).position + (diff * player.knockback_strength);
-					int grid_x = static_cast<int>((kockback_pos.x - (640 - (25 * TILE_SIZE)) - TILE_SIZE / 2) / TILE_SIZE);
-					int grid_y = static_cast<int>((kockback_pos.y - (640 - (44 * TILE_SIZE)) - TILE_SIZE / 2) / TILE_SIZE);
+					vec2 knockback_pos = registry.motions.get(entity_other).position + (diff * player.knockback_strength);
+					int grid_x = static_cast<int>((knockback_pos.x - (640 - (25 * TILE_SIZE)) - TILE_SIZE / 2) / TILE_SIZE);
+					int grid_y = static_cast<int>((knockback_pos.y - (640 - (44 * TILE_SIZE)) - TILE_SIZE / 2) / TILE_SIZE);
 					int adjust_x = 0;
 					int adjust_y = 0;
 					if (diff.x < 0 && diff.y < 0)
@@ -2151,6 +2151,9 @@ void WorldSystem::handle_collisions(float step_seconds)
 						vec2 new_diff = grid_knockback_pos - registry.motions.get(my_player).position;
 						if (length(new_diff) > length(diff))
 						{
+							if (deadly.enemy_type == ENEMY_TYPES::DASHING) {
+								enemy_motion.velocity = { 100.f, 100.f };
+							}
 							enemy_motion.position = grid_knockback_pos;
 							deadly.knocked_back_pos = grid_knockback_pos;
 							physics.update_enemy_movement(entity_other, step_seconds);

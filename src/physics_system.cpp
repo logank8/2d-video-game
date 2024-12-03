@@ -1018,8 +1018,6 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
 			//Handle contact damage enemies
 			if (registry.deadlys.has(entity)) {
 				if (!registry.projectiles.has(entity)) {
-                    
-
                     //A* pathfinding
                     if (!registry.deathTimers.has(entity)) {
                         if (registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::SWARM) {
