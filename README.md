@@ -27,10 +27,6 @@ e.g. sprite_sheets[SPRITE_ASSET_ID::PLAYER] = {TEXTURE_ASSET_ID::PLAYERS, 10, 6,
         - sprite index can be left out (defaults to -1)
         - set SPRITE_ASSET_ID to SPRITE_COUNT
 
-## Note For Mac Users:
-- Run "brew install nlohmann-json" before compiling game
-- delete save.json file in the build folder (if exists)
-
 Credits:
 - Penzilla (https://penzilla.itch.io/top-down-retro-interior) - Various furniture sprites
 
