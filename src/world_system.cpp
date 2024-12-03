@@ -699,7 +699,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				}
 			}
 		}
-
 		return true;
 	}
 
@@ -1444,7 +1443,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 	}
 
-	if (artifact_loaded) {
+	if (artifact_loaded && !is_level_up) {
 		createText({500, 680}, 0.6, "Press G to use holy artifact", vec3(1.0, 1.0, 1.0));
 	}
 
@@ -1501,7 +1500,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		{
 			if (registry.tutorialIcons.entities.size() == 0)
 			{
-				if (player.is_moving && !player.is_attacking)
+				if (player.is_moving && !player.is_attacking && player.currentStamina >= player.dashCost)
 				{
 					// maybe only create when not a certain radius from any enemies... but this would take a bit to check
 					createDashKey(renderer, {registry.motions.get(my_player).position.x + 80.f, registry.motions.get(my_player).position.y - 80.f});
