@@ -737,7 +737,7 @@ Entity createDashingEnemy(RenderSystem *renderer, vec2 position)
 		 1,
 		 RENDER_LAYER::CREATURES});
 
-	std::vector<int> idle_f_vec = {0, 1};
+	std::vector<int> idle_f_vec = {7, 8, 9, 10};
 	Animation idle_f = {
 		"slowenemy_idle_f",
 		2,
@@ -757,10 +757,18 @@ Entity createDashingEnemy(RenderSystem *renderer, vec2 position)
 		SPRITE_ASSET_ID::DASHING_ENEMY,
 		die_vec};
 
+	std::vector<int> dash_vec = {21};
+	Animation dash = {
+		"slowenemy_dash",
+		7,
+		SPRITE_ASSET_ID::DASHING_ENEMY,
+		dash_vec};
+
 	auto &animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;
 	animSet.animations[run_f.name] = run_f;
 	animSet.animations[die.name] = die;
+	animSet.animations[dash.name] = dash;
 	animSet.current_animation = idle_f.name;
 
 	return entity;

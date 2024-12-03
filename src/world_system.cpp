@@ -311,7 +311,7 @@ GLFWwindow *WorldSystem::create_window()
 		return nullptr;
 	}
 
-	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
+	background_music = Mix_LoadMUS(audio_path("bg_music_fighting.wav").c_str());
 	button_click_sound = Mix_LoadWAV(audio_path("click.wav").c_str());
 	salmon_eat_sound = Mix_LoadWAV(audio_path("eat_sound.wav").c_str());
 	player_damage_sound = Mix_LoadWAV(audio_path("damage.wav").c_str());
@@ -1284,6 +1284,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					}
 					goal_reached = true;
 
+					// Halts music
+					Mix_FadeOutMusic(400.f);
+
+
 					screen.state = GameState::GAME_OVER;
 
 					screen.darken_screen_factor = 0.9f;
@@ -1310,6 +1314,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					max_num_enemies = 0;
 					goal_reached = true;
 					screen.lights_on = true;
+					// Halts music
+					Mix_FadeOutMusic(400.f);
 
 					return true;
 				}
@@ -1661,6 +1667,12 @@ void WorldSystem::restart_game()
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
+
+	// Start up game music
+	Mix_FadeInMusic(background_music, -1, 400.f);
+	Mix_Volume(-1, 70.f);
+	Mix_VolumeMusic (40.f);
+	
 
 	// clear spawnable_tiles on map switch
 	spawnable_tiles.clear();
@@ -2407,7 +2419,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	{
 		if (!is_level_up)
 		{
-			if (screen.state != GameState::PAUSED)
+			if (screen.state != GameState::PAUSED && !cutscene)
 			{
 				if (!tutorial.pause)
 				{
