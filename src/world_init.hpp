@@ -89,7 +89,7 @@ const float UPGRADE_CARD_TITLE_Y = 0.2f;
 const float PLAYER_DASH_SEC = 3.f;
 
 const std::vector<std::string> tenant_dialogue_1 = {
-    "Thank you so much for saving me!",
+    "Thank you so much for saving me! Our landlord has started practing black magic, and it's infested our building with demons!",
     "Do you think you could help my friend up on the next floor?",
     "I'm sure with all the strength you've gained from fighting here, you'll have \n no problem up there. The exit's at the end of the hallway."};
 

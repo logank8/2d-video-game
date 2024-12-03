@@ -299,6 +299,7 @@ struct ScreenState
 {
 	float darken_screen_factor = -1;
 	GameState state = START;
+	int lights_on = 0;
 };
 
 struct UserInterface
