@@ -2485,7 +2485,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	}
 	*/
 
-	if (action == GLFW_RELEASE && key == GLFW_KEY_G) {
+	if (action == GLFW_RELEASE && key == GLFW_KEY_G && artifact_loaded) {
 		for (Entity enemy : registry.deadlys.entities)
 		{
 			registry.healths.get(enemy).hit_points = 0;
