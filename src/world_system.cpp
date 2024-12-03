@@ -386,6 +386,7 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 	// Playing background music indefinitely
 	// Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
+	delete_player_data(SAVE_FILENAME);
 	fps_counter_ms = FPS_COUNTER_MS;
 
 	current_map = map1;
@@ -479,6 +480,9 @@ void WorldSystem::save_player_data(const std::string &filename)
 		{"crit_chance", player.crit_chance},
 		{"crit_multiplier", player.crit_multiplier},
 		{"lifesteal", player.lifesteal},
+		{"attack_cost", player.attackCost},
+		{"dash_cost", player.dashCost},
+		{"stamina_regen", player.staminaRegen},
 		{"collection_distance", player.collection_distance},
 		{"experience_multiplier", player.experience_multiplier},
 		{"experience", player.experience},
@@ -514,6 +518,9 @@ void WorldSystem::load_player_data(const std::string &filename)
 	player.crit_chance = j["crit_chance"];
 	player.crit_multiplier = j["crit_multiplier"];
 	player.lifesteal = j["lifesteal"];
+	player.attackCost = j["attack_cost"];
+	player.dashCost = j["dash_cost"];
+	player.staminaRegen = j["stamina_regen"];
 	player.collection_distance = j["collection_distance"];
 	player.experience_multiplier = j["experience_multiplier"];
 	player.experience = j["experience"];
@@ -526,6 +533,18 @@ void WorldSystem::load_player_data(const std::string &filename)
 	}
 
 	std::cout << "loaded" << std::endl;
+}
+
+void WorldSystem::delete_player_data(const std::string &filename)
+{
+	if (std::remove(filename.c_str()) == 0)
+	{
+		std::cout << "Player data file deleted successfully" << std::endl;
+	}
+	else
+	{
+		std::cerr << "Failed to delete player data file" << std::endl;
+	}
 }
 
 void WorldSystem::mapSwitch(int map)
@@ -1765,6 +1784,11 @@ void WorldSystem::restart_game()
 				tile_vec.push_back(vec2(i, j));
 			}
 		}
+	}
+
+	for (Entity entity : registry.barIns.entities)
+	{
+		registry.remove_all_components_of(entity);
 	}
 
 	// STAMINAR BAR

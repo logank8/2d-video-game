@@ -382,15 +382,17 @@ void PlayerController::displayStatCard()
 
     std::vector<std::pair<std::string, float>> attack_stats = {
         {"Attack: ", player.damage_multiplier},
-        {"Attack Area: ", player.attack_size},
+        {"Attack area: ", player.attack_size},
         {"Crit chance: ", player.crit_chance},
         {"Crit damage: ", player.crit_multiplier},
         {"Lifesteal: ", player.lifesteal}};
 
     std::vector<std::pair<std::string, float>> utility_stats = {
-        {"Collection Range: ", player.collection_distance},
+        {"Collection range: ", player.collection_distance},
         {"Experience multiplier: ", player.experience_multiplier},
-        {"Knockback: ", player.knockback_strength}};
+        {"Attack cost: ", player.attackCost},
+        {"Dash cost: ", player.dashCost},
+        {"Stamina regen: ", player.staminaRegen}};
 
     createText({x, y}, STAT_FONT_SIZE, "LEVEL: " + std::to_string((int)player.level), STAT_TEXT_COLOR);
     y -= (FONT_LINE_SPACE) * 2;
