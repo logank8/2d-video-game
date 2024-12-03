@@ -10,6 +10,10 @@ const float TILE_SIZE = 100.0f;
 const float GRID_OFFSET_X = (640 - (25 * TILE_SIZE));
 const float GRID_OFFSET_Y = (640 - (44 * TILE_SIZE));
 
+// C++ random number generator
+std::default_random_engine rng;
+std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+
 #include <iostream>
 
 // Returns the local bounding coordinates (AABB)
@@ -477,12 +481,24 @@ std::vector<vec2> find_path(const Motion &enemy, const Motion &player)
 
     while (!open_list.empty())
     {
-        // Find node with lowest f_cost
-        auto current_it = std::min_element(open_list.begin(), open_list.end(),
-                                           [](const Node *a, const Node *b)
-                                           { return a->f_cost < b->f_cost; });
+        
+        std::vector<Node*>::iterator current_it;
+        if (open_list.size() < size_t(3)) {
+            // Find node with lowest f_cost
+            current_it = std::min_element(open_list.begin(), open_list.end(),
+                [](const Node* a, const Node* b)
+                { return a->f_cost < b->f_cost; });
 
-        Node *current = *current_it;
+        }
+        else {
+            std::partial_sort(open_list.begin(), open_list.begin() + 3, open_list.end(),
+                [](const Node* a, const Node* b) { return a->f_cost < b->f_cost; });
+
+            int random_path_index = static_cast<int>(uniform_dist(rng) * 3);
+            current_it = open_list.begin() + random_path_index;
+        }
+
+        Node* current = *current_it;
 
         // Check if we reached the goal
         const float GOAL_THRESHOLD = TILE_SIZE * 0.5f;
@@ -535,14 +551,15 @@ std::vector<vec2> find_path(const Motion &enemy, const Motion &player)
 
             // Diagonals cost less since they do 2 tiles of movement in one move
             float g_cost;
-            if (dir.x == 0 || dir.y == 0)
-            {
-                g_cost = current->g_cost + TILE_SIZE;
-            }
-            else
-            {
-                g_cost = current->g_cost + TILE_SIZE / 2;
-            }
+            g_cost = current->g_cost + TILE_SIZE;
+            //if (dir.x == 0 || dir.y == 0)
+            //{
+            //    g_cost = current->g_cost + TILE_SIZE;
+            //}
+            //else
+            //{
+            //    g_cost = current->g_cost + TILE_SIZE / 2;
+            //}
 
             float h_cost = calculate_h_cost(neighbor_pos, goal);
             float f_cost = g_cost + h_cost;
