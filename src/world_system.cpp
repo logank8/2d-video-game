@@ -1037,6 +1037,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				}
 			}
 		}
+		if (registry.tutorialIcons.size() == 0 && cutscene) createInteractKey(renderer, {registry.motions.get(my_player).position.x + (window_width_px / 2) - 50, registry.motions.get(my_player).position.y + (window_height_px / 4) - 40});
 	}
 
 	if (current_map != map_final || registry.bosses.get(final_boss).stage != FinalLevelStage::STAGE1)

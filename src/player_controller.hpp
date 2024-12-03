@@ -51,37 +51,32 @@ public:
              Player &player = registry.players.get(*my_player);
              player.collection_distance += 100.0f;
          }},
-        {2, "ROCK", "+0.5 knockback", 4, 1, [this]()
-         {
-             Player &player = registry.players.get(*my_player);
-             player.knockback_strength += .5f;
-         }},
-        {3, "BOOK", "+100% exp gain", 1, 1, [this]()
+        {2, "BOOK", "+100% exp gain", 1, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
              player.experience_multiplier += 1.0f;
          }},
-        {4, "SALT", "+25% attack size", 2, 1, [this]()
+        {3, "HAMMER", "+25% attack size", 6, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
              player.attack_size += 25.f;
          }},
-        {5, "SALT", "-20% attack cost", 2, 1, [this]()
+        {4, "RING", "-20% attack cost", 7, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
              player.attackCost = std::max(0.f, player.attackCost - 5.f);
          }},
-        {6, "SALT", "-25% dash cost", 2, 1, [this]()
+        {5, "BOOT", "-25% dash cost", 4, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
              player.dashCost = std::max(0.f, player.dashCost - 12.5f);
          }},
-        {7, "SALT", "+1% lifesteal", 2, 1, [this]()
+        {6, "CUTLERY", "+1% lifesteal", 5, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
              player.lifesteal += 0.1f;
          }},
-        {8, "SALT", "+20% crit chance", 2, 1, [this]()
+        {7, "SALT", "+20% crit chance", 2, 1, [this]()
          {
              Player &player = registry.players.get(*my_player);
              player.crit_chance = std::min(1.f, player.crit_chance + .2f);

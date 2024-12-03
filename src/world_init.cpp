@@ -1682,7 +1682,7 @@ Entity createUpgradeIcon(RenderSystem *renderer, vec2 pos, vec2 scale, int sprit
 	auto &ui = registry.userInterfaces.emplace(entity);
 	ui.angle = 0.f;
 	ui.position = pos;
-	ui.scale = scale * vec2(0.5f, 0.5f);
+	ui.scale = scale * vec2(0.6f, 0.5f);
 
 	registry.renderRequests.insert(
 		entity,

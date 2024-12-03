@@ -527,15 +527,15 @@ void PlayerController::on_key(int key, int action, int mod)
         }
     }
 
-    if (key == GLFW_KEY_0 && action == GLFW_PRESS)
-    {
-        player.attack_size += 50.f;
-    }
+    // if (key == GLFW_KEY_0 && action == GLFW_PRESS)
+    // {
+    //     player.attack_size += 50.f;
+    // }
 
-    if (key == GLFW_KEY_1 && action == GLFW_PRESS)
-    {
-        player.attack_size -= std::max(0.f, player.attack_size - 50.f);
-    }
+    // if (key == GLFW_KEY_1 && action == GLFW_PRESS)
+    // {
+    //     player.attack_size -= std::max(0.f, player.attack_size - 50.f);
+    // }
 }
 
 // button must have ui component
@@ -627,14 +627,14 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
         }
     }
 
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-    {
-        world->set_level_up_state(true);
+    // if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+    // {
+    //     world->set_level_up_state(true);
 
-        displayUpgradeCards();
+    //     displayUpgradeCards();
 
-        // debugging.in_debug_mode = !debugging.in_debug_mode;
-    }
+    //     // debugging.in_debug_mode = !debugging.in_debug_mode;
+    // }
 
     if (world->is_level_up && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
     {
