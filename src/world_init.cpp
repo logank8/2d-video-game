@@ -866,7 +866,7 @@ Entity createUIBar(vec2 position, vec2 scale, int index)
 				 SPRITE_ASSET_ID::BARS,
 				 EFFECT_ASSET_ID::TEXTURED,
 				 GEOMETRY_BUFFER_ID::SPRITE, index,
-				 RENDER_LAYER::DEFAULT_LAYER});
+				 RENDER_LAYER::UI_LAYER_2});
 
 	auto &uiComponent = registry.userInterfaces.emplace(entity);
 	uiComponent.position = position;
