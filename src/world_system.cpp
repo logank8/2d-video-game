@@ -1129,7 +1129,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			registry.attackTimers.remove(entity);
 			if (registry.bosses.has(entity))
 			{
-				registry.deadlys.get(entity).state = ENEMY_STATE::IDLE;
+				registry.deadlys.get(entity).state = ENEMY_STATE::RUN;
 			}
 		}
 	}

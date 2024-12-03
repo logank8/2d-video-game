@@ -247,7 +247,7 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 	// Initialize the position, scale, and physics components
 	auto &motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = {75.f, 75.f};
+	motion.velocity = {150.f, 150.f};
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
@@ -263,6 +263,8 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 
 	auto &damage = registry.damages.emplace(entity);
 	damage.damage = 50.f;
+
+	registry.enemyDashes.emplace(entity);
 
 	registry.bosses.emplace(entity);
 	registry.renderRequests.insert(

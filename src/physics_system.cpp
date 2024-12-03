@@ -1027,7 +1027,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                             update_swarm_movement(entity, step_seconds);
                             
                         }
-                        else if (registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::DASHING) {
+                        else if (registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::DASHING || (registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::FINAL_BOSS && registry.bosses.get(entity).stage == FinalLevelStage::STAGE3)) {
                             Motion& player_motion = registry.motions.get(registry.players.entities[0]);
                             auto& dashing_enemy = registry.enemyDashes.get(entity);
                             if (has_dashing_los(registry.motions.get(entity).position, player_motion.position)) {
@@ -1045,7 +1045,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                                 else {
                                     registry.motions.get(entity).velocity = { 500.f, 500.f };
                                     // TODO: edit here as well for dash anim
-                                    if (!registry.lightUps.has(entity)) {
+                                    if (!registry.lightUps.has(entity) && registry.deadlys.get(entity).enemy_type != ENEMY_TYPES::FINAL_BOSS) {
                                         auto& lights_up = registry.lightUps.emplace(entity);
                                         lights_up.duration_ms = dashing_enemy.charge_time;
                                     }
