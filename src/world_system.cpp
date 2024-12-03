@@ -1298,24 +1298,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 				registry.remove_all_components_of(entity);
 				enemies_killed++;
-				if (enemies_killed >= enemy_kill_goal && current_map != map_final)
+				if (enemies_killed >= enemy_kill_goal && current_map != map_final && !goal_reached)
 				{
-					for (Entity enemy : registry.deadlys.entities)
-					{
-						registry.healths.get(enemy).hit_points = 0;
-						registry.deadlys.get(enemy).state = ENEMY_STATE::DEAD;
-
-						if (!registry.deathTimers.has(enemy))
-						{
-							DeathTimer &death = registry.deathTimers.emplace(enemy);
-							death.counter_ms = 440.4f;
-						}
-					}
 					max_num_enemies = 0;
-					goal_reached = true;
-					screen.lights_on = true;
-					// Halts music
-					Mix_FadeOutMusic(400.f);
+					artifact_loaded = true;
 
 					return true;
 				}
@@ -1437,6 +1423,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				}
 			}
 		}
+	}
+
+	if (artifact_loaded) {
+		createText({500, 680}, 0.6, "Press G to use holy artifact", vec3(1.0, 1.0, 1.0));
 	}
 
 	if (!cutscene)
@@ -1646,6 +1636,7 @@ void WorldSystem::restart_game()
 
 	enemies_killed = 0;
 	goal_reached = false;
+	artifact_loaded = false;
 	if (current_map == map_final)
 	{
 		max_num_enemies = 20;
@@ -2477,6 +2468,26 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
 	*/
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_G) {
+		for (Entity enemy : registry.deadlys.entities)
+		{
+			registry.healths.get(enemy).hit_points = 0;
+			registry.deadlys.get(enemy).state = ENEMY_STATE::DEAD;
+
+			if (!registry.deathTimers.has(enemy))
+				{
+					DeathTimer &death = registry.deathTimers.emplace(enemy);
+					death.counter_ms = 440.4f;
+				}
+		}
+		// TODO: add glow animation
+		goal_reached = true;
+		screen.lights_on = true;
+		// Halts music
+		Mix_FadeOutMusic(400.f);
+		artifact_loaded = false;
+	}
 
 	// player key stuff starts here
 
