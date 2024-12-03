@@ -297,6 +297,14 @@ bool is_walkable(const vec2 &pos, vec2 dir)
     return map[grid_y][grid_x] == 1 || (map[grid_y][grid_x] >= 3 && map[grid_y][grid_x] <= 8);
 }
 
+//strictly for checking map tile integers
+bool is_tile_walkable(int x, int y) {
+    if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size()) {
+        return false;
+    }
+    return map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8);
+};
+
 // Checking for line of sight using Bresenham's algorithm
 // adapted to use a TILE_SIZE approximation instead of a pixel based line approximation
 bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
@@ -327,13 +335,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
         err = dx / 2;
         while (x != x2)
         {
-            if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size())
-            {
-                return false;
-            }
-
-            if (!(map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8)))
-            {
+            if (!is_tile_walkable(x, y)) {
                 return false;
             }
 
@@ -351,13 +353,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
         err = dy / 2;
         while (y != y2)
         {
-            if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size())
-            {
-                return false;
-            }
-
-            if (!(map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8)))
-            {
+            if (!is_tile_walkable(x, y)) {
                 return false;
             }
 
@@ -408,13 +404,8 @@ bool has_dashing_los(const vec2& start, const vec2& end)
         err = dx / 2;
         while (x != x2)
         {
-            if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size())
-            {
-                return false;
-            }
-
-            if (!(map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8)))
-            {
+            // Check current tile and adjacent tiles (above and below)
+            if (!is_tile_walkable(x, y) || !is_tile_walkable(x, y + 1) || !is_tile_walkable(x, y - 1)) {
                 return false;
             }
 
@@ -432,13 +423,8 @@ bool has_dashing_los(const vec2& start, const vec2& end)
         err = dy / 2;
         while (y != y2)
         {
-            if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size())
-            {
-                return false;
-            }
-
-            if (!(map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8)))
-            {
+            // Check current tile and adjacent tiles (left and right)
+            if (!is_tile_walkable(x, y) || !is_tile_walkable(x + 1, y) || !is_tile_walkable(x - 1, y)) {
                 return false;
             }
 
@@ -452,11 +438,7 @@ bool has_dashing_los(const vec2& start, const vec2& end)
         }
     }
 
-    if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size())
-    {
-        return false;
-    }
-    return map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8);
+    return is_tile_walkable(x, y);
 }
 
 // Find A* path for enemy
@@ -1047,7 +1029,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                         else if (registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::DASHING) {
                             Motion& player_motion = registry.motions.get(registry.players.entities[0]);
                             auto& dashing_enemy = registry.enemyDashes.get(entity);
-                            if (has_dashing_los(registry.motions.get(entity).position, player_motion.position)) {
+                            if (has_dashing_los(registry.motions.get(entity).position, player_motion.position) || dashing_enemy.current_charge_timer > dashing_enemy.charge_time) {
                                 if (dashing_enemy.current_charge_timer < dashing_enemy.charge_time) {
                                     registry.motions.get(entity).velocity = { 0, 0 };
                                     if (registry.lightUps.has(entity)) {
@@ -1081,7 +1063,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                                         dashing_enemy.current_charge_timer = 0;
                                         continue;
                                     }
-                                    
+
                                     float distance_to_target = sqrt(pow(dashing_enemy.target_pos.x - motion.position.x, 2) + pow(dashing_enemy.target_pos.y - motion.position.y, 2));
 
                                     float step_x = direction.x * motion.velocity.x * step_seconds;
