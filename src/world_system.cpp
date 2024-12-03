@@ -2021,8 +2021,10 @@ void WorldSystem::handle_collisions(float step_seconds)
 					Mix_PlayChannel(-1, summon_sound, 0);
 				}
 
-				createDamageIndicator(renderer, damage_dealt, enemy_motion.position, damage_rng, temp_multiplier);
-
+				if (!registry.projectiles.has(entity_other)) {
+					createDamageIndicator(renderer, damage_dealt, enemy_motion.position, damage_rng, temp_multiplier);
+				}
+				
 				// play enemy damage sound
 				Mix_PlayChannel(-1, enemy_damage_sound, 0);
 
