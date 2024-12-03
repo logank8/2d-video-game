@@ -108,8 +108,7 @@ const std::vector<std::string> tenant_extra_dialogue_2 = {
 const std::vector<std::string> tenant_dialogue_3 = {
     "Oh my! Thank you so much for getting them out of here, I don't know what I \n would've done without you.",
     "The boy living upstairs must be terrified! Could you go help him get a handle \n on things?",
-    "I'm a bit frail these days, but surely someone big and strong like you won't \n have any trouble!"
-    };
+    "I'm a bit frail these days, but surely someone big and strong like you won't \n have any trouble!"};
 
 const std::vector<std::string> tenant_extra_dialogue_3 = {
     "I would've left a long time ago, but I've been living here long enough for \n rent control.",
@@ -118,8 +117,7 @@ const std::vector<std::string> tenant_extra_dialogue_3 = {
 const std::vector<std::string> tenant_dialogue_4 = {
     "Wow, thanks for cleaning up in here. It was such a mess!",
     "The landlord lives on the floor above me. If you really want to bring \n peace to this building, you're going to have to take this fight to the top.",
-    "Good luck!"
-    };
+    "Good luck!"};
 
 const std::vector<std::string> tenant_extra_dialogue_4 = {
     "I don't know what the landlord is up to, but I hope it ends soon..."};
@@ -180,7 +178,7 @@ Entity createEffect(RenderSystem *renderer, vec2 pos, float lifespan_ms, EFFECT_
 
 Entity createStaminaBar(RenderSystem *renderer, vec2 pos);
 
-Entity createExperienceBar(RenderSystem *renderer, vec2 pos);
+Entity createEmptyBar(RenderSystem *renderer, vec2 pos);
 
 // a experience
 Entity createExperience(RenderSystem *renderer, vec2 pos, int experience);

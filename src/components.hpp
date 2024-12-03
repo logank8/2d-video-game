@@ -61,7 +61,7 @@ struct Player
 	bool invulnerable = false;
 	float invulnerable_duration_ms = 2000.f;
 	vec2 last_pos = {0, 0};
-	float dash_cooldown_ms = 3000.f;
+	float dash_cooldown_ms = 250.f;
 	float dash_time = 100.f;
 	float curr_dash_cooldown_ms = dash_cooldown_ms;
 	bool is_dash_up = true;
@@ -90,9 +90,12 @@ struct Player
 	std::vector<int> levels_unlocked = {1};
 
 	// stamina
-	// int totalStamina = 100;
-	// int attackCost = 25;
-	// int dashCost = 50;
+	float totalStamina = 100.f;
+	float currentStamina = 100.f;
+	float attackCost = 25.f;
+	float dashCost = 50.f;
+	float staminaRegen = 5.f; // per 1/4 second
+	float curr_stamina_elapsed_ms = 250.f;
 };
 
 enum class ENEMY_TYPES
@@ -465,6 +468,10 @@ struct DamageIndicator
 	float rng;
 	float multiplier;
 	Entity text;
+};
+
+struct BarIn
+{
 };
 /**
  * The following enumerators represent global identifiers refering to graphic

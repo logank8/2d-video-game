@@ -124,8 +124,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			}
 		}
 
-		
-
 		glUniform1f(time_passed_uloc, ms_passed);
 		glUniform1f(lifespan_uloc, lifespan);
 
@@ -385,9 +383,11 @@ void RenderSystem::drawScreenSpaceObject(Entity entity)
 		float lifespan = 1.f;
 
 		// Using ms_passed / lifespan to edit alpha for artifact loading
-		if (registry.killTrackers.has(entity)) {
-			if (registry.killTrackers.get(entity).goal != 0) {
-				
+		if (registry.killTrackers.has(entity))
+		{
+			if (registry.killTrackers.get(entity).goal != 0)
+			{
+
 				ms_passed = registry.killTrackers.get(entity).goal - registry.killTrackers.get(entity).killed;
 				lifespan = registry.killTrackers.get(entity).goal;
 			}
@@ -680,17 +680,19 @@ void RenderSystem::draw()
 		{
 			if (registry.userInterfaces.has(entity) && layer == RENDER_LAYER::UI_LAYER_1)
 			{
-				if (!(registry.renderRequests.get(entity).layer == RENDER_LAYER::UI_LAYER_2)) {
+				if (!(registry.renderRequests.get(entity).layer == RENDER_LAYER::UI_LAYER_2))
+				{
 					uiEntities_1.push_back(entity);
 					continue;
 				}
 			}
-			if (registry.userInterfaces.has(entity) && layer == RENDER_LAYER::UI_LAYER_2) { // layer 2 of ui is explicitly stated in RR
-				if (registry.renderRequests.get(entity).layer == layer) {
+			if (registry.userInterfaces.has(entity) && layer == RENDER_LAYER::UI_LAYER_2)
+			{ // layer 2 of ui is explicitly stated in RR
+				if (registry.renderRequests.get(entity).layer == layer)
+				{
 					uiEntities_2.push_back(entity);
 					continue;
 				}
-				
 			}
 			if (registry.renderRequests.get(entity).layer != layer)
 			{
