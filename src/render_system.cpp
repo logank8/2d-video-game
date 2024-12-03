@@ -775,8 +775,6 @@ void RenderSystem::getUVCoordinates(SPRITE_ASSET_ID sid, int spriteIndex, float 
 	int col = spriteIndex % numCols;
 	int row = spriteIndex / numCols;
 
-	// std::cout << "COL: "<< col << std::endl;
-	// std::cout << "ROW: " << row << std::endl;
 
 	int textureWidth = numCols * info.sprite_width;
 	int textureHeight = numRows * info.sprite_height;

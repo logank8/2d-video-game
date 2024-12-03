@@ -139,7 +139,6 @@ void WorldSystem::stateSwitch(GameState new_state)
 		}
 		while (registry.motions.entities.size() > 0)
 		{
-			registry.list_all_components_of(registry.motions.entities.back());
 			registry.remove_all_components_of(registry.motions.entities.back());
 		}
 		is_paused = false;
@@ -369,10 +368,6 @@ std::vector<std::string> WorldSystem::textToDialogueMode(std::string text)
 
 void WorldSystem::restart_world()
 {
-	// Debugging for memory/component leaks
-	registry.list_all_components();
-	printf("Restarting\n");
-
 	// Reset the game speed
 	current_speed = 1.f;
 	is_level_up = false;
@@ -562,10 +557,6 @@ void WorldSystem::mapSwitch(int map)
 	if (std::find(levels_unlocked.begin(), levels_unlocked.end(), map) == levels_unlocked.end())
 	{
 		levels_unlocked.push_back(map);
-	}
-	for (int i : levels_unlocked)
-	{
-		std::cout << i << std::endl;
 	}
 
 	switch (map)
@@ -1675,8 +1666,6 @@ void WorldSystem::restart_game()
 	while (registry.motions.entities.size() > 0)
 		registry.remove_all_components_of(registry.motions.entities.back());
 
-	// Debugging for memory/component leaks
-	registry.list_all_components();
 
 	// Start up game music
 	Mix_FadeInMusic(background_music, -1, 400.f);
@@ -1856,7 +1845,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 			{
 				float &player_hp = registry.healths.get(entity).hit_points;
 				Player &player = registry.players.get(entity);
-				if (!player.invulnerable && !registry.deathTimers.has(entity_other) && !player.god_mode)
+				if (!player.invulnerable && !registry.deathTimers.has(entity_other))
 				{
 					if (registry.powerups.has(entity))
 					{
@@ -2705,12 +2694,6 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		}
 	}
 
-	// Toggle god mode
-	// For testing purposes only
-	if (key == GLFW_KEY_G && action == GLFW_RELEASE)
-	{
-		player.god_mode = !player.god_mode;
-	}
 
 	// Switch to next map
 	// For testing purposes only
@@ -2828,7 +2811,6 @@ void WorldSystem::on_mouse_button(int button, int action, int mods)
 					}
 					else
 					{
-						std::cout << "animation changed for level " << button.level << std::endl;
 						registry.animationSets.get(e).current_animation = "elevator_level" + std::to_string(button.level);
 						registry.elevatorDisplays.get(e).message = button.level;
 					}

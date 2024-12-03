@@ -276,7 +276,6 @@ void PlayerController::step(float elapsed_ms_since_last_update)
         player.invulnerable_duration_ms -= elapsed_ms_since_last_update;
         if (player.invulnerable_duration_ms < 0.f)
         {
-            // std::cout << "Invuln ended" << std::endl;
             player.invulnerable = false;
             player.invulnerable_duration_ms = 1000.f;
         }
@@ -344,7 +343,6 @@ void PlayerController::step(float elapsed_ms_since_last_update)
 
                 displayUpgradeCards();
 
-                std::cout << "Player levelled up: " << player.level << std::endl;
                 player.experience -= player.toNextLevel;
 
                 // temporary increase
@@ -682,7 +680,6 @@ void PlayerController::on_mouse_button(int button, int action, int mods)
 
             if (upgradeCardComponent.hovering && !registry.selectedCards.has(entity))
             {
-                // std::cout << "selected a card" << std::endl;
                 // Play click button sound
                 Mix_PlayChannel(-1, world->button_click_sound, 0);
 

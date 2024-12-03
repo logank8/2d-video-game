@@ -92,7 +92,6 @@ bool RenderSystem::fontInit(const std::string &font_filename, unsigned int font_
 	glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(w), 0.0f, static_cast<float>(h));
 	GLint project_location = glGetUniformLocation(m_font_shader_program, "projection");
 	assert(project_location > -1);
-	std::cout << "project_location: " << project_location << std::endl;
 	glUniformMatrix4fv(project_location, 1, GL_FALSE, glm::value_ptr(projection));
 
 	// init FreeType fonts
@@ -130,7 +129,6 @@ bool RenderSystem::fontInit(const std::string &font_filename, unsigned int font_
 		glGenTextures(1, &texture);
 		glBindTexture(GL_TEXTURE_2D, texture);
 
-		std::cout << "texture: " << c << " = " << texture << std::endl;
 
 		glTexImage2D(
 			GL_TEXTURE_2D,
@@ -175,7 +173,6 @@ bool RenderSystem::fontInit(const std::string &font_filename, unsigned int font_
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(vao);
 	gl_has_errors();
-	std::cout << "Here" << std::endl;
 	return true;
 }
 

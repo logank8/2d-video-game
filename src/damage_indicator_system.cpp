@@ -77,7 +77,6 @@ void DamageIndicatorSystem::step(float elapsed_ms)
             text_color = MULTIPLIER_COLOR;
         }
 
-        // std::cout << damageMotion.position.x << ',' << damageMotion.position.y << std::endl;
 
         damageIndicatorComponent.text = createText(convertToScreenSpace(damageMotion.position), scale, std::to_string(damageIndicatorComponent.damage), text_color);
     }

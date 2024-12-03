@@ -67,8 +67,7 @@ struct Player
 	bool is_dash_up = true;
 	float slowed_duration_ms = 0.f;
 	float slowed_amount = 0.f;
-	// For testing purposes
-	bool god_mode = false;
+
 
 	// For attacking
 	bool is_attacking = false;
