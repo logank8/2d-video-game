@@ -18,7 +18,7 @@ Entity createPlayer(RenderSystem *renderer, vec2 pos)
 	motion.scale = vec2({PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT});
 
 	Player &player = registry.players.emplace(entity);
-	player.dash_cooldown_ms = PLAYER_DASH_SEC * 1000.f;
+	player.dash_cooldown_ms = 250.f;
 	registry.renderRequests.insert(
 		entity,
 		{TEXTURE_ASSET_ID::TEXTURE_COUNT,
@@ -865,11 +865,14 @@ Entity createUIBar(vec2 position, vec2 scale, int index)
 		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
 				 SPRITE_ASSET_ID::BARS,
 				 EFFECT_ASSET_ID::TEXTURED,
-				 GEOMETRY_BUFFER_ID::SPRITE, index});
+				 GEOMETRY_BUFFER_ID::SPRITE, index,
+				 RENDER_LAYER::UI_LAYER_2});
 
 	auto &uiComponent = registry.userInterfaces.emplace(entity);
 	uiComponent.position = position;
 	uiComponent.scale = scale;
+
+	registry.barIns.emplace(entity);
 
 	return entity;
 }
@@ -1487,7 +1490,7 @@ Entity createStaminaBar(RenderSystem *renderer, vec2 pos)
 	// full (14)
 	// dashing (14, 11, 12, 13, 0) - might need to adjust amounts for time
 
-	std::vector<int> full_vec = {14};
+	std::vector<int> full_vec = {0};
 	Animation full = {
 		"staminabar_full",
 		15,
@@ -1518,7 +1521,7 @@ Entity createStaminaBar(RenderSystem *renderer, vec2 pos)
 	return entity;
 }
 
-Entity createExperienceBar(RenderSystem *renderer, vec2 pos)
+Entity createEmptyBar(RenderSystem *renderer, vec2 pos)
 {
 	auto entity = Entity();
 
@@ -1537,7 +1540,8 @@ Entity createExperienceBar(RenderSystem *renderer, vec2 pos)
 		 SPRITE_ASSET_ID::STAMINA_BAR,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 0});
+		 0,
+		 RENDER_LAYER::DEFAULT_LAYER});
 
 	return entity;
 }
@@ -2452,12 +2456,13 @@ Entity createArtifactBackground(RenderSystem *renderer)
 
 	registry.renderRequests.insert(
 		entity,
-		{TEXTURE_ASSET_ID::ARTIFACT_BACKGROUND,
-		 SPRITE_ASSET_ID::SPRITE_COUNT,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE,
-		 -1,
-		 RENDER_LAYER::UI_LAYER_1});
+		{
+			TEXTURE_ASSET_ID::ARTIFACT_BACKGROUND,
+			SPRITE_ASSET_ID::SPRITE_COUNT,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			-1,
+		});
 
 	return entity;
 }
