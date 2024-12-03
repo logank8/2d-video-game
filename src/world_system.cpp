@@ -211,6 +211,8 @@ WorldSystem::~WorldSystem()
 		Mix_FreeChunk(summon_sound);
 	if (exp_sound != nullptr)
 		Mix_FreeChunk(exp_sound);
+	if (level_up_load_sound != nullptr)
+		Mix_FreeChunk(level_up_load_sound);
 
 	Mix_CloseAudio();
 
@@ -315,6 +317,7 @@ GLFWwindow *WorldSystem::create_window()
 	door_sound = Mix_LoadWAV(audio_path("door.wav").c_str());
 	summon_sound = Mix_LoadWAV(audio_path("summon.wav").c_str());
 	exp_sound = Mix_LoadWAV(audio_path("exp.wav").c_str());
+	level_up_load_sound = Mix_LoadWAV(audio_path("level_up.wav").c_str());
 
 	if (background_music == nullptr || button_click_sound == nullptr || salmon_eat_sound == nullptr || player_damage_sound == nullptr || enemy_damage_sound == nullptr || level_up_sound == nullptr || summon_sound == nullptr)
 	{
@@ -2759,6 +2762,7 @@ void WorldSystem::set_level_up_state(bool state)
 	ScreenState &screen = registry.screenStates.components[0];
 	if (state)
 	{ // TODO: can we change this to pause function ?
+		Mix_PlayChannel(-1, level_up_load_sound, 0);
 		screen.darken_screen_factor = 0.0;
 		screen.state = GameState::GAME;
 	}
