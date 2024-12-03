@@ -502,7 +502,7 @@ void WorldSystem::load_player_data(const std::string &filename)
 
 	if (!file.is_open())
 	{
-		std::cout << "failed to open file for player data" << std::endl;
+		// std::cout << "failed to open file for player data" << std::endl;
 		return;
 	}
 
@@ -543,7 +543,7 @@ void WorldSystem::delete_player_data(const std::string &filename)
 	}
 	else
 	{
-		std::cerr << "Failed to delete player data file" << std::endl;
+		// std::cerr << "Failed to delete player data file" << std::endl;
 	}
 }
 
