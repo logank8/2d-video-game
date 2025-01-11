@@ -1385,38 +1385,7 @@ Entity createExperience(RenderSystem *renderer, vec2 pos, int experience)
 	return entity;
 }
 
-Entity createSmoke(RenderSystem *renderer, vec2 pos)
-{
-	auto entity = Entity();
-	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Setting initial motion values
-	Motion &motion = registry.motions.emplace(entity);
-	motion.position = pos;
-	motion.angle = 0.f;
-	motion.velocity = {0.f, 0.f};
-	motion.scale = vec2({10, 10});
-
-	registry.effects.insert(entity, {0.f,
-									 400.f,
-									 motion.scale.x,
-									 motion.scale.y,
-									 EFFECT_TYPE::SMOKE});
-
-	registry.renderRequests.insert(
-		entity, {TEXTURE_ASSET_ID::SMOKE_PARTICLE,
-				 SPRITE_ASSET_ID::SPRITE_COUNT,
-				 EFFECT_ASSET_ID::SMOKE,
-				 GEOMETRY_BUFFER_ID::SPRITE});
-
-	return entity;
-}
-
-// plan for effects - used for particles, heart popups, whatever:
-// give lifespan
-// i guess probably hardcode fps relative to lifespan ? so it gets smaller until it dies
-// what if we had no sprite animation and just edited scale ?
+// Currently changing effects to split smoke away from here
 Entity createEffect(RenderSystem *renderer, vec2 pos, float lifespan_ms, EFFECT_TYPE type)
 {
 	auto entity = Entity();
@@ -1431,29 +1400,14 @@ Entity createEffect(RenderSystem *renderer, vec2 pos, float lifespan_ms, EFFECT_
 	motion.scale = vec2({60, 60});
 
 	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::HEART;
-	EFFECT_ASSET_ID effect = EFFECT_ASSET_ID::TEXTURED;
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<> distrib(0, 1);
 
-	switch (type)
-	{
-	case (EFFECT_TYPE::SMOKE):
-		// change velocity stuff so it's in a circle around
-
-		motion.velocity = {pow(-1, rand() % 2) * distrib(gen), (pow(-1, rand() % 2)) * (distrib(gen))};
-		motion.velocity *= 6.f * distrib(gen);
-
-		motion.scale = vec2(15, 15);
-		texture = TEXTURE_ASSET_ID::SMOKE_PARTICLE;
-		break;
-	case EFFECT_TYPE::DASH:
+	if (type == EFFECT_TYPE::DASH) {
 		texture = TEXTURE_ASSET_ID::DASH;
-		effect = EFFECT_ASSET_ID::DASH;
 		motion.scale = vec2(0.85 * PLAYER_BB_WIDTH, 0.85 * PLAYER_BB_HEIGHT);
-	default:
-		break;
 	}
 
 	registry.effects.insert(entity, {0.f,
@@ -1470,6 +1424,78 @@ Entity createEffect(RenderSystem *renderer, vec2 pos, float lifespan_ms, EFFECT_
 				 RENDER_LAYER::EFFECTS});
 
 	return entity;
+}
+
+Entity createSmoke(RenderSystem *renderer, vec2 pos) {
+	// add to renderer
+	auto entity = Entity();
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Smoke particle system values:
+	// Direction of emission (always up)
+	// Number of particles emitted: 300
+	// Emits per frame
+	// Lifespan of emitter: 1000ms (prob change later)
+	// Emission variance: 100
+	// No rotation for now...
+
+	// Setting initial motion values
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0.f;
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2({15, 15});
+
+	registry.emitters.insert(
+		entity, {{0, 1},
+				290,
+				50,
+				10,
+				0, 
+				1000});
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::SMOKE_PARTICLE,
+				SPRITE_ASSET_ID::SPRITE_COUNT,
+				EFFECT_ASSET_ID::SMOKE,
+				GEOMETRY_BUFFER_ID::SPRITE,
+				 -1,
+				 RENDER_LAYER::EFFECTS});	
+
+	return entity;
+}
+
+// Not creating an entity here - adding Particle structs to emitter
+// Particle motion will be held in the same struct
+// I chose to structure the particle system this way in hopes of improving performance... we'll see
+void createSmokeParticle(RenderSystem *renderer, vec2 pos, ParticleEmitter& emitter) {
+	// Direction vector with variance:
+	// Randomly generate number in [-(sqrt(2)/2), sqrt(2)/2] for x val
+	float random = 0.01 * (rand() % 200);
+	float x_normal = (random - 1) * (sqrt(2)/2);
+	x_normal = (random - 1) * 1;
+	// Calculate y value given magnitude 1
+	float y_normal = (0.01 * (rand() % 200) - 0.5) * sqrt(abs(powf(x_normal, 2) - 1));
+
+	// Extend normalized vector to include desired speed - randomly generated float between 1 and 10
+	vec2 normal_dir = vec2(x_normal, y_normal);
+	vec2 full_velocity = ((0.0001f * (rand() % 51)) + 0.01f) * normal_dir;
+
+	// Random spawn point within radius	
+	float rad = 2.5f;
+
+	pos.x += rad * ((0.01 * (rand() % 201)) - 1);
+	pos.y += rad * ((0.01 * (rand() % 201)) - 1);
+
+	Particle particle = {
+		0,
+		emitter.lifespan_ms + (rand() % 500),
+		pos, 
+		full_velocity
+	};
+
+	emitter.particles.push_back(particle);
 }
 
 Entity createStaminaBar(RenderSystem *renderer, vec2 pos)

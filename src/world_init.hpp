@@ -174,6 +174,8 @@ Entity createSlimePatch(RenderSystem *renderer, vec2 pos);
 
 Entity createSmoke(RenderSystem *renderer, vec2 pos);
 
+void createSmokeParticle(RenderSystem *renderer, vec2 pos, ParticleEmitter& emitter);
+
 Entity createEffect(RenderSystem *renderer, vec2 pos, float lifespan_ms, EFFECT_TYPE type);
 
 Entity createStaminaBar(RenderSystem *renderer, vec2 pos);

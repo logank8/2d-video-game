@@ -473,6 +473,27 @@ struct DamageIndicator
 struct BarIn
 {
 };
+
+struct Particle {
+	float time_elapsed_ms;
+	float lifespan_ms;
+	vec2 pos;
+	vec2 dir;
+};
+
+struct ParticleEmitter {
+	vec2 directon;
+	int particle_count;
+	int emits_per_frame;
+	int emission_variance;
+	float time_elapsed_ms;
+	float lifespan_ms;
+	int emitted_count = 0;
+	std::vector<Particle> particles;
+};
+
+
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture

@@ -251,8 +251,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		GLuint uv_scale_loc = glGetUniformLocation(program, "uv_scale");
 		glUniform2f(uv_scale_loc, 1.0f, 1.0f);
 
+		assert(registry.emitters.has(entity));
 		GLuint time_uloc = glGetUniformLocation(program, "time");
-		glUniform1f(time_uloc, registry.effects.get(entity).ms_passed);
+		glUniform1f(time_uloc, registry.emitters.get(entity).time_elapsed_ms);
 	}
 	else
 	{
@@ -302,7 +303,27 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	// Drawing of num_indices/3 triangles specified in the index buffer
 	if (render_request.used_effect == EFFECT_ASSET_ID::SMOKE)
 	{
-		glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, 0, 120);
+		assert(registry.emitters.has(entity));
+
+		for (unsigned int i = 0; i < registry.emitters.get(entity).particles.size(); i++) {
+
+			Particle& p = registry.emitters.get(entity).particles[i];
+			const std::string &name = "offsets[" + std::to_string(i) + "]";
+
+			GLint offset_loc = glGetUniformLocation(currProgram, name.c_str());
+
+			glUniform2f(offset_loc, p.pos.x - registry.motions.get(entity).position.x, registry.motions.get(entity).position.y - p.pos.y);
+			gl_has_errors();
+
+			const std::string &scale = "scales[" + std::to_string(i) + "]";
+			GLint scale_loc = glGetUniformLocation(currProgram, scale.c_str());
+
+			glUniform1f(scale_loc, p.time_elapsed_ms / p.lifespan_ms);
+			
+			gl_has_errors();
+		}
+		glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, 0, registry.emitters.get(entity).particles.size());
+		
 	}
 	else
 	{

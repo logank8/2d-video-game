@@ -1305,9 +1305,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 					return true;
 				}
-
+				if (!(registry.projectiles.has(entity) || deadly.enemy_type == ENEMY_TYPES::SWARM))
+				{
+					createSmoke(renderer, {enemy_motion.position.x, enemy_motion.position.y});
+				}
 				registry.remove_all_components_of(entity);
 				enemies_killed++;
+				
 				if (enemies_killed >= enemy_kill_goal && current_map != map_final && !goal_reached)
 				{
 					max_num_enemies = 0;
@@ -1635,6 +1639,35 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			registry.lightUps.remove(entity);
 		}
 	}
+
+	// Update particle emitters;
+	for (Entity entity : registry.emitters.entities) {
+		ParticleEmitter &emitter = registry.emitters.get(entity);
+		emitter.time_elapsed_ms += elapsed_ms_since_last_update;
+
+		std::vector<Particle> survivors;
+		for (auto it = emitter.particles.begin(); it != emitter.particles.end(); it++) {
+			Particle& particle = *it;
+			particle.time_elapsed_ms += elapsed_ms_since_last_update;
+			if (particle.time_elapsed_ms < particle.lifespan_ms) {
+				survivors.push_back(particle);
+			}
+		}
+		emitter.particles = survivors;
+
+		if (emitter.particles.size() == 0 && emitter.emitted_count >= emitter.particle_count) {
+			registry.remove_all_components_of(entity);
+			continue;
+		}
+
+		if (emitter.emitted_count < emitter.particle_count) {
+			for (int i = 0; i < (emitter.emits_per_frame + (((2 * uniform_dist(rng)) - 1) * emitter.emission_variance)); i++) {
+				createSmokeParticle(renderer, registry.motions.get(entity).position, emitter);
+			}
+			emitter.emitted_count += emitter.emits_per_frame;
+		}
+	}
+
 
 	return true;
 }
@@ -2165,10 +2198,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 					d.state = ENEMY_STATE::DEAD;
 					DeathTimer &death = registry.deathTimers.emplace(entity_other);
 					death.counter_ms = 550.4f;
-					if (!(registry.projectiles.has(entity_other) || d.enemy_type == ENEMY_TYPES::SWARM))
-					{
-						createSmoke(renderer, {enemy_motion.position.x, enemy_motion.position.y});
-					}
+					
 				}
 			}
 		}

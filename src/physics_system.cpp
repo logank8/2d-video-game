@@ -941,6 +941,17 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
             registry.remove_all_components_of(e);
         }
     }
+
+
+    // Smoke particle movement - or maybe all particles ?
+    for (Entity e : registry.emitters.entities) {
+        ParticleEmitter& emitter = registry.emitters.get(e);
+
+        for (Particle& p : emitter.particles) {
+            p.pos.x += p.dir.x * elapsed_ms * (p.lifespan_ms - (p.time_elapsed_ms)) * 0.0009;
+            p.pos.y += p.dir.y * elapsed_ms * (p.lifespan_ms - (p.time_elapsed_ms)) * 0.0009;
+        }
+    }
     
 	// Move fish based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
