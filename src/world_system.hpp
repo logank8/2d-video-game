@@ -97,7 +97,7 @@ public:
 
 	int enemies_killed = 0;
 
-	int enemy_kill_goal = 20;
+	int enemy_kill_goal = 1;
 
 	bool goal_reached = false;
 
@@ -118,6 +118,8 @@ private:
 	void mapSwitch(int map);
 
 	void spawnDoor();
+
+	void enter_cutscene();
 
 	void stateSwitch(GameState new_state);
 

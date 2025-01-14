@@ -65,6 +65,7 @@ public:
 	ComponentContainer<BarIn> barIns;
 	ComponentContainer<ParticleEmitter> emitters;
 	ComponentContainer<Particle> particles;
+	ComponentContainer<EnemyKnockback> knockbacks;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -124,6 +125,7 @@ public:
 		registry_list.push_back(&barIns);
 		registry_list.push_back(&emitters);
 		registry_list.push_back(&particles);
+		registry_list.push_back(&knockbacks);
 	}
 
 	void clear_all_components()

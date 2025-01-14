@@ -717,6 +717,66 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
     Motion &motion = registry.motions.get(enemy);
     const Motion &player_motion = registry.motions.get(registry.players.entities[0]);
 
+    if (registry.deadlys.get(enemy).state == ENEMY_STATE::KNOCKED_BACK) {
+
+        if (registry.knockbacks.has(enemy)) {
+            EnemyKnockback& knockback = registry.knockbacks.get(enemy);
+
+            knockback.time_elapsed_ms += (step_seconds * 1000);
+
+            if ((1 / knockback.time_elapsed_ms) <= 0.003) {
+                registry.knockbacks.remove(enemy);
+            }
+
+            vec2 knockback_velocity = knockback.force * knockback.dir * (1 / knockback.time_elapsed_ms) * step_seconds;
+
+            // Collision detection - copied from step function player x solid obj (should make into a function soon)
+
+            // check if new x value will collide with any solid objects
+            float new_x = motion.position[0] + (knockback_velocity[0]);
+            Motion new_motion_x = {{new_x, motion.position.y}, motion.angle, knockback_velocity, motion.scale, motion.speed};
+            for (Entity solid : registry.solidObjs.entities) {
+                Motion& motion_solid = registry.motions.get(solid);
+
+                // just trying to make it so we're not checking for collision on every single solid object in the scene
+                if (distance(motion_solid.position, motion.position) > 3 * max(abs(motion.scale.x), abs(motion.scale.y))) {
+                    continue;
+                }
+
+                if (collides(motion_solid, new_motion_x)) {
+                    knockback_velocity.x = 0;
+                    break;
+                }
+            }
+
+            // update x value
+            motion.position[0] += knockback_velocity[0];
+
+            // check if new y value will collide with any solid objects
+            float new_y = motion.position[1] + (knockback_velocity[1]);
+            Motion new_motion_y = {{motion.position.x, new_y}, motion.angle, knockback_velocity, motion.scale, motion.speed};
+            for (Entity solid : registry.solidObjs.entities) {
+                Motion& motion_solid = registry.motions.get(solid);
+
+                // just trying to make it so we're not checking for collision on every single solid object in the scene
+                if (distance(motion_solid.position, motion.position) > 3 * max(abs(motion.scale.x), abs(motion.scale.y))) {
+                    continue;
+                }
+
+                if (collides(motion_solid, new_motion_y)) {
+                    knockback_velocity.y = 0;
+                    break;
+                }
+            }
+
+            // update y value
+            motion.position[1] += knockback_velocity[1];
+            return;
+        } else {
+            registry.deadlys.get(enemy).state = ENEMY_STATE::IDLE;
+        }
+    }
+
     // Update or create path timer
     if (!registry.pathTimers.has(enemy))
     {
@@ -764,6 +824,12 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
         }
     }
 
+    if (phsyics.has_los(motion.position, player_motion.position)) {
+        if (registry.deadlys.get(enemy).state == ENEMY_STATE::IDLE) {
+            registry.deadlys.get(enemy).state = ENEMY_STATE::RUN;
+        }
+    } 
+
     // Move along path
     if (registry.paths.has(enemy) && registry.deadlys.get(enemy).state != ENEMY_STATE::ATTACK)
     {
@@ -778,7 +844,6 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
             float length = sqrt(direction.x * direction.x + direction.y * direction.y);
             if (length > 0)
             {
-                registry.deadlys.get(enemy).state = ENEMY_STATE::RUN;
 
                 direction.x /= length;
                 direction.y /= length;
@@ -953,7 +1018,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
         }
     }
     
-	// Move fish based on how much time has passed, this is to (partially) avoid
+	// Move based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
 	auto& motion_registry = registry.motions;
 	for(uint i = 0; i< motion_registry.size(); i++)

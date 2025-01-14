@@ -54,7 +54,6 @@ int map_counter = 1;
 
 std::vector<int> current_door_pos;
 
-std::vector<int> current_tenant_pos;
 
 PhysicsSystem physics;
 
@@ -386,7 +385,6 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 
 	current_map = map1;
 	current_door_pos = door_positions[0];
-	current_tenant_pos = tenant_positions[0];
 
 	ScreenState &screen = registry.screenStates.components[0];
 	screen.state = GameState::START;
@@ -547,12 +545,10 @@ void WorldSystem::mapSwitch(int map)
 	if (map < 5)
 	{
 		current_door_pos = door_positions[map - 1];
-		current_tenant_pos = tenant_positions[map - 1];
 	}
 	else
 	{
 		current_door_pos = {-1, -1};
-		current_tenant_pos = {-1, -1};
 	}
 	if (std::find(levels_unlocked.begin(), levels_unlocked.end(), map) == levels_unlocked.end())
 	{
@@ -636,6 +632,17 @@ void WorldSystem::spawn_nearby_tile(vec2 curr_tile, std::vector<ENEMY_TYPES> &en
 			}
 		}
 	}
+}
+
+// Turning cutscene mode on
+// Keeping exit stuff separate for now
+void WorldSystem::enter_cutscene() {
+	cutscene = true;
+	Entity my_player = registry.players.entities[0];
+	Player& player = registry.players.get(my_player);
+	player.is_moving = false;
+	registry.motions.get(my_player).velocity = {0, 0};
+	registry.motions.get(my_player).speed = 0;
 }
 
 // Update our game world
@@ -724,6 +731,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	// Camera follows player
 	auto &cameraMotion = motions_registry.get(camera);
 	cameraMotion.position = player_pos;
+
+	// moving cutscene exception up here - might even move higher to override camera editing
+	// we want to entirely pause game updating and player movement
+	if (cutscene) {
+		return true;
+	}
 
 	// Remove a spawned power up if it has been around for more than 10 seconds
 	if (registry.powerups.entities.size() > 0)
@@ -990,7 +1003,57 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		bool tenant = true;
 		if (registry.tenants.entities.size() == 0)
 		{
+			// need to find a tile off screen where the tenant can spawn - use BFS
+			bool spawn_tile_found = false;
+			vec2 current_tenant_pos = {-1, -1};
+			std::vector<vec2> tiles_checked;
+			std::vector<vec2> tile_queue;
+			tile_queue.push_back(player_pos_map);
+
+
+			while (!spawn_tile_found) {
+				if (tile_queue.size() == 0) {
+					// Obviously not permanent error handling. just for now
+					std::cout << "Error: tile not found for tenant" << std::endl;
+					exit(1);
+				}
+
+				std::vector<vec2> new_queue;
+				for (vec2 tile : tile_queue) {
+					if ((tile.x < 0) || (tile.y < 0) || (tile.x >= current_map[0].size()) || tile.y >= current_map.size()) {
+						continue;
+					}
+					if (std::find(tiles_checked.begin(), tiles_checked.end(), tile) != tiles_checked.end()) {
+						continue;
+					}
+
+					if (current_map[tile.y][tile.x] == 1) {
+						// Tile is spawnable - check distance from player
+						if ((abs(tile.y - player_pos_map.y) > 6) && (abs(tile.x - player_pos_map.x) > 8)) {
+							// Tile is not visible - tenant can be spawned
+							spawn_tile_found = true;
+							current_tenant_pos = tile;
+							break;
+						}
+					}
+					
+					for (int i = -1; i <= 1; i++) {
+						for (int j = -1; j <=1; j++) {
+							if ((i == 0) && (j == 0)) {
+								continue;
+							}
+							new_queue.push_back({tile.x + i, tile.y + j});
+						}
+					}
+					tiles_checked.push_back(tile);
+				}
+				tile_queue.clear();
+				tile_queue = new_queue;
+			}
+
+
 			vec2 world_pos = {(640 - (25 * 100)) + (current_tenant_pos[0] * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (current_tenant_pos[1] * TILE_SIZE) + (TILE_SIZE / 2)};
+			std::cout << "tenant spawned in at " << current_tenant_pos.x << " " << current_tenant_pos.y << std::endl;
 			// varying tenant based on map
 			if (current_map == map1)
 			{
@@ -1015,6 +1078,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 		if (tenant)
 		{
+			if (!cutscene) {
+				// commented out for now so i can make sure the tenant is moving right
+				//enter_cutscene();
+			}
 			Entity tenant = registry.tenants.entities[0];
 			if (registry.tutorialIcons.size() == 0 && registry.tenants.get(tenant).player_in_radius && !cutscene)
 			{
@@ -1443,10 +1510,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		createText({500, 680}, 0.6, "Press G to use holy artifact", vec3(1.0, 1.0, 1.0));
 	}
 
-	if (!cutscene)
-	{
-		player_controller.step(elapsed_ms_since_last_update);
-	}
+	player_controller.step(elapsed_ms_since_last_update);
+	
 
 	if (tutorial.toggle_show_ms_passed < tutorial.toggle_show_ms)
 	{
@@ -2081,6 +2146,22 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 				if (!registry.projectiles.has(entity_other) && deadly_health.hit_points > 0)
 				{
+					if (registry.knockbacks.has(entity_other)) {
+						registry.knockbacks.remove(entity_other);
+					}
+					
+					// Calculating knockback direction
+					vec2 knockback_dir = normalize(enemy_motion.position - pmotion.position);
+
+					registry.knockbacks.insert(entity_other, {
+						knockback_dir,
+						1.f,
+						player.knockback_strength * 500000
+					});
+
+					deadly.state = ENEMY_STATE::KNOCKED_BACK;
+
+					/*
 					vec2 knockback_pos = registry.motions.get(entity_other).position + (diff * player.knockback_strength);
 					int grid_x = static_cast<int>((knockback_pos.x - (640 - (25 * TILE_SIZE)) - TILE_SIZE / 2) / TILE_SIZE);
 					int grid_y = static_cast<int>((knockback_pos.y - (640 - (44 * TILE_SIZE)) - TILE_SIZE / 2) / TILE_SIZE);
@@ -2185,6 +2266,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 							}
 						}
 					}
+					*/
 				}
 				if (registry.lightUps.has(entity_other))
 				{
@@ -2646,10 +2728,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 					// player's first time speaking to tenant - freeze player movement/attack
 					if (tenant.dialogue_progress == -1)
 					{
-						cutscene = true;
-						player.is_moving = false;
-						registry.motions.get(my_player).velocity = {0, 0};
-						registry.motions.get(my_player).speed = 0;
+						enter_cutscene();
 						createDialogueBox(renderer);
 					}
 					tenant.dialogue_progress += 1;
@@ -2709,10 +2788,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 							registry.debugComponents.remove(text);
 						}
 
-						cutscene = true;
-						player.is_moving = false;
-						registry.motions.get(my_player).velocity = {0, 0};
-						registry.motions.get(my_player).speed = 0;
+						enter_cutscene();
 						createDialogueBox(renderer);
 					}
 				}

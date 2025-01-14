@@ -18,7 +18,8 @@ enum class ENEMY_STATE
 	IDLE = 0,
 	RUN = IDLE + 1,
 	ATTACK = RUN + 1,
-	DEAD = ATTACK + 1
+	DEAD = ATTACK + 1,
+	KNOCKED_BACK = DEAD + 1
 };
 
 enum class BUFF_TYPE
@@ -126,6 +127,12 @@ struct Deadly
 	int experience = 1;
 	ENEMY_STATE state = ENEMY_STATE::IDLE;
 	vec2 knocked_back_pos = {INFINITY, INFINITY};
+};
+
+struct EnemyKnockback {
+	vec2 dir;
+	float time_elapsed_ms;
+	float force;
 };
 
 struct EnemyDash
