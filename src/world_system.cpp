@@ -389,7 +389,10 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 	ScreenState &screen = registry.screenStates.components[0];
 	screen.state = GameState::START;
 
-	createStartScreen(renderer);
+	stateSwitch(GameState::MENU);
+
+	createText(vec2(185, 450), 1.2f, "EVICTION", vec3(0.0f, 0.0f, 0.0f));
+	createText(vec2(95, 370), 1.2f, "OF THE DAMNED", vec3(0.0f, 0.0f, 0.0f));
 
 	// Set all states to default
 	restart_world();
