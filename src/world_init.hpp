@@ -238,9 +238,3 @@ Entity createTenant(RenderSystem *renderer, vec2 pos, int level);
 Entity createDialogueBox(RenderSystem *renderer);
 
 Entity createElevatorDisplay(RenderSystem *renderer, vec2 pos);
-
-Entity createHolyArtifact(RenderSystem *renderer);
-
-Entity createArtifactBackground(RenderSystem *renderer);
-
-Entity createArtifactCenter(RenderSystem *renderer);

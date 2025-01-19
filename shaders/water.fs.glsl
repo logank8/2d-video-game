@@ -142,42 +142,6 @@ void main()
 				}
 			}
 		}
-
-		// Holy Artifact
-		if ((fragPos.y >= 0.73) && (fragPos.y <= 0.97)) {
-			if ((fragPos.x <= 0.965) && (fragPos.x >= 0.835)) {
-				if ((fragPos.x >= 0.925 || fragPos.x <= 0.875) && (fragPos.y >= 0.955)) {
-					color = color;
-				} else if ((fragPos.x >= 0.945 || fragPos.x <= 0.865) && (fragPos.y >= 0.935)) {
-					color = color;
-				} else if ((fragPos.x >= 0.955 || fragPos.x <= 0.855) && (fragPos.y >= 0.915)) {
-					color = color;
-				}else if ((fragPos.x >= 0.955 || fragPos.x <= 0.845) && (fragPos.y <= 0.854)) {
-					color = color;
-				} else if ((fragPos.x >= 0.945 || fragPos.x <= 0.855) && (fragPos.y <= 0.82)) {
-					color = color;
-				} else if ((fragPos.x >= 0.935 || fragPos.x <= 0.865) && (fragPos.y <= 0.8)) {
-					color = color;
-				} else if ((fragPos.x >= 0.925 || fragPos.x <= 0.875) && (fragPos.y <= 0.78)) {
-					color = color;
-				} else if ((fragPos.x >= 0.915 || fragPos.x <= 0.885) && (fragPos.y <= 0.76)) {
-					color = color;
-				} else if ((fragPos.x >= 0.905 || fragPos.x <= 0.895) && (fragPos.y <= 0.74)) {
-					color = color;
-				} else if ((fragPos.x >= 0.99) && (fragPos.y <= 0.8)) {
-					color = color;
-				} else if ((fragPos.x >= 0.99) && (fragPos.y >= 0.99)) {
-					color = color;
-				} else if ((fragPos.x >= 0.99) && (fragPos.y >= 0.9)) {
-					color = color;
-				} else if ((fragPos.x >= 0.99) && (fragPos.y >= 0.99)) {
-					color = color;
-				} 
-				else {
-					color = in_color;		
-				}
-			}
-		}
 	}
 	
 }
