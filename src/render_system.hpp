@@ -99,8 +99,6 @@ class RenderSystem
 		textures_path("tutorial_sprites/tutorial_toggle.png"),
 		textures_path("bars.png"),
 		textures_path("elevator_display.png"),
-		textures_path("artifact_background.png"),
-		textures_path("artifact_center.png"),
 		textures_path("tenant_1.png"),
 		textures_path("tenant_2.png"),
 		textures_path("tenant_3.png"),

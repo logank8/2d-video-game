@@ -97,11 +97,9 @@ public:
 
 	int enemies_killed = 0;
 
-	int enemy_kill_goal = 2;
+	int enemy_kill_goal = 30;
 
 	bool goal_reached = false;
-
-	bool artifact_loaded = false;
 
 	bool cutscene = false;
 
