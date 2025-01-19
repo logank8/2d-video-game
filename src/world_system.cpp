@@ -79,7 +79,7 @@ void gameWinText()
 
 void windowMinimizedCallback(GLFWwindow *window, int iconified)
 {
-	if (iconified)
+	if (iconified && !WorldSystem::is_level_up)
 	{
 		WorldSystem::is_paused = true;
 		if (registry.screenStates.components.size() != 0)
@@ -102,7 +102,7 @@ void windowMinimizedCallback(GLFWwindow *window, int iconified)
 
 void windowFocusCallback(GLFWwindow *window, int focused)
 {
-	if (!focused)
+	if (!focused && !WorldSystem::is_level_up)
 	{
 		WorldSystem::is_paused = true;
 		if (registry.screenStates.components.size() != 0)
@@ -380,7 +380,7 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 	// Playing background music indefinitely
 	// Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
-	delete_player_data(SAVE_FILENAME);
+	// delete_player_data(SAVE_FILENAME);
 	fps_counter_ms = FPS_COUNTER_MS;
 
 	current_map = map1;
@@ -901,7 +901,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 			if (current_map != map_final || registry.bosses.get(final_boss).stage == FinalLevelStage::STAGE3)
 			{
-				if (current_map[j][i] == 3 && num_enemies_spawned < enemy_kill_goal)
+				if (current_map[j][i] == 3 && num_enemies_spawned <= enemy_kill_goal)
 				{
 					int encounter = rand() % 3;
 					if (encounter == 0)
@@ -925,7 +925,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					}
 					tile_vec.push_back(vec2(i, j));
 				}
-				if (current_map[j][i] == 4 && num_enemies_spawned < enemy_kill_goal)
+				if (current_map[j][i] == 4 && num_enemies_spawned <= enemy_kill_goal)
 				{
 					int encounter = rand() % 3;
 					if (encounter == 0)
@@ -953,7 +953,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					}
 					tile_vec.push_back(vec2(i, j));
 				}
-				if (current_map[j][i] == 5 && num_enemies_spawned < enemy_kill_goal)
+				if (current_map[j][i] == 5 && num_enemies_spawned <= enemy_kill_goal)
 				{
 					int encounter = rand() % 3;
 					if (encounter == 0)
@@ -988,7 +988,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				tile_vec.push_back(vec2(i, j));
 			}
 
-			if (current_map[j][i] == 8 && num_enemies_spawned < enemy_kill_goal)
+			if (current_map[j][i] == 8 && num_enemies_spawned <= enemy_kill_goal)
 			{
 				Entity swarm_leader = createSwarm(renderer, world_pos, 0.55f, 0.05f, 0.00005f);
 				Motion &swarm_motion = motions_registry.get(swarm_leader);
@@ -1113,7 +1113,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		// TODO: spawn frequencies and spawn radius to be adjusted
 		//  Spawn Level 1 type enemy: slow with contact damage
 		next_contact_slow_spawn -= elapsed_ms_since_last_update * current_speed;
-		if (next_contact_slow_spawn < 0.f && num_enemies_spawned < enemy_kill_goal)
+		if (next_contact_slow_spawn < 0.f && num_enemies_spawned <= enemy_kill_goal)
 		{
 			next_contact_slow_spawn = (CONTACT_SLOW_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_SLOW_SPAWN_DELAY_MS / 2);
 			vec2 contact_slow_pos;
@@ -1133,7 +1133,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 		// Spawn Level 2 type enemy: fast with contact damage
 		next_contact_fast_spawn -= elapsed_ms_since_last_update * current_speed;
-		if (next_contact_fast_spawn < 0.f && num_enemies_spawned < enemy_kill_goal)
+		if (next_contact_fast_spawn < 0.f && num_enemies_spawned <= enemy_kill_goal)
 		{
 			next_contact_fast_spawn = (CONTACT_FAST_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_FAST_SPAWN_DELAY_MS / 2);
 			vec2 contact_fast_pos;
@@ -1167,7 +1167,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 		// Spawn Level 3 type enemy: slow ranged enemy
 		next_ranged_spawn -= elapsed_ms_since_last_update * current_speed;
-		if (next_ranged_spawn < 0.f && num_enemies_spawned < enemy_kill_goal)
+		if (next_ranged_spawn < 0.f && num_enemies_spawned <= enemy_kill_goal)
 		{
 			next_ranged_spawn = (RANGED_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_SPAWN_DELAY_MS / 2);
 			vec2 ranged_pos;
@@ -1203,7 +1203,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		if (map_counter >= 4) {
 			// Spawn dashing enemy
 			next_dashing_spawn -= elapsed_ms_since_last_update * current_speed;
-			if (next_dashing_spawn < 0.f && num_enemies_spawned < enemy_kill_goal)
+			if (next_dashing_spawn < 0.f && num_enemies_spawned <= enemy_kill_goal)
 			{
 				next_dashing_spawn = (DASHING_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (DASHING_ENEMY_SPAWN_DELAY_MS / 2);
 				vec2 dashing_pos;
@@ -2513,6 +2513,8 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			int w, h;
 			glfwGetWindowSize(window, &w, &h);
 			restart_game();
+			delete_player_data(SAVE_FILENAME);
+			mapSwitch(1);
 		}
 	}
 
