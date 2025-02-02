@@ -346,7 +346,7 @@ void PlayerController::step(float elapsed_ms_since_last_update)
                 player.experience -= player.toNextLevel;
 
                 // temporary increase
-                player.toNextLevel += 1;
+                player.toNextLevel += 5;
                 world->update_experience_bar();
             }
 

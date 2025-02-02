@@ -108,12 +108,12 @@ void windowFocusCallback(GLFWwindow *window, int focused)
 		if (registry.screenStates.components.size() != 0)
 		{
 			ScreenState &screen = registry.screenStates.components[0];
-			if (screen.state == GameState::GAME)
-			{
-				screen.state = GameState::PAUSED;
-				screen.darken_screen_factor = 0.9f;
-				pauseMenuText();
-			}
+			// if (screen.state == GameState::GAME)
+			// {
+			// 	screen.state = GameState::PAUSED;
+			// 	screen.darken_screen_factor = 0.9f;
+			// 	pauseMenuText();
+			// }
 			if (screen.state != GameState::PAUSED)
 			{
 				WorldSystem::is_paused = false;
