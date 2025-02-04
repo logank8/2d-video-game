@@ -161,8 +161,7 @@ void WorldSystem::stateSwitch(GameState new_state)
 		screen.state = GameState::MENU;
 		screen.darken_screen_factor = 0.0f;
 
-		createMenuScreen(renderer);
-		createElevatorButtons(renderer, 5);
+		
 		break;
 	case (GameState::GAME):
 		while (registry.userInterfaces.entities.size() > 0)
@@ -390,9 +389,8 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 	screen.state = GameState::START;
 
 	stateSwitch(GameState::MENU);
-
-	createText(vec2(185, 450), 1.2f, "EVICTION", vec3(0.0f, 0.0f, 0.0f));
-	createText(vec2(95, 370), 1.2f, "OF THE DAMNED", vec3(0.0f, 0.0f, 0.0f));
+	createMenuScreen(renderer, true);
+	createElevatorButtons(renderer, 5);
 
 	// Set all states to default
 	restart_world();
@@ -2527,6 +2525,8 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		if (screen.state == GameState::PAUSED || screen.state == GameState::GAME_OVER)
 		{
 			stateSwitch(GameState::MENU);
+			createMenuScreen(renderer, false);
+			createElevatorButtons(renderer, 5);
 			return;
 		}
 	}

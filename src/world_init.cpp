@@ -1924,7 +1924,7 @@ Entity createGameOverScreen(RenderSystem *renderer)
 	return entity;
 }
 
-Entity createMenuScreen(RenderSystem *renderer)
+Entity createMenuScreen(RenderSystem *renderer, bool start)
 {
 	auto entity = Entity();
 
@@ -1941,8 +1941,26 @@ Entity createMenuScreen(RenderSystem *renderer)
 				 -1,
 				 RENDER_LAYER::FLOOR});
 
+	if (start) {
+		auto title_entity = Entity();
+
+		UserInterface &ui = registry.userInterfaces.emplace(title_entity);
+		ui.angle = 0.f;
+		ui.position = {0, 0};
+		ui.scale = vec2({2.0, -2.0});
+
+		registry.renderRequests.insert(
+		title_entity, {TEXTURE_ASSET_ID::TITLE,
+				 SPRITE_ASSET_ID::SPRITE_COUNT,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 -1,
+				 RENDER_LAYER::DEFAULT_LAYER});
+	}
+
 	return entity;
 }
+
 
 void createElevatorButtons(RenderSystem *renderer, int num_levels)
 {
@@ -2271,7 +2289,7 @@ Entity createTenant(RenderSystem *renderer, vec2 pos, int level)
 	// Initialize the position, scale, and physics components
 	auto &motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = {0, 0};
+	motion.velocity = {0, 1};
 	motion.position = pos;
 	motion.scale = vec2({PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT});
 

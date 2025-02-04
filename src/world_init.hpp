@@ -209,7 +209,7 @@ Entity createStartScreen(RenderSystem *renderer);
 
 Entity createGameOverScreen(RenderSystem *renderer);
 
-Entity createMenuScreen(RenderSystem *renderer);
+Entity createMenuScreen(RenderSystem *renderer, bool start);
 
 void createElevatorButtons(RenderSystem *renderer, int num_levels);
 
