@@ -97,7 +97,7 @@ public:
 
 	int enemies_killed = 0;
 
-	int enemy_kill_goal = 30;
+	int enemy_kill_goal = 1;
 
 	bool goal_reached = false;
 

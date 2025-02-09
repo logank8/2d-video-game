@@ -6,7 +6,7 @@
 WorldSystem world;
 PhysicsSystem phsyics;
 std::vector<std::vector<int>> map;
-const float TILE_SIZE = 100.0f;
+const int TILE_SIZE = 100;
 const float GRID_OFFSET_X = (640 - (25 * TILE_SIZE));
 const float GRID_OFFSET_Y = (640 - (44 * TILE_SIZE));
 
@@ -694,7 +694,6 @@ void PhysicsSystem::update_swarm_movement(Entity swarm_member, float step_second
 
         entity_motion.velocity = normalize(entity_motion.velocity);
     }
-    vec2 prevpos = entity_motion.position;
     entity_motion.position = (entity_motion.speed * entity_motion.velocity * step_seconds) + entity_motion.position;
     int grid_x = static_cast<int>((entity_motion.position.x - GRID_OFFSET_X) / TILE_SIZE);
     int grid_y = static_cast<int>((entity_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE);
@@ -704,6 +703,15 @@ void PhysicsSystem::update_swarm_movement(Entity swarm_member, float step_second
     } else if (map[grid_y][grid_x] == 0 || map[grid_y][grid_x] == 2) {
         registry.remove_all_components_of(swarm_member);
     }
+}
+
+vec2 map_to_world(vec2 map_pos) {
+    return {-1860 + (map_pos.x * TILE_SIZE) + (TILE_SIZE / 2), -3760 + (map_pos.y * TILE_SIZE) + (TILE_SIZE / 2)};
+}
+
+vec2 world_to_map(vec2 world_pos) {
+    vec2 world_origin = {-1860, -3760};
+    return vec2((int)((world_pos.x - world_origin.x) - ((int)abs(world_pos.x - world_origin.x) % TILE_SIZE)) / TILE_SIZE, (int)((world_pos.y - world_origin.y) - ((int)abs(world_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
 }
 
 // A* pathfinding code
@@ -893,12 +901,31 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
                     path.current_index++;
                 }
             } else {
-              
                 registry.deadlys.get(enemy).state = ENEMY_STATE::IDLE;
-            
             }
         }
     }
+}
+
+Path PhysicsSystem::findDFSPath(vec2 start, vec2 target, std::vector<vec2> visited) {
+
+    Motion start_motion = {
+        start,
+        0,
+	    {0, 0},
+	    {10, 10},
+	    30.0f, 
+	    {1, 1},
+	    {0, 0}
+    };
+
+    Motion pmotion = registry.motions.get(registry.players.entities[0]);
+    Path return_path = {
+        find_path(start_motion, pmotion),
+        0
+    };
+
+    return return_path;
 }
 
 void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current_map)
@@ -989,6 +1016,48 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
         } else {
             tenant.player_in_radius = false;
         }
+
+        vec2 player_pos = player_motion.position;
+        vec2 tenant_pos = registry.motions.get(e).position;
+        std::cout << "player at " << player_pos.x << ", " << player_pos.y << std::endl;
+        std::cout << "tenant at " << tenant_pos.x << ", " << tenant_pos.y << std::endl;
+
+        if (!tenant.on_path) {
+            Path path = findDFSPath(tenant_pos, player_pos, {});
+            tenant.path = path.points;
+            tenant.on_path = true;
+        }
+        
+
+        std::cout << "path length: " << tenant.path.size() << std::endl;
+        
+
+        Motion& tenant_motion = registry.motions.get(e);
+
+        while (tenant.path.size() != 0) {
+            if (distance(tenant_motion.position, tenant.path[0]) <= 50) {
+                std::cout << "target reached" << std::endl;
+                std::vector<vec2>& tpath = tenant.path;
+                tpath.erase(tenant.path.begin());
+                continue;
+            }
+
+            vec2 world_pos_target = tenant.path[0];
+
+            vec2 towards_path = normalize(world_pos_target - tenant_motion.position);
+
+            if (tenant.path.size() >= 7) {
+                tenant_motion.speed = 700;
+            } else {
+                tenant_motion.speed = 100;
+            }
+
+            tenant_motion.position.x += towards_path.x * tenant_motion.speed * (elapsed_ms/1000);
+            tenant_motion.position.y += towards_path.y * tenant_motion.speed * (elapsed_ms/1000);
+
+            break;
+        }
+        
     }
 
 

@@ -829,7 +829,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	// origin: [-1860, -3760]
 	// current screen pos + origin
 	//  minus modulo tilesize and divide by tilesize
-	vec2 player_pos_map = vec2((int)((player_pos.x - world_origin.x) - ((int)(player_pos.x - world_origin.x) % TILE_SIZE)) / 100, (int)((player_pos.y - world_origin.y) - ((int)(player_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
+	vec2 player_pos_map = vec2((int)((player_pos.x - world_origin.x) - ((int)(player_pos.x - world_origin.x) % TILE_SIZE)) / TILE_SIZE, (int)((player_pos.y - world_origin.y) - ((int)(player_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
 
 	for (int i = player_pos_map.x - 8; i <= player_pos_map.x + 8; i++)
 	{

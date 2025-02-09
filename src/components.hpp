@@ -456,6 +456,8 @@ struct Tenant
 	int dialogue_progress = -1;
 	std::vector<std::string> extra_dialogues;
 	bool player_in_radius = false;
+	bool on_path = false;
+	std::vector<vec2> path = {};
 };
 
 struct UpgradeConfirm

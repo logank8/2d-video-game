@@ -2290,6 +2290,7 @@ Entity createTenant(RenderSystem *renderer, vec2 pos, int level)
 	auto &motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = {0, 1};
+	motion.speed = 100.f;
 	motion.position = pos;
 	motion.scale = vec2({PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT});
 
