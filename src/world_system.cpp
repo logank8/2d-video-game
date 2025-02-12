@@ -638,12 +638,18 @@ void WorldSystem::spawn_nearby_tile(vec2 curr_tile, std::vector<ENEMY_TYPES> &en
 // Turning cutscene mode on
 // Keeping exit stuff separate for now
 void WorldSystem::enter_cutscene() {
-	cutscene = true;
 	Entity my_player = registry.players.entities[0];
 	Player& player = registry.players.get(my_player);
+	player.state = PLAYER_STATE::IDLE;
 	player.is_moving = false;
-	registry.motions.get(my_player).velocity = {0, 0};
-	registry.motions.get(my_player).speed = 0;
+	player.last_direction = {0, 1};
+	cutscene = true;
+}
+
+void WorldSystem::exit_cutscene() {
+	std::cout << "exiting cutscene" << std::endl;
+	cutscene = false; 
+	Entity my_player = registry.players.entities[0];
 }
 
 // Update our game world
@@ -711,13 +717,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	if (current_map != map_final)
 	{
 		title_ss << "Level: " << (map_counter);
-		createText({ 40, 500 }, 0.5f, "Enemies Remaining: " + std::to_string(max(0, (enemy_kill_goal - enemies_killed))), vec3(0.969, 0.588, 0.09));
-		for (Entity e : registry.killTrackers.entities)
-		{
-			KillTracker& track = registry.killTrackers.get(e);
-			track.killed = enemies_killed;
-			track.goal = enemy_kill_goal;
-		}
+		createText({ 40, 500 }, 0.5f, "Enemies Remaining: " + std::to_string(max(0, (int(registry.deadlys.entities.size() - enemies_killed)))), vec3(0.969, 0.588, 0.09));
 	}
 	else
 	{
@@ -735,11 +735,137 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	auto &cameraMotion = motions_registry.get(camera);
 	cameraMotion.position = player_pos;
 
-	// moving cutscene exception up here - might even move higher to override camera editing
-	// we want to entirely pause game updating and player movement
-	if (cutscene) {
-		return true;
+	vec2 player_pos_map = vec2((int)((player_pos.x - world_origin.x) - ((int)(player_pos.x - world_origin.x) % TILE_SIZE)) / TILE_SIZE, (int)((player_pos.y - world_origin.y) - ((int)(player_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
+
+
+	// Update particle emitters; (particles still move in cutscenes)
+	for (Entity entity : registry.emitters.entities) {
+		ParticleEmitter &emitter = registry.emitters.get(entity);
+		emitter.time_elapsed_ms += elapsed_ms_since_last_update;
+
+		std::vector<Particle> survivors;
+		for (auto it = emitter.particles.begin(); it != emitter.particles.end(); it++) {
+			Particle& particle = *it;
+			particle.time_elapsed_ms += elapsed_ms_since_last_update;
+			if (particle.time_elapsed_ms < particle.lifespan_ms) {
+				survivors.push_back(particle);
+			}
+		}
+		emitter.particles = survivors;
+
+		if (emitter.particles.size() == 0 && emitter.emitted_count >= emitter.particle_count) {
+			registry.remove_all_components_of(entity);
+			continue;
+		}
+
+		if (emitter.emitted_count < emitter.particle_count) {
+			for (int i = 0; i < (emitter.emits_per_frame + (((2 * uniform_dist(rng)) - 1) * emitter.emission_variance)); i++) {
+				createSmokeParticle(renderer, registry.motions.get(entity).position, emitter);
+			}
+			emitter.emitted_count += emitter.emits_per_frame;
+		}
 	}
+
+	// Managing tenant appearance and interaction ability stuff
+	if (goal_reached)
+	{
+		bool tenant = true;
+		if (registry.tenants.entities.size() == 0)
+		{
+			// need to find a tile off screen where the tenant can spawn - use BFS
+			bool spawn_tile_found = false;
+			vec2 current_tenant_pos = {-1, -1};
+			std::vector<vec2> tiles_checked;
+			std::vector<vec2> tile_queue;
+			tile_queue.push_back(player_pos_map);
+
+			while (!spawn_tile_found) {
+				if (tile_queue.size() == 0) {
+					// Obviously not permanent error handling. just for now
+					std::cout << "Error: tile not found for tenant" << std::endl;
+					exit(1);
+				}
+
+				std::vector<vec2> new_queue;
+				for (vec2 tile : tile_queue) {
+					if ((tile.x < 0) || (tile.y < 0) || (tile.x >= current_map[0].size()) || tile.y >= current_map.size()) {
+						continue;
+					}
+					if (std::find(tiles_checked.begin(), tiles_checked.end(), tile) != tiles_checked.end()) {
+						continue;
+					}
+
+					if (current_map[tile.y][tile.x] == 1) {
+						// Tile is spawnable - check distance from player
+						if ((abs(tile.y - player_pos_map.y) > 6) && (abs(tile.x - player_pos_map.x) > 8)) {
+							// Tile is not visible - tenant can be spawned
+							spawn_tile_found = true;
+							current_tenant_pos = tile;
+							break;
+						}
+					}
+					
+					for (int i = -1; i <= 1; i++) {
+						for (int j = -1; j <=1; j++) {
+							if ((i == 0) && (j == 0)) {
+								continue;
+							}
+							new_queue.push_back({tile.x + i, tile.y + j});
+						}
+					}
+					tiles_checked.push_back(tile);
+				}
+				tile_queue.clear();
+				tile_queue = new_queue;
+			}
+
+
+			vec2 world_pos = {(640 - (25 * 100)) + (current_tenant_pos[0] * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (current_tenant_pos[1] * TILE_SIZE) + (TILE_SIZE / 2)};
+			std::cout << "tenant spawned in at " << current_tenant_pos.x << " " << current_tenant_pos.y << std::endl;
+			// varying tenant based on map
+			if (current_map == map1)
+			{
+				createTenant(renderer, world_pos, 1);
+			}
+			else if (current_map == map2)
+			{
+				createTenant(renderer, world_pos, 2);
+			}
+			else if (current_map == map3)
+			{
+				createTenant(renderer, world_pos, 3);
+			}
+			else if (current_map == map4)
+			{
+				createTenant(renderer, world_pos, 4);
+			}
+			else
+			{
+				tenant = false;
+			}
+			enter_cutscene();
+		}
+		
+		if (tenant)
+		{
+			Entity tenant = registry.tenants.entities[0];
+			
+			if (registry.tutorialIcons.size() == 0 && registry.tenants.get(tenant).player_in_radius)
+			{
+				std::cout << "creating interact key" << std::endl;
+				createInteractKey(renderer, {registry.motions.get(tenant).position.x, registry.motions.get(tenant).position.y + 60});
+			}
+			if (!registry.tenants.get(tenant).player_in_radius)
+			{
+				while (registry.tutorialIcons.entities.size() != 0)
+				{
+					registry.remove_all_components_of(registry.tutorialIcons.entities.back());
+				}
+			}
+		}
+	}
+
+
 
 	// Remove a spawned power up if it has been around for more than 10 seconds
 	if (registry.powerups.entities.size() > 0)
@@ -829,7 +955,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	// origin: [-1860, -3760]
 	// current screen pos + origin
 	//  minus modulo tilesize and divide by tilesize
-	vec2 player_pos_map = vec2((int)((player_pos.x - world_origin.x) - ((int)(player_pos.x - world_origin.x) % TILE_SIZE)) / TILE_SIZE, (int)((player_pos.y - world_origin.y) - ((int)(player_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
 
 	for (int i = player_pos_map.x - 8; i <= player_pos_map.x + 8; i++)
 	{
@@ -902,10 +1027,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 			if (current_map != map_final || registry.bosses.get(final_boss).stage == FinalLevelStage::STAGE3)
 			{
-				if (current_map[j][i] == 3 && num_enemies_spawned <= enemy_kill_goal)
+				if (current_map[j][i] == 3 && num_enemies_spawned < enemy_kill_goal)
 				{
 					int encounter = rand() % 3;
-					if (encounter == 0)
+					if (encounter == 0 || num_enemies_spawned == enemy_kill_goal - 1)
 					{
 						createContactSlow(renderer, world_pos);
 						num_enemies_spawned++;
@@ -926,10 +1051,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					}
 					tile_vec.push_back(vec2(i, j));
 				}
-				if (current_map[j][i] == 4 && num_enemies_spawned <= enemy_kill_goal)
+				if (current_map[j][i] == 4 && num_enemies_spawned < enemy_kill_goal - 1)
 				{
 					int encounter = rand() % 3;
-					if (encounter == 0)
+					if (encounter == 0 || num_enemies_spawned == enemy_kill_goal - 2)
 					{
 
 						createContactSlow(renderer, world_pos);
@@ -954,10 +1079,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					}
 					tile_vec.push_back(vec2(i, j));
 				}
-				if (current_map[j][i] == 5 && num_enemies_spawned <= enemy_kill_goal)
+				if (current_map[j][i] == 5 && num_enemies_spawned < enemy_kill_goal - 2)
 				{
 					int encounter = rand() % 3;
-					if (encounter == 0)
+					if (encounter == 0 || num_enemies_spawned == enemy_kill_goal - 3)
 					{
 						createContactFast(renderer, world_pos);
 						std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::RANGED, ENEMY_TYPES::RANGED};
@@ -989,7 +1114,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				tile_vec.push_back(vec2(i, j));
 			}
 
-			if (current_map[j][i] == 8 && num_enemies_spawned <= enemy_kill_goal)
+			if (current_map[j][i] == 8 && num_enemies_spawned < enemy_kill_goal)
 			{
 				Entity swarm_leader = createSwarm(renderer, world_pos, 0.55f, 0.05f, 0.00005f);
 				Motion &swarm_motion = motions_registry.get(swarm_leader);
@@ -1008,113 +1133,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	Player &player = registry.players.components[0];
 	player.levels_unlocked = levels_unlocked;
 
-	// Managing tenant appearance and interaction ability stuff
-	if (goal_reached)
-	{
-		bool tenant = true;
-		if (registry.tenants.entities.size() == 0)
-		{
-			// need to find a tile off screen where the tenant can spawn - use BFS
-			bool spawn_tile_found = false;
-			vec2 current_tenant_pos = {-1, -1};
-			std::vector<vec2> tiles_checked;
-			std::vector<vec2> tile_queue;
-			tile_queue.push_back(player_pos_map);
-
-
-			while (!spawn_tile_found) {
-				if (tile_queue.size() == 0) {
-					// Obviously not permanent error handling. just for now
-					std::cout << "Error: tile not found for tenant" << std::endl;
-					exit(1);
-				}
-
-				std::vector<vec2> new_queue;
-				for (vec2 tile : tile_queue) {
-					if ((tile.x < 0) || (tile.y < 0) || (tile.x >= current_map[0].size()) || tile.y >= current_map.size()) {
-						continue;
-					}
-					if (std::find(tiles_checked.begin(), tiles_checked.end(), tile) != tiles_checked.end()) {
-						continue;
-					}
-
-					if (current_map[tile.y][tile.x] == 1) {
-						// Tile is spawnable - check distance from player
-						if ((abs(tile.y - player_pos_map.y) > 6) && (abs(tile.x - player_pos_map.x) > 8)) {
-							// Tile is not visible - tenant can be spawned
-							spawn_tile_found = true;
-							current_tenant_pos = tile;
-							break;
-						}
-					}
-					
-					for (int i = -1; i <= 1; i++) {
-						for (int j = -1; j <=1; j++) {
-							if ((i == 0) && (j == 0)) {
-								continue;
-							}
-							new_queue.push_back({tile.x + i, tile.y + j});
-						}
-					}
-					tiles_checked.push_back(tile);
-				}
-				tile_queue.clear();
-				tile_queue = new_queue;
-			}
-
-
-			vec2 world_pos = {(640 - (25 * 100)) + (current_tenant_pos[0] * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (current_tenant_pos[1] * TILE_SIZE) + (TILE_SIZE / 2)};
-			std::cout << "tenant spawned in at " << current_tenant_pos.x << " " << current_tenant_pos.y << std::endl;
-			// varying tenant based on map
-			if (current_map == map1)
-			{
-				createTenant(renderer, world_pos, 1);
-			}
-			else if (current_map == map2)
-			{
-				createTenant(renderer, world_pos, 2);
-			}
-			else if (current_map == map3)
-			{
-				createTenant(renderer, world_pos, 3);
-			}
-			else if (current_map == map4)
-			{
-				createTenant(renderer, world_pos, 4);
-			}
-			else
-			{
-				tenant = false;
-			}
-		}
-		if (tenant)
-		{
-			if (!cutscene) {
-				// commented out for now so i can make sure the tenant is moving right
-				//enter_cutscene();
-			}
-			Entity tenant = registry.tenants.entities[0];
-			if (registry.tutorialIcons.size() == 0 && registry.tenants.get(tenant).player_in_radius && !cutscene)
-			{
-				createInteractKey(renderer, {registry.motions.get(tenant).position.x, registry.motions.get(tenant).position.y + 60});
-			}
-			if (!registry.tenants.get(tenant).player_in_radius)
-			{
-				while (registry.tutorialIcons.entities.size() != 0)
-				{
-					registry.remove_all_components_of(registry.tutorialIcons.entities.back());
-				}
-			}
-		}
-		if (registry.tutorialIcons.size() == 0 && cutscene) createInteractKey(renderer, {registry.motions.get(my_player).position.x + (window_width_px / 2) - 50, registry.motions.get(my_player).position.y + (window_height_px / 4) - 40});
-	}
 
 	if (current_map != map_final || registry.bosses.get(final_boss).stage != FinalLevelStage::STAGE1)
 	{
 		// TODO: spawn frequencies and spawn radius to be adjusted
 		//  Spawn Level 1 type enemy: slow with contact damage
 		next_contact_slow_spawn -= elapsed_ms_since_last_update * current_speed;
-		if (next_contact_slow_spawn < 0.f && num_enemies_spawned <= enemy_kill_goal)
+		if (next_contact_slow_spawn < 0.f && num_enemies_spawned < enemy_kill_goal)
 		{
 			next_contact_slow_spawn = (CONTACT_SLOW_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_SLOW_SPAWN_DELAY_MS / 2);
 			vec2 contact_slow_pos;
@@ -1134,7 +1159,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 		// Spawn Level 2 type enemy: fast with contact damage
 		next_contact_fast_spawn -= elapsed_ms_since_last_update * current_speed;
-		if (next_contact_fast_spawn < 0.f && num_enemies_spawned <= enemy_kill_goal)
+		if (next_contact_fast_spawn < 0.f && num_enemies_spawned < enemy_kill_goal)
 		{
 			next_contact_fast_spawn = (CONTACT_FAST_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_FAST_SPAWN_DELAY_MS / 2);
 			vec2 contact_fast_pos;
@@ -1168,7 +1193,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 		// Spawn Level 3 type enemy: slow ranged enemy
 		next_ranged_spawn -= elapsed_ms_since_last_update * current_speed;
-		if (next_ranged_spawn < 0.f && num_enemies_spawned <= enemy_kill_goal)
+		if (next_ranged_spawn < 0.f && num_enemies_spawned < enemy_kill_goal)
 		{
 			next_ranged_spawn = (RANGED_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_SPAWN_DELAY_MS / 2);
 			vec2 ranged_pos;
@@ -1204,7 +1229,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		if (map_counter >= 4) {
 			// Spawn dashing enemy
 			next_dashing_spawn -= elapsed_ms_since_last_update * current_speed;
-			if (next_dashing_spawn < 0.f && num_enemies_spawned <= enemy_kill_goal)
+			if (next_dashing_spawn < 0.f && num_enemies_spawned < enemy_kill_goal)
 			{
 				next_dashing_spawn = (DASHING_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (DASHING_ENEMY_SPAWN_DELAY_MS / 2);
 				vec2 dashing_pos;
@@ -1304,7 +1329,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					Animation anim = animSet_enemy.animations[animSet_enemy.current_animation];
 				}
 
-				// might need to move enemy kill count stuff here to stop powerup drop - kind of useless at last enemey kill
+				// might need to move enemy kill count stuff here to stop powerup drop - kind of useless at last enemy kill
 
 				float roll = uniform_dist(rng);
 				Deadly &deadly = registry.deadlys.get(entity);
@@ -1405,67 +1430,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 	}
 
-	// reduce window brightness if the salmon is dying
-	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
-
-	// Lights flickering
-	//  if salmon is not dying - let lights effect on screen
-	if (!registry.deathTimers.has(my_player))
-	{
-		if (!goal_reached)
-		{
-			lightflicker_counter_ms += elapsed_ms_since_last_update;
-		}
-
-		if (lightflicker_counter_ms >= LIGHT_FLICKER_RATE)
-		{
-			screen.darken_screen_factor = 0.4;
-			lightflicker_counter_ms = 0;
-		}
-		else if (lightflicker_counter_ms < 400)
-		{
-			if ((lightflicker_counter_ms - (lightflicker_counter_ms % 10)) % 20 < 10)
-			{
-				screen.darken_screen_factor = 0;
-			}
-			else
-			{
-				screen.darken_screen_factor = 0.4;
-			}
-		}
-		else
-		{
-			screen.darken_screen_factor = 0;
-		}
-	}
-
-	if (darken_counter_ms > 0)
-	{
-		darken_counter_ms -= elapsed_ms_since_last_update;
-		if (darken_counter_ms == 0)
-			darken_counter_ms -= 100;
-		if (darken_counter_ms % 500 < 250)
-		{
-			screen.darken_screen_factor = 0.5;
-		}
-		else
-		{
-			screen.darken_screen_factor = 0;
-		}
-	}
-	else if (darken_counter_ms < 0)
-	{
-		screen.darken_screen_factor = 0;
-	}
-
-	if (debugging.in_debug_mode == true)
-	{
-		for (Motion &motion : motions_registry.components)
-		{
-			createLine(motion.position, motion.scale);
-		}
-	}
-
 	// handle dash cooldown
 	if (!player.is_dash_up)
 	{
@@ -1522,6 +1486,71 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	}
 
 	player_controller.step(elapsed_ms_since_last_update);
+
+
+	if (cutscene) {
+		return true;
+	}
+
+	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
+
+	// Lights flickering
+	if (!registry.deathTimers.has(my_player))
+	{
+		if (!goal_reached)
+		{
+			lightflicker_counter_ms += elapsed_ms_since_last_update;
+		}
+
+		if (lightflicker_counter_ms >= LIGHT_FLICKER_RATE)
+		{
+			screen.darken_screen_factor = 0.4;
+			lightflicker_counter_ms = 0;
+		}
+		else if (lightflicker_counter_ms < 400)
+		{
+			if ((lightflicker_counter_ms - (lightflicker_counter_ms % 10)) % 20 < 10)
+			{
+				screen.darken_screen_factor = 0;
+			}
+			else
+			{
+				screen.darken_screen_factor = 0.4;
+			}
+		}
+		else
+		{
+			screen.darken_screen_factor = 0;
+		}
+	}
+
+	if (darken_counter_ms > 0)
+	{
+		darken_counter_ms -= elapsed_ms_since_last_update;
+		if (darken_counter_ms == 0)
+			darken_counter_ms -= 100;
+		if (darken_counter_ms % 500 < 250)
+		{
+			screen.darken_screen_factor = 0.5;
+		}
+		else
+		{
+			screen.darken_screen_factor = 0;
+		}
+	}
+	else if (darken_counter_ms < 0)
+	{
+		screen.darken_screen_factor = 0;
+	}
+
+	if (debugging.in_debug_mode == true)
+	{
+		for (Motion &motion : motions_registry.components)
+		{
+			createLine(motion.position, motion.scale);
+		}
+	}
+
 	
 
 	if (tutorial.toggle_show_ms_passed < tutorial.toggle_show_ms)
@@ -1713,34 +1742,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		if (counter.duration_ms < 0)
 		{
 			registry.lightUps.remove(entity);
-		}
-	}
-
-	// Update particle emitters;
-	for (Entity entity : registry.emitters.entities) {
-		ParticleEmitter &emitter = registry.emitters.get(entity);
-		emitter.time_elapsed_ms += elapsed_ms_since_last_update;
-
-		std::vector<Particle> survivors;
-		for (auto it = emitter.particles.begin(); it != emitter.particles.end(); it++) {
-			Particle& particle = *it;
-			particle.time_elapsed_ms += elapsed_ms_since_last_update;
-			if (particle.time_elapsed_ms < particle.lifespan_ms) {
-				survivors.push_back(particle);
-			}
-		}
-		emitter.particles = survivors;
-
-		if (emitter.particles.size() == 0 && emitter.emitted_count >= emitter.particle_count) {
-			registry.remove_all_components_of(entity);
-			continue;
-		}
-
-		if (emitter.emitted_count < emitter.particle_count) {
-			for (int i = 0; i < (emitter.emits_per_frame + (((2 * uniform_dist(rng)) - 1) * emitter.emission_variance)); i++) {
-				createSmokeParticle(renderer, registry.motions.get(entity).position, emitter);
-			}
-			emitter.emitted_count += emitter.emits_per_frame;
 		}
 	}
 
@@ -2734,7 +2735,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 					}
 					else
 					{
-						cutscene = false;
+						exit_cutscene();
 						while (registry.dialogueBoxes.size() != 0)
 						{
 							registry.remove_all_components_of(registry.dialogueBoxes.entities.back());
@@ -2750,7 +2751,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 					if (cutscene)
 					{
-						cutscene = false;
+						exit_cutscene();
 						while (registry.dialogueBoxes.size() != 0)
 						{
 							registry.remove_all_components_of(registry.dialogueBoxes.entities.back());

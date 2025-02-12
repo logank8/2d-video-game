@@ -907,27 +907,6 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
     }
 }
 
-Path PhysicsSystem::findDFSPath(vec2 start, vec2 target, std::vector<vec2> visited) {
-
-    Motion start_motion = {
-        start,
-        0,
-	    {0, 0},
-	    {10, 10},
-	    30.0f, 
-	    {1, 1},
-	    {0, 0}
-    };
-
-    Motion pmotion = registry.motions.get(registry.players.entities[0]);
-    Path return_path = {
-        find_path(start_motion, pmotion),
-        0
-    };
-
-    return return_path;
-}
-
 void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current_map)
 {
     map = current_map;
@@ -1010,46 +989,58 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
 
     // Check for tenant within radius
     for (Entity e : registry.tenants.entities) {
+
         Tenant& tenant = registry.tenants.get(e);
-        if (distance(registry.motions.get(e).position, player_motion.position) <= 100) {
+        Motion& tenant_motion = registry.motions.get(e);
+        vec2 player_pos = player_motion.position;
+        vec2 tenant_pos = registry.motions.get(e).position;
+
+        // Player able to interact with tenant? (if so no pathfinding required)
+        if (distance(tenant_pos, player_pos) <= 100 && tenant.path.size() == 0) {
             tenant.player_in_radius = true;
         } else {
             tenant.player_in_radius = false;
         }
-
-        vec2 player_pos = player_motion.position;
-        vec2 tenant_pos = registry.motions.get(e).position;
-        std::cout << "player at " << player_pos.x << ", " << player_pos.y << std::endl;
-        std::cout << "tenant at " << tenant_pos.x << ", " << tenant_pos.y << std::endl;
-
+        
+        // Check if tenant has not found path yet
         if (!tenant.on_path) {
-            Path path = findDFSPath(tenant_pos, player_pos, {});
-            tenant.path = path.points;
+            tenant.path = find_path(tenant_motion, player_motion);
             tenant.on_path = true;
         }
         
 
-        std::cout << "path length: " << tenant.path.size() << std::endl;
-        
-
-        Motion& tenant_motion = registry.motions.get(e);
-
         while (tenant.path.size() != 0) {
-            if (distance(tenant_motion.position, tenant.path[0]) <= 50) {
-                std::cout << "target reached" << std::endl;
-                std::vector<vec2>& tpath = tenant.path;
-                tpath.erase(tenant.path.begin());
-                continue;
-            }
 
-            vec2 world_pos_target = tenant.path[0];
-
-            vec2 towards_path = normalize(world_pos_target - tenant_motion.position);
-
-            if (tenant.path.size() >= 7) {
+            // Speed up offscreen movement
+            bool tenant_offscreen = (abs(tenant_pos.x - player_pos.x) > 750) || (abs(tenant_pos.y - player_pos.y) > 500); 
+            if (tenant_offscreen) {
                 tenant_motion.speed = 700;
             } else {
                 tenant_motion.speed = 100;
+            }
+
+            vec2 target = tenant.path[0];
+            vec2 towards_path = normalize(target - tenant_pos);
+
+            // Close to player - adjust instead of moving on path
+            if (tenant.path.size() == 1) {
+                float stand_offset = 75;
+
+                std::cout << "moving towards player" << std::endl;
+                // Moving towards position of same y and 50 x dist away from player
+                target = {player_pos.x + (sign(tenant_pos.x - player_pos.x) * stand_offset), player_pos.y};
+                towards_path = normalize(target - tenant_pos);
+
+                // Set to exactly where we want it when it's close enough, then empty the path
+                if (distance(tenant_pos, target) <= 5) {
+                    tenant_motion.position = target;
+                    tenant.path.clear();
+                    break;
+                }
+            } else if (distance(tenant_pos, target) <= 50) { // Path target reached
+                std::vector<vec2>& tpath = tenant.path;
+                tpath.erase(tenant.path.begin());
+                continue;
             }
 
             tenant_motion.position.x += towards_path.x * tenant_motion.speed * (elapsed_ms/1000);

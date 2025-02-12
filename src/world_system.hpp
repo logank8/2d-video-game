@@ -118,6 +118,7 @@ private:
 	void spawnDoor();
 
 	void enter_cutscene();
+	void exit_cutscene();
 
 	void stateSwitch(GameState new_state);
 
