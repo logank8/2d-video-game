@@ -66,6 +66,7 @@ public:
 	ComponentContainer<ParticleEmitter> emitters;
 	ComponentContainer<Particle> particles;
 	ComponentContainer<EnemyKnockback> knockbacks;
+	ComponentContainer<ProgressCircle> progressCircles;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -126,6 +127,7 @@ public:
 		registry_list.push_back(&emitters);
 		registry_list.push_back(&particles);
 		registry_list.push_back(&knockbacks);
+		registry_list.push_back(&progressCircles);
 	}
 
 	void clear_all_components()

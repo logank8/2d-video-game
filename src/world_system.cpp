@@ -717,7 +717,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	if (current_map != map_final)
 	{
 		title_ss << "Level: " << (map_counter);
-		createText({ 40, 500 }, 0.5f, "Enemies Remaining: " + std::to_string(max(0, (int(registry.deadlys.entities.size() - enemies_killed)))), vec3(0.969, 0.588, 0.09));
+		createText({ 40, 500 }, 0.5f, "Enemies Remaining: " + std::to_string(max(0, (int(enemy_kill_goal - enemies_killed)))), vec3(0.969, 0.588, 0.09));
 	}
 	else
 	{
@@ -1647,6 +1647,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			{
 				createInteractKey(renderer, {registry.motions.get(my_player).position.x + 60, registry.motions.get(my_player).position.y});
 			}
+		}
+	}
+
+	for (Entity e : registry.healthBuffs.entities) {
+		HealthBuff& hb = registry.healthBuffs.get(e);
+		if (hb.interacting) {
+			hb.touch_time_ms += elapsed_ms_since_last_update;
 		}
 	}
 
@@ -2626,161 +2633,195 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		}
 	}
 
-	if (key == GLFW_KEY_E && action == GLFW_RELEASE)
+	if (key == GLFW_KEY_E)
 	{
 		for (Entity e : registry.healthBuffs.entities)
 		{
 			HealthBuff &buff = registry.healthBuffs.get(e);
 			if (buff.touching)
 			{
-				// first interaction with health buff obj - if the interact key is up get rid of it
-				// if any other keys are up don't get rid of them
-				if (tutorial.movement && tutorial.attack && tutorial.dash && !tutorial.health_buff)
-				{
-					tutorial.health_buff = true;
-					for (Entity e : registry.tutorialIcons.entities)
-					{
-						registry.remove_all_components_of(e);
-					}
+
+				if (action == GLFW_RELEASE) {
+					// deactivate
+					buff.activated = false;
+					buff.interacting = false;
+					// get rid of progress thingy
 				}
-				Health &p_health = registry.healths.get(my_player);
-				RenderRequest &hp_bar_render = registry.renderRequests.get(hp_bar);
-				createEffect(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);
-				if (p_health.hit_points < 200)
-				{
-					p_health.hit_points += min(buff.factor * 25.f, 200.f - p_health.hit_points);
 
-					// Total HP bar is 200
-					int hp_level = int(p_health.hit_points / 25);
-					// set current animation to hpbar_[hp_level]
-					std::string new_anim = "hpbar_" + std::to_string(hp_level);
+				if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+					// first interaction with health buff obj - if the interact key is up get rid of it
+					// if any other keys are up don't get rid of them
+					if (tutorial.movement && tutorial.attack && tutorial.dash && !tutorial.health_buff)
+					{
+						tutorial.health_buff = true;
+						for (Entity e : registry.tutorialIcons.entities)
+						{
+							registry.remove_all_components_of(e);
+						}
+					}
+					if (action == GLFW_PRESS) {
+						buff.touch_time_ms = 0;
+						buff.interacting = true;
+						createProgressCircle(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, e);
+					}
+					std::cout << "touch " << buff.touch_time_ms << std::endl;
+					
 
-					registry.animationSets.get(hp_bar).current_animation = new_anim;
+					if (buff.touch_time_ms >= buff.activate_ms && (!buff.activated)) {
+						buff.activated = true;
+						Health &p_health = registry.healths.get(my_player);
+						RenderRequest &hp_bar_render = registry.renderRequests.get(hp_bar);
+						createEffect(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);		
+
+						for (Entity circ_entity : registry.progressCircles.entities) {
+							ProgressCircle& circle = registry.progressCircles.get(circ_entity);
+							if (circle.connected == e) {
+								registry.remove_all_components_of(circ_entity);
+								buff.interacting = false;
+								break;
+							}
+						}			
+
+						if (p_health.hit_points < 200)
+						{
+							p_health.hit_points += min(buff.factor * 25.f, 200.f - p_health.hit_points);
+
+							// Total HP bar is 200
+							int hp_level = int(p_health.hit_points / 25);
+							// set current animation to hpbar_[hp_level]
+							std::string new_anim = "hpbar_" + std::to_string(hp_level);
+
+							registry.animationSets.get(hp_bar).current_animation = new_anim;
+						}
+					}
 				}
 			}
 		}
 
-		for (Entity e : registry.doors.entities)
-		{
-			Door &door = registry.doors.get(e);
-			if (door.touching)
+		if (action == GLFW_RELEASE) {
+			for (Entity e : registry.doors.entities)
 			{
-				Mix_PlayChannel(-1, door_sound, 0);
-				tutorial.door = true;
-				if (current_map == map4)
+				Door &door = registry.doors.get(e);
+				if (door.touching)
 				{
-					mapSwitch(5);
+					Mix_PlayChannel(-1, door_sound, 0);
+					tutorial.door = true;
+					if (current_map == map4)
+					{
+						mapSwitch(5);
+					}
+					else if (current_map == map3)
+					{
+						mapSwitch(4);
+					}
+					else if (current_map == map2)
+					{
+						mapSwitch(3);
+					}
+					else
+					{
+						mapSwitch(2);
+					}
+					return;
 				}
-				else if (current_map == map3)
-				{
-					mapSwitch(4);
-				}
-				else if (current_map == map2)
-				{
-					mapSwitch(3);
-				}
-				else
-				{
-					mapSwitch(2);
-				}
-				return;
 			}
-		}
 
-		// tenant dialogue
-		for (Entity e : registry.tenants.entities)
-		{
-			// if there is already dialogue up, progress index
-			// 	if the current dialogue is the last -> unfreeze player movement and remove current dialogue
-			//  else -> take down curent dialogue and put up next
-
-			// extra dialogue:
-			//  if already dialogue up -> close out of it and progress index
-			//  else -> display next dialogue
-
-			Tenant &tenant = registry.tenants.get(e);
-			if (tenant.player_in_radius)
+			// tenant dialogue
+			for (Entity e : registry.tenants.entities)
 			{
-				while (registry.tutorialIcons.entities.size() != 0)
-				{
-					registry.remove_all_components_of(registry.tutorialIcons.entities.back());
-				}
-				// cutscene dialogue
-				if (tenant.dialogue_progress < int(tenant.dialogues.size()))
-				{
-					// player's first time speaking to tenant - freeze player movement/attack
-					if (tenant.dialogue_progress == -1)
-					{
-						enter_cutscene();
-						createDialogueBox(renderer);
-					}
-					tenant.dialogue_progress += 1;
+				// if there is already dialogue up, progress index
+				// 	if the current dialogue is the last -> unfreeze player movement and remove current dialogue
+				//  else -> take down curent dialogue and put up next
 
-					while (registry.texts.size() != 0)
+				// extra dialogue:
+				//  if already dialogue up -> close out of it and progress index
+				//  else -> display next dialogue
+
+				Tenant &tenant = registry.tenants.get(e);
+				if (tenant.player_in_radius)
+				{
+					while (registry.tutorialIcons.entities.size() != 0)
 					{
-						registry.remove_all_components_of(registry.texts.entities.back());
+						registry.remove_all_components_of(registry.tutorialIcons.entities.back());
 					}
+					// cutscene dialogue
 					if (tenant.dialogue_progress < int(tenant.dialogues.size()))
 					{
-						// Create dialogue
-						std::vector<std::string> text_lines = textToDialogueMode(tenant.dialogues[tenant.dialogue_progress]);
-						for (int i = 0; i < text_lines.size(); i++)
+						// player's first time speaking to tenant - freeze player movement/attack
+						if (tenant.dialogue_progress == -1)
 						{
-							std::string line = text_lines[i];
-							float offset = 40 * i;
-
-							Entity text = createText({40, 130 - offset}, 0.7, line, vec3(1.0, 1.0, 1.0));
-							registry.debugComponents.remove(text);
-						}
-					}
-					else
-					{
-						exit_cutscene();
-						while (registry.dialogueBoxes.size() != 0)
-						{
-							registry.remove_all_components_of(registry.dialogueBoxes.entities.back());
-						}
-					}
-				}
-				else if (tenant.dialogue_progress < int(tenant.dialogues.size() + tenant.extra_dialogues.size()))
-				{
-					while (registry.texts.size() != 0)
-					{
-						registry.remove_all_components_of(registry.texts.entities.back());
-					}
-
-					if (cutscene)
-					{
-						exit_cutscene();
-						while (registry.dialogueBoxes.size() != 0)
-						{
-							registry.remove_all_components_of(registry.dialogueBoxes.entities.back());
+							enter_cutscene();
+							createDialogueBox(renderer);
 						}
 						tenant.dialogue_progress += 1;
+
+						while (registry.texts.size() != 0)
+						{
+							registry.remove_all_components_of(registry.texts.entities.back());
+						}
+						if (tenant.dialogue_progress < int(tenant.dialogues.size()))
+						{
+							// Create dialogue
+							std::vector<std::string> text_lines = textToDialogueMode(tenant.dialogues[tenant.dialogue_progress]);
+							for (int i = 0; i < text_lines.size(); i++)
+							{
+								std::string line = text_lines[i];
+								float offset = 40 * i;
+
+								Entity text = createText({40, 130 - offset}, 0.7, line, vec3(1.0, 1.0, 1.0));
+								registry.debugComponents.remove(text);
+							}
+						}
+						else
+						{
+							exit_cutscene();
+							while (registry.dialogueBoxes.size() != 0)
+							{
+								registry.remove_all_components_of(registry.dialogueBoxes.entities.back());
+							}
+						}
+					}
+					else if (tenant.dialogue_progress < int(tenant.dialogues.size() + tenant.extra_dialogues.size()))
+					{
+						while (registry.texts.size() != 0)
+						{
+							registry.remove_all_components_of(registry.texts.entities.back());
+						}
+
+						if (cutscene)
+						{
+							exit_cutscene();
+							while (registry.dialogueBoxes.size() != 0)
+							{
+								registry.remove_all_components_of(registry.dialogueBoxes.entities.back());
+							}
+							tenant.dialogue_progress += 1;
+						}
+						else
+						{
+							// Create dialogue
+							std::vector<std::string> text_lines = textToDialogueMode(tenant.extra_dialogues[tenant.dialogue_progress - int(tenant.dialogues.size())]);
+							for (int i = 0; i < text_lines.size(); i++)
+							{
+								std::string line = text_lines[i];
+								float offset = 40 * i;
+
+								Entity text = createText({40, 130 - offset}, 0.7, line, vec3(1.0, 1.0, 1.0));
+								registry.debugComponents.remove(text);
+							}
+
+							enter_cutscene();
+							createDialogueBox(renderer);
+						}
 					}
 					else
 					{
-						// Create dialogue
-						std::vector<std::string> text_lines = textToDialogueMode(tenant.extra_dialogues[tenant.dialogue_progress - int(tenant.dialogues.size())]);
-						for (int i = 0; i < text_lines.size(); i++)
-						{
-							std::string line = text_lines[i];
-							float offset = 40 * i;
-
-							Entity text = createText({40, 130 - offset}, 0.7, line, vec3(1.0, 1.0, 1.0));
-							registry.debugComponents.remove(text);
-						}
-
-						enter_cutscene();
-						createDialogueBox(renderer);
+						createEffect(renderer, {registry.motions.get(e).position.x, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);
 					}
-				}
-				else
-				{
-					createEffect(renderer, {registry.motions.get(e).position.x, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);
 				}
 			}
 		}
+		
 	}
 
 

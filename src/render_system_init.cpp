@@ -238,6 +238,7 @@ void RenderSystem::initializeSpriteSheets()
 	sprite_sheets[SPRITE_ASSET_ID::TENANT_2] = {TEXTURE_ASSET_ID::TENANT_2, 6, 6, 64, 64};
 	sprite_sheets[SPRITE_ASSET_ID::TENANT_3] = {TEXTURE_ASSET_ID::TENANT_3, 6, 6, 64, 64};
 	sprite_sheets[SPRITE_ASSET_ID::TENANT_4] = {TEXTURE_ASSET_ID::TENANT_4, 6, 6, 64, 64};
+	sprite_sheets[SPRITE_ASSET_ID::PROGRESS_CIRCLE] = {TEXTURE_ASSET_ID::PROGRESS_CIRCLE, 3, 3, 16, 16};
 }
 
 void RenderSystem::initializeGlEffects()

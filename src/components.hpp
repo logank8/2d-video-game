@@ -319,6 +319,10 @@ struct HealthBuff
 {
 	float factor = 1;
 	bool touching = false;
+	bool interacting = false;
+	bool activated = false;
+	float touch_time_ms = 0;
+	float activate_ms = 1500;
 };
 
 // A struct to refer to debugging graphics in the ECS
@@ -448,6 +452,11 @@ struct KillTracker
 {
 	int goal;
 	int killed = 0;
+};
+
+struct ProgressCircle 
+{
+	Entity connected;
 };
 
 struct Tenant
@@ -597,7 +606,8 @@ enum class TEXTURE_ASSET_ID
 	TENANT_4 = TENANT_3 + 1,
 	LEVELUP_CONFIRM = TENANT_4 + 1,
 	TITLE = LEVELUP_CONFIRM + 1,
-	TEXTURE_COUNT = TITLE + 1
+	PROGRESS_CIRCLE = TITLE + 1,
+	TEXTURE_COUNT = PROGRESS_CIRCLE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -634,7 +644,8 @@ enum class SPRITE_ASSET_ID
 	TENANT_2 = TENANT_1 + 1,
 	TENANT_3 = TENANT_2 + 1,
 	TENANT_4 = TENANT_3 + 1,
-	SPRITE_COUNT = TENANT_4 + 1
+	PROGRESS_CIRCLE = TENANT_4 + 1,
+	SPRITE_COUNT = PROGRESS_CIRCLE + 1
 };
 const int sprite_count = (int)SPRITE_ASSET_ID::SPRITE_COUNT;
 

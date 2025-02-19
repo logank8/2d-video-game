@@ -2485,3 +2485,40 @@ Entity createElevatorDisplay(RenderSystem *renderer, vec2 pos)
 
 	return entity;
 }
+
+Entity createProgressCircle(RenderSystem *renderer, vec2 pos, Entity connect)
+{
+	auto entity = Entity();
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0;
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2({50, 50});
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
+				 SPRITE_ASSET_ID::PROGRESS_CIRCLE,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 1,
+				 RENDER_LAYER::EFFECTS});
+
+	registry.progressCircles.insert(entity, {connect});
+
+	std::vector<int> progress_vec = {1, 2, 3, 4, 5, 6, 7, 8};
+	Animation progress = {
+		"progress",
+		5,
+		SPRITE_ASSET_ID::PROGRESS_CIRCLE,
+		progress_vec};
+
+	auto &animSet = registry.animationSets.emplace(entity);
+	animSet.animations[progress.name] = progress;
+	animSet.current_animation = progress.name;
+
+	return entity;
+}

@@ -238,3 +238,5 @@ Entity createTenant(RenderSystem *renderer, vec2 pos, int level);
 Entity createDialogueBox(RenderSystem *renderer);
 
 Entity createElevatorDisplay(RenderSystem *renderer, vec2 pos);
+
+Entity createProgressCircle(RenderSystem *renderer, vec2 pos, Entity connect);
