@@ -1999,6 +1999,20 @@ void WorldSystem::handle_collisions(float step_seconds)
 					}
 					player.invulnerable = true;
 					player.invulnerable_duration_ms = 1000.f;
+
+					std::vector<Entity> circ_ents = registry.progressCircles.entities;
+
+					// delete any health buff interactions
+					for (Entity e : circ_ents) {
+						ProgressCircle& circ = registry.progressCircles.get(e);
+
+						HealthBuff& hb = registry.healthBuffs.get(circ.connected);
+						hb.interacting = false;
+						hb.touch_time_ms = 0;
+
+						registry.remove_all_components_of(e);
+					}
+
 				}
 				if (registry.projectiles.has(entity_other))
 				{
@@ -2699,6 +2713,20 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		}
 
 		if (action == GLFW_RELEASE) {
+			std::vector<Entity> circ_ents = registry.progressCircles.entities;
+
+			// delete any health buff interactions
+			for (Entity e : circ_ents) {
+				ProgressCircle& circ = registry.progressCircles.get(e);
+
+				HealthBuff& hb = registry.healthBuffs.get(circ.connected);
+				hb.interacting = false;
+				hb.touch_time_ms = 0;
+
+				registry.remove_all_components_of(e);
+			}
+
+
 			for (Entity e : registry.doors.entities)
 			{
 				Door &door = registry.doors.get(e);
