@@ -1650,10 +1650,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 	}
 
-	for (Entity e : registry.healthBuffs.entities) {
+	for (Entity e : registry.holdInteracts.entities) {
 		HealthBuff& hb = registry.healthBuffs.get(e);
-		if (hb.interacting) {
-			hb.touch_time_ms += elapsed_ms_since_last_update;
+		HoldInteract& interact = registry.holdInteracts.get(e);
+
+		if (interact.interacting) {
+			interact.touch_time_ms += elapsed_ms_since_last_update;
 		}
 	}
 
@@ -2006,9 +2008,9 @@ void WorldSystem::handle_collisions(float step_seconds)
 					for (Entity e : circ_ents) {
 						ProgressCircle& circ = registry.progressCircles.get(e);
 
-						HealthBuff& hb = registry.healthBuffs.get(circ.connected);
-						hb.interacting = false;
-						hb.touch_time_ms = 0;
+						HoldInteract& interact = registry.holdInteracts.get(circ.connected);
+						interact.interacting = false;
+						interact.touch_time_ms = 0;
 
 						registry.remove_all_components_of(e);
 					}
@@ -2652,13 +2654,14 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		for (Entity e : registry.healthBuffs.entities)
 		{
 			HealthBuff &buff = registry.healthBuffs.get(e);
+			HoldInteract& interact = registry.holdInteracts.get(e);
 			if (buff.touching)
 			{
 
 				if (action == GLFW_RELEASE) {
 					// deactivate
-					buff.activated = false;
-					buff.interacting = false;
+					interact.activated = false;
+					interact.interacting = false;
 					// get rid of progress thingy
 				}
 
@@ -2674,15 +2677,17 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 						}
 					}
 					if (action == GLFW_PRESS) {
-						buff.touch_time_ms = 0;
-						buff.interacting = true;
+						std::cout << "resetting at press" << std::endl;
+						interact.touch_time_ms = 0;
+						interact.interacting = true;
 						createProgressCircle(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, e);
 					}
-					std::cout << "touch " << buff.touch_time_ms << std::endl;
-					
 
-					if (buff.touch_time_ms >= buff.activate_ms && (!buff.activated)) {
-						buff.activated = true;
+					std::cout << "touch " << interact.touch_time_ms << std::endl;
+					
+					if (interact.touch_time_ms >= interact.activate_ms && (!interact.activated)) {
+						interact.activated = true;
+						std::cout << "activated" << std::endl;
 						Health &p_health = registry.healths.get(my_player);
 						RenderRequest &hp_bar_render = registry.renderRequests.get(hp_bar);
 						createEffect(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);		
@@ -2691,7 +2696,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 							ProgressCircle& circle = registry.progressCircles.get(circ_entity);
 							if (circle.connected == e) {
 								registry.remove_all_components_of(circ_entity);
-								buff.interacting = false;
+								interact.interacting = false;
 								break;
 							}
 						}			
@@ -2720,8 +2725,11 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 				ProgressCircle& circ = registry.progressCircles.get(e);
 
 				HealthBuff& hb = registry.healthBuffs.get(circ.connected);
-				hb.interacting = false;
-				hb.touch_time_ms = 0;
+				HoldInteract& interact = registry.holdInteracts.get(circ.connected);
+				interact.interacting = false;
+				interact.activated = false;
+				interact.touch_time_ms = 0;
+				std::cout << "resetting at release" << std::endl;
 
 				registry.remove_all_components_of(e);
 			}

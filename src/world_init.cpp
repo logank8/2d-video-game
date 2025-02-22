@@ -1813,6 +1813,7 @@ Entity createHealthBuff(RenderSystem *renderer, vec2 pos)
 	}
 
 	registry.healthBuffs.emplace(entity);
+	registry.holdInteracts.emplace(entity);
 
 	// create an empty component for the furniture as a solid object
 	registry.renderRequests.insert(

@@ -319,6 +319,11 @@ struct HealthBuff
 {
 	float factor = 1;
 	bool touching = false;
+};
+
+// Any object you have to hold a key down for some time to interact with
+struct HoldInteract
+{
 	bool interacting = false;
 	bool activated = false;
 	float touch_time_ms = 0;
