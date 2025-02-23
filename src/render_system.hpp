@@ -105,7 +105,8 @@ class RenderSystem
 		textures_path("tenant_4.png"),
 		textures_path("levelup_confirm.png"),
 		textures_path("title.png"), 
-		textures_path("progress_circle.png")};
+		textures_path("progress_circle.png"),
+		textures_path("sigil_1.png")};
 
 	std::array<GLuint, effect_count> effects;
 	// Make sure these paths remain in sync with the associated enumerators.

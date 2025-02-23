@@ -68,6 +68,7 @@ public:
 	ComponentContainer<EnemyKnockback> knockbacks;
 	ComponentContainer<ProgressCircle> progressCircles;
 	ComponentContainer<HoldInteract> holdInteracts;
+	ComponentContainer<Sigil> sigils;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -130,6 +131,7 @@ public:
 		registry_list.push_back(&knockbacks);
 		registry_list.push_back(&progressCircles);
 		registry_list.push_back(&holdInteracts);
+		registry_list.push_back(&sigils);
 	}
 
 	void clear_all_components()

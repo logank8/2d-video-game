@@ -48,7 +48,7 @@ bool is_tutorial_on = false;
 bool WorldSystem::is_paused = false;
 bool WorldSystem::is_level_up = false;
 
-int num_enemies_spawned = 0;
+int num_enemies = 0;
 
 int map_counter = 1;
 
@@ -160,6 +160,7 @@ void WorldSystem::stateSwitch(GameState new_state)
 		is_paused = false;
 		screen.state = GameState::MENU;
 		screen.darken_screen_factor = 0.0f;
+		screen.lights_on = 1;
 
 		
 		break;
@@ -647,7 +648,6 @@ void WorldSystem::enter_cutscene() {
 }
 
 void WorldSystem::exit_cutscene() {
-	std::cout << "exiting cutscene" << std::endl;
 	cutscene = false; 
 	Entity my_player = registry.players.entities[0];
 }
@@ -717,7 +717,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	if (current_map != map_final)
 	{
 		title_ss << "Level: " << (map_counter);
-		createText({ 40, 500 }, 0.5f, "Enemies Remaining: " + std::to_string(max(0, (int(enemy_kill_goal - enemies_killed)))), vec3(0.969, 0.588, 0.09));
 	}
 	else
 	{
@@ -767,8 +766,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	}
 
 	// Managing tenant appearance and interaction ability stuff
-	if (goal_reached)
-	{
+	if (goal_reached && registry.deadlys.entities.size() == 0)
+	{		
 		bool tenant = true;
 		if (registry.tenants.entities.size() == 0)
 		{
@@ -843,20 +842,23 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			{
 				tenant = false;
 			}
+			
+			registry.tutorialIcons.clear();
 			enter_cutscene();
 		}
 		
 		if (tenant)
 		{
+			screen.lights_on = 1;
 			Entity tenant = registry.tenants.entities[0];
 			
-			if (registry.tutorialIcons.size() == 0 && registry.tenants.get(tenant).player_in_radius)
+
+			if (registry.tenants.get(tenant).player_in_radius && registry.tutorialIcons.size() == 0)
 			{
 				std::cout << "creating interact key" << std::endl;
 				createInteractKey(renderer, {registry.motions.get(tenant).position.x, registry.motions.get(tenant).position.y + 60});
-			}
-			if (!registry.tenants.get(tenant).player_in_radius)
-			{
+				
+			} else if (!registry.tenants.get(tenant).player_in_radius) {
 				while (registry.tutorialIcons.entities.size() != 0)
 				{
 					registry.remove_all_components_of(registry.tutorialIcons.entities.back());
@@ -1003,43 +1005,35 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			// furniture spawning
 			if (current_map[j][i] >= 20 && current_map[j][i] <= 38)
 			{
-				// if (current_map[j][i] == 20 && current_map[j - 1][i] != current_map[j][i] && current_map[j][i-1] != current_map[j][i]) {
-				//	// add 2 while loops here to find furniture size
-				//	int horiz_idx = 1;
-				//	int vert_idx = 1;
-				//	while (current_map[j + vert_idx][i] == 20)
-				//	{
-				//		vert_idx += 1;
-				//	}
-				//	while (current_map[j][i + horiz_idx] == 20)
-				//	{
-				//		horiz_idx += 1;
-				//	}
-
-				//	// pos {world_pos.x + (TILE_SIZE * ((horiz_idx - 1) / 2)), world_pos.y + (TILE_SIZE * ((vert_idx - 1) / 2))}
-				//	createFurniture(renderer, {world_pos.x, world_pos.y}, current_map[j][i]);
-				//} else if (current_map[j][i] != 2) {
-				//	createFurniture(renderer, {world_pos.x, world_pos.y}, current_map[j][i]);
-				//}
 				createFurniture(renderer, {world_pos.x, world_pos.y}, current_map[j][i]);
 				tile_vec.push_back(vec2(i, j));
 			}
 
-			if (current_map != map_final || registry.bosses.get(final_boss).stage == FinalLevelStage::STAGE3)
+			if (current_map[j][i] == 39) 
 			{
-				if (current_map[j][i] == 3 && num_enemies_spawned < enemy_kill_goal)
+				Entity e = createSigil(renderer, {world_pos.x, world_pos.y});
+				registry.holdInteracts.get(e).onInteractCallback = [this](Entity e){
+					destroy_sigil(e);
+				};
+				tile_vec.push_back(vec2(i, j));
+			}
+
+
+			if ((current_map != map_final || registry.bosses.get(final_boss).stage == FinalLevelStage::STAGE3) && !goal_reached)
+			{
+				if (current_map[j][i] == 3 && num_enemies < enemy_spawn_cap)
 				{
 					int encounter = rand() % 3;
-					if (encounter == 0 || num_enemies_spawned == enemy_kill_goal - 1)
+					if (encounter == 0 || num_enemies == enemy_spawn_cap - 1)
 					{
 						createContactSlow(renderer, world_pos);
-						num_enemies_spawned++;
+						num_enemies++;
 					}
 					else if (encounter == 1)
 					{
 
 						createContactFast(renderer, world_pos);
-						num_enemies_spawned++;
+						num_enemies++;
 					}
 					else
 					{
@@ -1047,20 +1041,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 						createContactSlow(renderer, world_pos);
 						std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG};
 						spawn_nearby_tile(vec2(i, j), additional_enemies);
-						num_enemies_spawned += 2;
+						num_enemies += 2;
 					}
 					tile_vec.push_back(vec2(i, j));
 				}
-				if (current_map[j][i] == 4 && num_enemies_spawned < enemy_kill_goal - 1)
+				if (current_map[j][i] == 4 && num_enemies < enemy_spawn_cap - 1)
 				{
 					int encounter = rand() % 3;
-					if (encounter == 0 || num_enemies_spawned == enemy_kill_goal - 2)
+					if (encounter == 0 || num_enemies == enemy_spawn_cap - 2)
 					{
 
 						createContactSlow(renderer, world_pos);
 						std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG_2};
 						spawn_nearby_tile(vec2(i, j), additional_enemies);
-						num_enemies_spawned += 2;
+						num_enemies += 2;
 					}
 					else if (encounter == 1)
 					{
@@ -1068,40 +1062,40 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 						createContactFast(renderer, world_pos);
 						std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG_2};
 						spawn_nearby_tile(vec2(i, j), additional_enemies);
-						num_enemies_spawned += 2;
+						num_enemies += 2;
 					}
 					else
 					{
 						createRangedEnemy(renderer, world_pos);
 						std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG, ENEMY_TYPES::CONTACT_DMG};
 						spawn_nearby_tile(vec2(i, j), additional_enemies);
-						num_enemies_spawned += 3;
+						num_enemies += 3;
 					}
 					tile_vec.push_back(vec2(i, j));
 				}
-				if (current_map[j][i] == 5 && num_enemies_spawned < enemy_kill_goal - 2)
+				if (current_map[j][i] == 5 && num_enemies < enemy_spawn_cap - 2)
 				{
 					int encounter = rand() % 3;
-					if (encounter == 0 || num_enemies_spawned == enemy_kill_goal - 3)
+					if (encounter == 0 || num_enemies == enemy_spawn_cap - 3)
 					{
 						createContactFast(renderer, world_pos);
 						std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::RANGED, ENEMY_TYPES::RANGED};
 						spawn_nearby_tile(vec2(i, j), additional_enemies);
-						num_enemies_spawned += 3;
+						num_enemies += 3;
 					}
 					else if (encounter == 1)
 					{
 						createContactSlow(renderer, world_pos);
 						std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG_2, ENEMY_TYPES::CONTACT_DMG_2};
 						spawn_nearby_tile(vec2(i, j), additional_enemies);
-						num_enemies_spawned += 3;
+						num_enemies += 3;
 					}
 					else
 					{
 						createRangedEnemy(renderer, world_pos);
 						std::vector<ENEMY_TYPES> additional_enemies = {ENEMY_TYPES::CONTACT_DMG_2, ENEMY_TYPES::CONTACT_DMG, ENEMY_TYPES::CONTACT_DMG};
 						spawn_nearby_tile(vec2(i, j), additional_enemies);
-						num_enemies_spawned += 4;
+						num_enemies += 4;
 					}
 					tile_vec.push_back(vec2(i, j));
 				}
@@ -1109,12 +1103,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 			if (current_map[j][i] == 6)
 			{
-				// BUFF_TYPE type = static_cast<BUFF_TYPE>((int) (rand() % 3));
-				createHealthBuff(renderer, world_pos);
+				Entity e = createHealthBuff(renderer, world_pos);
+				registry.holdInteracts.get(e).onInteractCallback = [this](Entity e){
+					heal_player(e);
+				};
+
 				tile_vec.push_back(vec2(i, j));
 			}
 
-			if (current_map[j][i] == 8 && num_enemies_spawned < enemy_kill_goal)
+			if (current_map[j][i] == 8 && num_enemies < enemy_spawn_cap)
 			{
 				Entity swarm_leader = createSwarm(renderer, world_pos, 0.55f, 0.05f, 0.00005f);
 				Motion &swarm_motion = motions_registry.get(swarm_leader);
@@ -1134,12 +1131,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	player.levels_unlocked = levels_unlocked;
 
 
-	if (current_map != map_final || registry.bosses.get(final_boss).stage != FinalLevelStage::STAGE1)
+	if ((current_map != map_final || registry.bosses.get(final_boss).stage != FinalLevelStage::STAGE1) && (!goal_reached))
 	{
 		// TODO: spawn frequencies and spawn radius to be adjusted
 		//  Spawn Level 1 type enemy: slow with contact damage
 		next_contact_slow_spawn -= elapsed_ms_since_last_update * current_speed;
-		if (next_contact_slow_spawn < 0.f && num_enemies_spawned < enemy_kill_goal)
+		if (next_contact_slow_spawn < 0.f && num_enemies < enemy_spawn_cap)
 		{
 			next_contact_slow_spawn = (CONTACT_SLOW_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_SLOW_SPAWN_DELAY_MS / 2);
 			vec2 contact_slow_pos;
@@ -1153,13 +1150,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			} while (distance_to_player < 300.f);
 
 			createContactSlow(renderer, contact_slow_pos);
-			num_enemies_spawned++;
+			num_enemies++;
 			// tile_vec.push_back(spawnable_tiles[index]);
 		}
 
 		// Spawn Level 2 type enemy: fast with contact damage
 		next_contact_fast_spawn -= elapsed_ms_since_last_update * current_speed;
-		if (next_contact_fast_spawn < 0.f && num_enemies_spawned < enemy_kill_goal)
+		if (next_contact_fast_spawn < 0.f && num_enemies < enemy_spawn_cap)
 		{
 			next_contact_fast_spawn = (CONTACT_FAST_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (CONTACT_FAST_SPAWN_DELAY_MS / 2);
 			vec2 contact_fast_pos;
@@ -1186,14 +1183,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			else {
 				createContactFast(renderer, contact_fast_pos);
 			}
-			num_enemies_spawned++;
+			num_enemies++;
 
 			// tile_vec.push_back(spawnable_tiles[index]);
 		}
 
 		// Spawn Level 3 type enemy: slow ranged enemy
 		next_ranged_spawn -= elapsed_ms_since_last_update * current_speed;
-		if (next_ranged_spawn < 0.f && num_enemies_spawned < enemy_kill_goal)
+		if (next_ranged_spawn < 0.f && num_enemies < enemy_spawn_cap)
 		{
 			next_ranged_spawn = (RANGED_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (RANGED_ENEMY_SPAWN_DELAY_MS / 2);
 			vec2 ranged_pos;
@@ -1220,7 +1217,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			else {
 				createRangedEnemy(renderer, ranged_pos);
 			}
-			num_enemies_spawned++;
+			num_enemies++;
 			
 			// tile_vec.push_back(spawnable_tiles[index]);
 		}
@@ -1229,7 +1226,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		if (map_counter >= 4) {
 			// Spawn dashing enemy
 			next_dashing_spawn -= elapsed_ms_since_last_update * current_speed;
-			if (next_dashing_spawn < 0.f && num_enemies_spawned < enemy_kill_goal)
+			if (next_dashing_spawn < 0.f && num_enemies < enemy_spawn_cap)
 			{
 				next_dashing_spawn = (DASHING_ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (DASHING_ENEMY_SPAWN_DELAY_MS / 2);
 				vec2 dashing_pos;
@@ -1242,7 +1239,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					distance_to_player = sqrt(pow(dashing_pos.x - player_pos.x, 2) + pow(dashing_pos.y - player_pos.y, 2));
 				} while (distance_to_player < 300.f);
 				createDashingEnemy(renderer, dashing_pos);
-				num_enemies_spawned++;
+				num_enemies++;
 				// tile_vec.push_back(spawnable_tiles[index]);
 			}
 		}
@@ -1419,12 +1416,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				registry.remove_all_components_of(entity);
 				if (!registry.projectiles.has(entity)) {
 					enemies_killed++;
-				}
-				if (enemies_killed >= enemy_kill_goal && current_map != map_final && !goal_reached)
-				{
-					goal_reached = true;
-
-					return true;
+					num_enemies--;
 				}
 			}
 		}
@@ -1476,8 +1468,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				int bound = (player.dash_cooldown_ms - player.dash_time) + (i * (player.dash_time / 5));
 				if (player.curr_dash_cooldown_ms < bound && player.curr_dash_cooldown_ms + elapsed_ms_since_last_update > bound)
 				{
-					// TODO: modify this a little bit to make dash shadows fully even
-					// TODO: make it so player is invulnerable during dash ?
 					vec2 effectPos = registry.motions.get(my_player).position;
 					createEffect(renderer, effectPos, 500, EFFECT_TYPE::DASH);
 				}
@@ -1492,7 +1482,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		return true;
 	}
 
-	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
+	screen.darken_screen_factor = 1 - (min_counter_ms / 3000);
 
 	// Lights flickering
 	if (!registry.deathTimers.has(my_player))
@@ -1619,8 +1609,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	{
 		for (Entity e : registry.healthBuffs.entities)
 		{
-			HealthBuff &hb = registry.healthBuffs.get(e);
-			if (hb.touching && registry.tutorialIcons.entities.size() == 0)
+			HoldInteract &h = registry.holdInteracts.get(e);
+			if (h.touching && registry.tutorialIcons.entities.size() == 0)
 			{
 				createInteractKey(renderer, {registry.motions.get(e).position.x + 50, registry.motions.get(e).position.y - 50});
 				break;
@@ -1651,12 +1641,30 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	}
 
 	for (Entity e : registry.holdInteracts.entities) {
-		HealthBuff& hb = registry.healthBuffs.get(e);
 		HoldInteract& interact = registry.holdInteracts.get(e);
+
+		if (player.is_attacking) {
+			interact.interacting = false;
+		}
 
 		if (interact.interacting) {
 			interact.touch_time_ms += elapsed_ms_since_last_update;
 		}
+	}
+
+	std::vector<Entity> circ_ents = registry.progressCircles.entities;
+	for (Entity e : circ_ents) {
+		ProgressCircle& circ = registry.progressCircles.get(e);
+
+		if (!registry.holdInteracts.has(circ.connected)) {
+			registry.remove_all_components_of(e);
+			continue;
+		}
+
+		if (registry.holdInteracts.get(circ.connected).activated || (!registry.holdInteracts.get(circ.connected).interacting)) {
+			registry.remove_all_components_of(e);
+		}
+
 	}
 
 	for (Entity &e : registry.deadlys.entities)
@@ -1765,7 +1773,7 @@ void WorldSystem::restart_game()
 
 	enemies_killed = 0;
 	goal_reached = false;
-	num_enemies_spawned = 0;
+	num_enemies = 0;
 
 	while (registry.upgradeCards.entities.size() > 0)
 	{
@@ -1911,7 +1919,9 @@ void WorldSystem::restart_game()
 	// set pause correctly
 	is_paused = true;
 	unpause();
-	// create experience bar
+
+	registry.screenStates.components[0].lights_on = 0;
+
 }
 
 // utility functions for dash mvmnt implementation
@@ -2061,12 +2071,13 @@ void WorldSystem::handle_collisions(float step_seconds)
 				unstick_player = false;
 			}
 
-			// touching health buffs
-			if (registry.healthBuffs.has(entity_other))
+			// touching hold interacts
+			if (registry.holdInteracts.has(entity_other))
 			{
-				HealthBuff &hb = registry.healthBuffs.get(entity_other);
-				hb.touching = true;
+				HoldInteract &h = registry.holdInteracts.get(entity_other);
+				h.touching = true;
 			}
+
 
 			if (registry.doors.has(entity_other))
 			{
@@ -2183,112 +2194,6 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 					deadly.state = ENEMY_STATE::KNOCKED_BACK;
 
-					/*
-					vec2 knockback_pos = registry.motions.get(entity_other).position + (diff * player.knockback_strength);
-					int grid_x = static_cast<int>((knockback_pos.x - (640 - (25 * TILE_SIZE)) - TILE_SIZE / 2) / TILE_SIZE);
-					int grid_y = static_cast<int>((knockback_pos.y - (640 - (44 * TILE_SIZE)) - TILE_SIZE / 2) / TILE_SIZE);
-					int adjust_x = 0;
-					int adjust_y = 0;
-					if (diff.x < 0 && diff.y < 0)
-					{
-						if (abs(diff.x) < 50 && abs(diff.y) < 50)
-						{
-							adjust_x = -1;
-							adjust_y = -1;
-						}
-						else
-						{
-							if (abs(diff.x) > 50)
-							{
-								adjust_x = -1;
-							}
-							if (abs(diff.y) > 50)
-							{
-								adjust_y = -1;
-							}
-						}
-					}
-					else if (diff.x > 0 && diff.y < 0)
-					{
-						if (abs(diff.x) < 50 && abs(diff.y) < 50)
-						{
-							adjust_x = 1;
-							adjust_y = -1;
-						}
-						else
-						{
-							if (abs(diff.x) > 50)
-							{
-								adjust_x = 2;
-							}
-							if (abs(diff.y) > 50)
-							{
-								adjust_y = -1;
-							}
-						}
-					}
-					else if (diff.x > 0 && diff.y > 0)
-					{
-						if (abs(diff.x) < 50 && abs(diff.y) < 50)
-						{
-							adjust_x = 1;
-							adjust_y = 1;
-						}
-						else
-						{
-							if (abs(diff.x) > 50)
-							{
-								adjust_x = 2;
-							}
-							if (abs(diff.y) > 50)
-							{
-								adjust_y = 2;
-							}
-						}
-					}
-					else if (diff.x < 0 && diff.y > 0)
-					{
-						if (abs(diff.x) < 50 && abs(diff.y) < 50)
-						{
-							adjust_x = -1;
-							adjust_y = 1;
-						}
-						else
-						{
-							if (abs(diff.x) > 50)
-							{
-								adjust_x = -1;
-							}
-							if (abs(diff.y) > 50)
-							{
-								adjust_y = 2;
-							}
-						}
-					}
-
-					vec2 adjust = adjust_knockback_coordinates(grid_x, grid_y, adjust_x, adjust_y);
-
-					int adjusted_tile = current_map[grid_y + adjust.y][grid_x + adjust.x];
-
-					if (registry.motions.has(entity_other) && (adjusted_tile == 1 || (adjusted_tile >= 3 && adjusted_tile <= 8)))
-					{
-						vec2 grid_knockback_pos = {(640 - (25 * 100)) + ((grid_x + adjust.x) * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + ((grid_y + adjust.y) * TILE_SIZE) + (TILE_SIZE / 2)};
-						vec2 new_diff = grid_knockback_pos - registry.motions.get(my_player).position;
-						if (length(new_diff) > length(diff))
-						{
-							if (deadly.enemy_type == ENEMY_TYPES::DASHING) {
-								enemy_motion.velocity = { 100.f, 100.f };
-							}
-							enemy_motion.position = grid_knockback_pos;
-							deadly.knocked_back_pos = grid_knockback_pos;
-							physics.update_enemy_movement(entity_other, step_seconds);
-							if (registry.pathTimers.has(entity_other))
-							{
-								registry.pathTimers.get(entity_other).timer = -1.f;
-							}
-						}
-					}
-					*/
 				}
 				if (registry.lightUps.has(entity_other))
 				{
@@ -2651,7 +2556,52 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	if (key == GLFW_KEY_E)
 	{
-		for (Entity e : registry.healthBuffs.entities)
+
+		std::vector<Entity> holdInteracts = registry.holdInteracts.entities;
+
+		for (Entity e : holdInteracts) {
+			HoldInteract& interact = registry.holdInteracts.get(e);
+			
+			if (interact.touching) {
+
+				if (action == GLFW_RELEASE) {
+					// Deactivate
+					interact.interacting = false;
+					interact.activated = false;
+				}
+
+				if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+					// first interaction with health buff obj - if the interact key is up get rid of it
+					// if any other keys are up don't get rid of them
+					if (registry.healthBuffs.has(e) && tutorial.movement && tutorial.attack && tutorial.dash && !tutorial.health_buff)
+					{
+						tutorial.health_buff = true;
+						for (Entity e : registry.tutorialIcons.entities)
+						{
+							registry.remove_all_components_of(e);
+						}
+					}
+
+					if (action == GLFW_PRESS) {
+						// Start new interaction
+						interact.touch_time_ms = 0;
+						interact.interacting = true;
+						interact.activated = false;
+
+						createProgressCircle(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, e);
+					}
+
+
+					if (interact.touch_time_ms >= interact.activate_ms && (!interact.activated)) {
+						interact.activated = true;
+						interact.interacting = false;
+						interact.onInteractCallback(e);
+					}
+				}
+			}
+		}
+
+		/* for (Entity e : registry.healthBuffs.entities)
 		{
 			HealthBuff &buff = registry.healthBuffs.get(e);
 			HoldInteract& interact = registry.holdInteracts.get(e);
@@ -2683,13 +2633,11 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 						createProgressCircle(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, e);
 					}
 
-					std::cout << "touch " << interact.touch_time_ms << std::endl;
+					
 					
 					if (interact.touch_time_ms >= interact.activate_ms && (!interact.activated)) {
 						interact.activated = true;
 						std::cout << "activated" << std::endl;
-						Health &p_health = registry.healths.get(my_player);
-						RenderRequest &hp_bar_render = registry.renderRequests.get(hp_bar);
 						createEffect(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);		
 
 						for (Entity circ_entity : registry.progressCircles.entities) {
@@ -2699,42 +2647,61 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 								interact.interacting = false;
 								break;
 							}
-						}			
-
-						if (p_health.hit_points < 200)
-						{
-							p_health.hit_points += min(buff.factor * 25.f, 200.f - p_health.hit_points);
-
-							// Total HP bar is 200
-							int hp_level = int(p_health.hit_points / 25);
-							// set current animation to hpbar_[hp_level]
-							std::string new_anim = "hpbar_" + std::to_string(hp_level);
-
-							registry.animationSets.get(hp_bar).current_animation = new_anim;
 						}
+
+						heal_player(registry.healthBuffs.get(e));
 					}
 				}
 			}
 		}
 
-		if (action == GLFW_RELEASE) {
-			std::vector<Entity> circ_ents = registry.progressCircles.entities;
+		std::vector<Entity> sigils = registry.sigils.entities;
+		for (Entity e : sigils) {
+			Sigil &s = registry.sigils.get(e);
+			HoldInteract& interact = registry.holdInteracts.get(e);
+			if (s.touching)
+			{
 
-			// delete any health buff interactions
-			for (Entity e : circ_ents) {
-				ProgressCircle& circ = registry.progressCircles.get(e);
+				if (action == GLFW_RELEASE) {
+					// deactivate
+					interact.activated = false;
+					interact.interacting = false;
+					// get rid of progress thingy
+				}
 
-				HealthBuff& hb = registry.healthBuffs.get(circ.connected);
-				HoldInteract& interact = registry.holdInteracts.get(circ.connected);
-				interact.interacting = false;
-				interact.activated = false;
-				interact.touch_time_ms = 0;
-				std::cout << "resetting at release" << std::endl;
+				if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+					
+					if (action == GLFW_PRESS) {
+						std::cout << "resetting at press" << std::endl;
+						interact.touch_time_ms = 0;
+						interact.interacting = true;
+						createProgressCircle(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, e);
+					}
 
-				registry.remove_all_components_of(e);
+					std::cout << "touch " << interact.touch_time_ms << std::endl;
+					
+					if (interact.touch_time_ms >= interact.activate_ms && (!interact.activated)) {
+						interact.activated = true;
+						std::cout << "activated" << std::endl;
+						for (Entity circ_entity : registry.progressCircles.entities) {
+							ProgressCircle& circle = registry.progressCircles.get(circ_entity);
+							if (circle.connected == e) {
+								
+								registry.remove_all_components_of(circle.connected);
+								interact.interacting = false;
+								break;
+							}
+						}	
+
+						
+					}
+				}
 			}
+		} */
 
+		if (action == GLFW_RELEASE) {
 
+			// Interact with doors
 			for (Entity e : registry.doors.entities)
 			{
 				Door &door = registry.doors.get(e);
@@ -2900,6 +2867,55 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	}
 	current_speed = fmax(0.f, current_speed);
 }
+
+void WorldSystem::heal_player(Entity health_buff) {
+
+	Entity my_player = registry.players.entities[0];
+	
+	Health &p_health = registry.healths.get(my_player);
+	HealthBuff& buff = registry.healthBuffs.get(health_buff);
+	RenderRequest &hp_bar_render = registry.renderRequests.get(hp_bar);
+
+	if (p_health.hit_points < 200)
+	{
+		
+		p_health.hit_points += min(buff.factor * 25.f, 200.f - p_health.hit_points);
+
+		// Total HP bar is 200
+		int hp_level = int(p_health.hit_points / 25);
+		// set current animation to hpbar_[hp_level]
+		std::string new_anim = "hpbar_" + std::to_string(hp_level);
+
+		registry.animationSets.get(hp_bar).current_animation = new_anim;
+	}
+
+	createEffect(renderer, {registry.motions.get(health_buff).position.x + 5.f, registry.motions.get(health_buff).position.y - 45.f}, 1200.f, EFFECT_TYPE::HEART);
+}
+
+void kill_all_enemies() {
+	for (Entity e : registry.deadlys.entities) {
+		Deadly &d = registry.deadlys.get(e);
+		d.state = ENEMY_STATE::DEAD;
+		DeathTimer &death = registry.deathTimers.emplace(e);
+		death.counter_ms = 550.4f;
+	}
+}
+
+
+void WorldSystem::destroy_sigil(Entity sigil_entity) {
+	createSmoke(renderer, registry.motions.get(sigil_entity).position);
+	registry.remove_all_components_of(sigil_entity);
+	sigils_destroyed++;
+
+	if (sigils_destroyed == sigils_in_map && current_map != map_final)
+	{
+		goal_reached = true;
+		kill_all_enemies();
+	}
+}
+
+
+
 
 void WorldSystem::on_mouse_move(vec2 mouse_position)
 {

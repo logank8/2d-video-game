@@ -58,5 +58,6 @@
         "forward_list": "cpp",
         "span": "cpp",
         "valarray": "cpp"
-    }
+    },
+    "C_Cpp.default.compilerPath": "/usr/bin/clang"
 }

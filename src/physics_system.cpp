@@ -967,14 +967,18 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
     // Modify health buffs that are not touching player
     
     const Motion& player_motion = registry.motions.get(registry.players.entities[0]);
-    for (Entity e : registry.healthBuffs.entities) {
-        HealthBuff& hb = registry.healthBuffs.get(e);
-        if (hb.touching) {
-            if (!collides(registry.motions.get(e),player_motion)) {
-                hb.touching = false;
+
+    // Check hold interacts proximity
+    for (Entity e : registry.holdInteracts.entities) {
+        HoldInteract& interact = registry.holdInteracts.get(e);
+
+        if (interact.touching) {
+            if (!collides(registry.motions.get(e), player_motion)) {
+                interact.touching = false;
             }
         }
     }
+
 
 
     // check for door collision
@@ -990,10 +994,12 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
     // Check for tenant within radius
     for (Entity e : registry.tenants.entities) {
 
+
         Tenant& tenant = registry.tenants.get(e);
         Motion& tenant_motion = registry.motions.get(e);
         vec2 player_pos = player_motion.position;
         vec2 tenant_pos = registry.motions.get(e).position;
+
 
         // Player able to interact with tenant? (if so no pathfinding required)
         if (distance(tenant_pos, player_pos) <= 100 && tenant.path.size() == 0) {
@@ -1006,10 +1012,15 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
         if (!tenant.on_path) {
             tenant.path = find_path(tenant_motion, player_motion);
             tenant.on_path = true;
+            if (tenant.path.size() == 0) {
+                std::cout << "Error: path not found for tenant" << std::endl;
+				exit(1);
+            }
         }
         
 
         while (tenant.path.size() != 0) {
+
 
             // Speed up offscreen movement
             bool tenant_offscreen = (abs(tenant_pos.x - player_pos.x) > 750) || (abs(tenant_pos.y - player_pos.y) > 500); 
@@ -1026,7 +1037,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
             if (tenant.path.size() == 1) {
                 float stand_offset = 75;
 
-                std::cout << "moving towards player" << std::endl;
+                
                 // Moving towards position of same y and 50 x dist away from player
                 target = {player_pos.x + (sign(tenant_pos.x - player_pos.x) * stand_offset), player_pos.y};
                 towards_path = normalize(target - tenant_pos);

@@ -240,3 +240,5 @@ Entity createDialogueBox(RenderSystem *renderer);
 Entity createElevatorDisplay(RenderSystem *renderer, vec2 pos);
 
 Entity createProgressCircle(RenderSystem *renderer, vec2 pos, Entity connect);
+
+Entity createSigil(RenderSystem *renderer, vec2 pos);

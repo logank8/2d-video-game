@@ -318,16 +318,22 @@ struct UserInterface
 struct HealthBuff
 {
 	float factor = 1;
-	bool touching = false;
+};
+
+struct Sigil 
+{
+	
 };
 
 // Any object you have to hold a key down for some time to interact with
 struct HoldInteract
 {
+	bool touching = false;
 	bool interacting = false;
 	bool activated = false;
 	float touch_time_ms = 0;
 	float activate_ms = 1500;
+	std::function<void(Entity e)> onInteractCallback;
 };
 
 // A struct to refer to debugging graphics in the ECS
@@ -612,7 +618,8 @@ enum class TEXTURE_ASSET_ID
 	LEVELUP_CONFIRM = TENANT_4 + 1,
 	TITLE = LEVELUP_CONFIRM + 1,
 	PROGRESS_CIRCLE = TITLE + 1,
-	TEXTURE_COUNT = PROGRESS_CIRCLE + 1
+	SIGIL = PROGRESS_CIRCLE + 1,
+	TEXTURE_COUNT = SIGIL + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

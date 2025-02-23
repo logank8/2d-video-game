@@ -1,4 +1,5 @@
 #include "world_init.hpp"
+#include "world_system.hpp"
 #include "tiny_ecs_registry.hpp"
 
 #include <iostream>
@@ -1814,6 +1815,7 @@ Entity createHealthBuff(RenderSystem *renderer, vec2 pos)
 
 	registry.healthBuffs.emplace(entity);
 	registry.holdInteracts.emplace(entity);
+	
 
 	// create an empty component for the furniture as a solid object
 	registry.renderRequests.insert(
@@ -2520,6 +2522,32 @@ Entity createProgressCircle(RenderSystem *renderer, vec2 pos, Entity connect)
 	auto &animSet = registry.animationSets.emplace(entity);
 	animSet.animations[progress.name] = progress;
 	animSet.current_animation = progress.name;
+
+	return entity;
+}
+
+Entity createSigil(RenderSystem *renderer, vec2 pos) {
+	auto entity = Entity();
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+	
+	// Setting initial motion values
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = vec2(pos.x + 200, pos.y - 100);
+	motion.angle = 0;
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2({400, 200});
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::SIGIL,
+				 SPRITE_ASSET_ID::SPRITE_COUNT,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 -1,
+				 RENDER_LAYER::FLOOR_DECOR});
+
+	registry.sigils.emplace(entity);
+	registry.holdInteracts.emplace(entity);
 
 	return entity;
 }
