@@ -460,6 +460,13 @@ void WorldSystem::update_stamina_bar()
 	auto &ui = registry.userInterfaces.get(stamina_in);
 	ui.scale = vec2(progress * 0.4f, 0.205f);
 	ui.position = bar_pos;
+
+
+	AnimationSet &stamina_anim = registry.animationSets.get(stamina_bar);
+
+	if (player.is_attacking) {
+		stamina_anim.current_animation = "staminabar_depleting";
+	}
 }
 
 void WorldSystem::save_player_data(const std::string &filename)
@@ -844,7 +851,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			}
 			
 			registry.tutorialIcons.clear();
-			enter_cutscene();
 		}
 		
 		if (tenant)
@@ -934,7 +940,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		powerup.timer -= elapsed_ms_since_last_update;
 
 		float x = 40;
-		float y = 450;
+		float y = 500;
 		std::string powerup_name = "";
 		if (powerup.type == PowerupType::DAMAGE_BOOST)
 			powerup_name = "Damage Boost";
@@ -1422,11 +1428,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 	}
 
+	AnimationSet &stamina_anim = registry.animationSets.get(stamina_bar);
+
 	// handle dash cooldown
 	if (!player.is_dash_up)
 	{
 		player.curr_dash_cooldown_ms -= elapsed_ms_since_last_update;
-		AnimationSet &stamina_anim = registry.animationSets.get(stamina_bar);
 
 		// Player able to dash again
 		if (player.curr_dash_cooldown_ms < 0.f)
@@ -1443,11 +1450,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			registry.motions.get(my_player).velocity = {0, 0};
 			registry.lightUps.remove(my_player);
 
-			stamina_anim.current_animation = "staminabar_regen";
-
+			stamina_anim.current_animation = "staminabar_full";
 		} // Player dashing
 		else
 		{
+			stamina_anim.current_animation = "staminabar_depleting";
+
 			if (!tutorial.dash)
 			{
 				tutorial.dash = true;
@@ -1473,9 +1481,43 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				}
 			}
 		}
+	} else if (!player.is_attacking) {
+		stamina_anim.current_animation = "staminabar_full";
 	}
 
 	player_controller.step(elapsed_ms_since_last_update);
+
+	for (Entity e : registry.holdInteracts.entities) {
+		HoldInteract& interact = registry.holdInteracts.get(e);
+
+		if (player.is_attacking) {
+			interact.interacting = false;
+		}
+
+		if (interact.interacting) {
+			if (!interact.touching) {
+				interact.interacting = false;
+				continue;
+			}
+
+			interact.touch_time_ms += elapsed_ms_since_last_update;
+		}
+	}
+
+	std::vector<Entity> circ_ents = registry.progressCircles.entities;
+	for (Entity e : circ_ents) {
+		ProgressCircle& circ = registry.progressCircles.get(e);
+
+		if (!registry.holdInteracts.has(circ.connected)) {
+			registry.remove_all_components_of(e);
+			continue;
+		}
+
+		if (registry.holdInteracts.get(circ.connected).activated || (!registry.holdInteracts.get(circ.connected).interacting)) {
+			registry.remove_all_components_of(e);
+		}
+
+	}
 
 
 	if (cutscene) {
@@ -1640,32 +1682,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		}
 	}
 
-	for (Entity e : registry.holdInteracts.entities) {
-		HoldInteract& interact = registry.holdInteracts.get(e);
-
-		if (player.is_attacking) {
-			interact.interacting = false;
-		}
-
-		if (interact.interacting) {
-			interact.touch_time_ms += elapsed_ms_since_last_update;
-		}
-	}
-
-	std::vector<Entity> circ_ents = registry.progressCircles.entities;
-	for (Entity e : circ_ents) {
-		ProgressCircle& circ = registry.progressCircles.get(e);
-
-		if (!registry.holdInteracts.has(circ.connected)) {
-			registry.remove_all_components_of(e);
-			continue;
-		}
-
-		if (registry.holdInteracts.get(circ.connected).activated || (!registry.holdInteracts.get(circ.connected).interacting)) {
-			registry.remove_all_components_of(e);
-		}
-
-	}
 
 	for (Entity &e : registry.deadlys.entities)
 	{
@@ -2582,6 +2598,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 						}
 					}
 
+
 					if (action == GLFW_PRESS) {
 						// Start new interaction
 						interact.touch_time_ms = 0;
@@ -2591,113 +2608,15 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 						createProgressCircle(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, e);
 					}
 
-
 					if (interact.touch_time_ms >= interact.activate_ms && (!interact.activated)) {
 						interact.activated = true;
 						interact.interacting = false;
 						interact.onInteractCallback(e);
 					}
 				}
-			}
+			} 
 		}
 
-		/* for (Entity e : registry.healthBuffs.entities)
-		{
-			HealthBuff &buff = registry.healthBuffs.get(e);
-			HoldInteract& interact = registry.holdInteracts.get(e);
-			if (buff.touching)
-			{
-
-				if (action == GLFW_RELEASE) {
-					// deactivate
-					interact.activated = false;
-					interact.interacting = false;
-					// get rid of progress thingy
-				}
-
-				if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-					// first interaction with health buff obj - if the interact key is up get rid of it
-					// if any other keys are up don't get rid of them
-					if (tutorial.movement && tutorial.attack && tutorial.dash && !tutorial.health_buff)
-					{
-						tutorial.health_buff = true;
-						for (Entity e : registry.tutorialIcons.entities)
-						{
-							registry.remove_all_components_of(e);
-						}
-					}
-					if (action == GLFW_PRESS) {
-						std::cout << "resetting at press" << std::endl;
-						interact.touch_time_ms = 0;
-						interact.interacting = true;
-						createProgressCircle(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, e);
-					}
-
-					
-					
-					if (interact.touch_time_ms >= interact.activate_ms && (!interact.activated)) {
-						interact.activated = true;
-						std::cout << "activated" << std::endl;
-						createEffect(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, 1400.f, EFFECT_TYPE::HEART);		
-
-						for (Entity circ_entity : registry.progressCircles.entities) {
-							ProgressCircle& circle = registry.progressCircles.get(circ_entity);
-							if (circle.connected == e) {
-								registry.remove_all_components_of(circ_entity);
-								interact.interacting = false;
-								break;
-							}
-						}
-
-						heal_player(registry.healthBuffs.get(e));
-					}
-				}
-			}
-		}
-
-		std::vector<Entity> sigils = registry.sigils.entities;
-		for (Entity e : sigils) {
-			Sigil &s = registry.sigils.get(e);
-			HoldInteract& interact = registry.holdInteracts.get(e);
-			if (s.touching)
-			{
-
-				if (action == GLFW_RELEASE) {
-					// deactivate
-					interact.activated = false;
-					interact.interacting = false;
-					// get rid of progress thingy
-				}
-
-				if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-					
-					if (action == GLFW_PRESS) {
-						std::cout << "resetting at press" << std::endl;
-						interact.touch_time_ms = 0;
-						interact.interacting = true;
-						createProgressCircle(renderer, {registry.motions.get(e).position.x + 5.f, registry.motions.get(e).position.y - 45.f}, e);
-					}
-
-					std::cout << "touch " << interact.touch_time_ms << std::endl;
-					
-					if (interact.touch_time_ms >= interact.activate_ms && (!interact.activated)) {
-						interact.activated = true;
-						std::cout << "activated" << std::endl;
-						for (Entity circ_entity : registry.progressCircles.entities) {
-							ProgressCircle& circle = registry.progressCircles.get(circ_entity);
-							if (circle.connected == e) {
-								
-								registry.remove_all_components_of(circle.connected);
-								interact.interacting = false;
-								break;
-							}
-						}	
-
-						
-					}
-				}
-			}
-		} */
 
 		if (action == GLFW_RELEASE) {
 
@@ -2911,6 +2830,7 @@ void WorldSystem::destroy_sigil(Entity sigil_entity) {
 	{
 		goal_reached = true;
 		kill_all_enemies();
+		enter_cutscene();
 	}
 }
 

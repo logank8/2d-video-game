@@ -1532,15 +1532,7 @@ Entity createStaminaBar(RenderSystem *renderer, vec2 pos)
 		SPRITE_ASSET_ID::STAMINA_BAR,
 		full_vec};
 
-	std::vector<int> regen_vec = {0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 11, 12, 13, 14};
-	// edit here ? idk
-	Animation regen = {
-		"staminabar_regen",
-		int(regen_vec.size() / int(PLAYER_DASH_SEC)),
-		SPRITE_ASSET_ID::STAMINA_BAR,
-		regen_vec};
-
-	std::vector<int> depleting_vec = {14, 11, 12, 13, 13, 13, 13, 13, 0};
+	std::vector<int> depleting_vec = {11};
 	Animation depleting = {
 		"staminabar_depleting",
 		15,
@@ -1549,7 +1541,6 @@ Entity createStaminaBar(RenderSystem *renderer, vec2 pos)
 
 	auto &animSet = registry.animationSets.emplace(entity);
 	animSet.animations[full.name] = full;
-	animSet.animations[regen.name] = regen;
 	animSet.animations[depleting.name] = depleting;
 	animSet.current_animation = full.name;
 
@@ -2083,7 +2074,7 @@ Entity createMovementKeys(RenderSystem *renderer, vec2 pos)
 	motion.position = pos;
 	motion.angle = 0;
 	motion.velocity = {0.f, 0.f};
-	motion.scale = vec2({100, 100});
+	motion.scale = vec2({150, 100});
 
 	registry.renderRequests.insert(
 		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
