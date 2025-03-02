@@ -370,6 +370,7 @@ void WorldSystem::restart_world()
 	// Reset the game speed
 	current_speed = 1.f;
 	is_level_up = false;
+	sigils_destroyed = 0;
 
 	camera = createCamera(renderer, vec2(window_width_px / 2, window_height_px / 2));
 }
@@ -619,7 +620,7 @@ void WorldSystem::spawn_nearby_tile(vec2 curr_tile, std::vector<ENEMY_TYPES> &en
 		if (new_i >= 0 && new_i < current_map[0].size() &&
 			new_j >= 0 && new_j < current_map.size())
 		{
-			if (current_map[new_j][new_i] == 1 || (current_map[new_j][new_i] >= 3 && current_map[new_j][new_i] <= 8))
+			if (current_map[new_j][new_i] == 1 || (current_map[new_j][new_i] >= 3 && current_map[new_j][new_i] <= 8) || current_map[new_j][new_i] > 38)
 			{
 				vec2 world_pos = {(640 - (25 * 100)) + (new_i * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (new_j * TILE_SIZE) + (TILE_SIZE / 2)};
 				ENEMY_TYPES enemy_type = enemy_types.back();

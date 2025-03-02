@@ -294,7 +294,7 @@ bool is_walkable(const vec2 &pos, vec2 dir)
         if ((map[grid_y][grid_x + 1] >= 20 && map[grid_y + 1][grid_x] <= 38) || (map[grid_y][grid_x + 1] >= 20 && map[grid_y][grid_x + 1] <= 38)) return false;
     }
 
-    return map[grid_y][grid_x] == 1 || (map[grid_y][grid_x] >= 3 && map[grid_y][grid_x] <= 8);
+    return map[grid_y][grid_x] == 1 || (map[grid_y][grid_x] >= 3 && map[grid_y][grid_x] <= 8) || map[grid_y][grid_x] > 38;
 }
 
 //strictly for checking map tile integers
@@ -302,7 +302,7 @@ bool is_tile_walkable(int x, int y) {
     if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size()) {
         return false;
     }
-    return map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8);
+    return map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8) || map[y][x] > 38;
 };
 
 // Checking for line of sight using Bresenham's algorithm
@@ -371,7 +371,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
     {
         return false;
     }
-    return map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8);
+    return map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8) || map[y][x] > 38;
 }
 
 // Checking for dashing line of sight using Bresenham's algorithm
@@ -1127,7 +1127,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
         for (Entity solid : registry.solidObjs.entities) {
             Motion& motion_solid = registry.motions.get(solid);
 
-            // just trying to make it so we're not checking for collision on every single solid object in the scene
+            // trying to make it so we're not checking for collision on every single solid object in the scene
             if (distance(motion_solid.position, motion.position) > 3 * max(abs(motion.scale.x), abs(motion.scale.y))) {
                 continue;
             }
@@ -1147,7 +1147,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
         for (Entity solid : registry.solidObjs.entities) {
             Motion& motion_solid = registry.motions.get(solid);
 
-            // just trying to make it so we're not checking for collision on every single solid object in the scene
+            // trying to make it so we're not checking for collision on every single solid object in the scene
             if (distance(motion_solid.position, motion.position) > 3 * max(abs(motion.scale.x), abs(motion.scale.y))) {
                 continue;
             }
