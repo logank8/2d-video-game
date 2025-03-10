@@ -52,6 +52,12 @@
         "unordered_map": "cpp",
         "variant": "cpp",
         "vector": "cpp",
-        "algorithm": "cpp"
-    }
+        "algorithm": "cpp",
+        "map": "cpp",
+        "any": "cpp",
+        "forward_list": "cpp",
+        "span": "cpp",
+        "valarray": "cpp"
+    },
+    "C_Cpp.default.compilerPath": "/usr/bin/clang"
 }
