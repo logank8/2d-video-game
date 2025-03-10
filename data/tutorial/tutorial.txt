@@ -1,0 +1,17 @@
+Goal:
+    You, the player, will go through different floors of this possessed apartment killing
+    the demons summoned by the evil dark magic landlord. After killing a certain number
+    of these enemies, you will advance to the next floor of the apartment. On the last
+    floor you will encounter the final boss and you must kill them to win the game.
+
+Controls:
+    Use WASD or the arrow keys to move
+    Use the mouse to aim
+    Left-mouse click to attack
+    Press Space for dash movement
+    Press E near a cat to pet them for small health boost
+    Press ESC to pause/unpause
+    Press T to pause and view the tutorial
+    Press F to toggle display of the FPS counter
+    Press R to restart
+    
