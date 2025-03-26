@@ -248,7 +248,8 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 	// Initialize the position, scale, and physics components
 	auto &motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = {150.f, 150.f};
+	motion.velocity = {0.f, 0.f};
+	motion.speed = 200.f;
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way

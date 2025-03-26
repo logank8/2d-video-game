@@ -147,7 +147,7 @@ enum FinalLevelStage
 	NOT_FINAL_LEVEL = 0,
 	STAGE1 = NOT_FINAL_LEVEL + 1,
 	STAGE2 = STAGE1 + 1,
-	STAGE3 = STAGE2 + 1,
+	STAGE3 = STAGE2 + 1
 };
 
 // anything that is deadly to the player

@@ -394,6 +394,9 @@ void WorldSystem::init(RenderSystem *renderer_arg)
 	createMenuScreen(renderer, true);
 	createElevatorButtons(renderer, 5);
 
+	// DEBUG SETTING
+	levels_unlocked = {1,2,3,4,5};
+
 	// Set all states to default
 	restart_world();
 }
@@ -505,7 +508,7 @@ void WorldSystem::load_player_data(const std::string &filename)
 
 	if (!file.is_open())
 	{
-		// std::cout << "failed to open file for player data" << std::endl;
+		std::cout << "failed to open file for player data" << std::endl;
 		return;
 	}
 
@@ -2906,6 +2909,10 @@ void WorldSystem::on_mouse_button(int button, int action, int mods)
 					Entity e = registry.elevatorDisplays.entities[0];
 
 					// TODO: need to more thoroughly track which levels have been unlocked to player
+					for (int i = 0; i < levels_unlocked.size(); i++) {
+						std::cout << levels_unlocked[i] << std::endl;
+					}
+					
 
 					if (std::find(levels_unlocked.begin(), levels_unlocked.end(), button.level) == levels_unlocked.end())
 					{

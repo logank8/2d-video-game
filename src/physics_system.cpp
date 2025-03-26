@@ -907,6 +907,66 @@ void PhysicsSystem::update_enemy_movement(Entity enemy, float step_seconds)
     }
 }
 
+void PhysicsSystem::update_boss_movement(Entity enemy, float step_seconds) {
+    Motion& motion = registry.motions.get(enemy);
+    Motion& player_motion = registry.motions.get(registry.players.entities[0]);
+
+    vec2 playerDir = player_motion.position - motion.position;
+
+    float runAway = 250;
+
+    if (distance(player_motion.position, motion.position) <= runAway) {
+        vec2 runAwayDir  = normalize(playerDir);
+        std::cout << "running away" << std::endl;
+
+        motion.velocity = motion.speed * -runAwayDir;
+    } else {
+        motion.velocity = {0, 0};
+    }
+
+    // TODO: eventually merge this movement stuff with the player movement bc its the same code
+
+    // check if new x value will collide with any solid objects
+    float new_x = motion.position[0] + (motion.velocity[0] * step_seconds);
+    Motion new_motion_x = {{new_x, motion.position.y}, motion.angle, motion.velocity, motion.scale, motion.speed};
+    for (Entity solid : registry.solidObjs.entities) {
+        Motion& motion_solid = registry.motions.get(solid);
+
+        // trying to make it so we're not checking for collision on every single solid object in the scene
+        if (distance(motion_solid.position, motion.position) > 3 * max(abs(motion.scale.x), abs(motion.scale.y))) {
+            continue;
+        }
+
+        if (collides(motion_solid, new_motion_x)) {
+            motion.velocity.x = 0;
+            break;
+        }
+    }
+
+    // update x value
+    motion.position[0] += motion.velocity[0] * step_seconds;
+
+    // check if new y value will collide with any solid objects
+    float new_y = motion.position[1] + (motion.velocity[1] * step_seconds);
+    Motion new_motion_y = {{motion.position.x, new_y}, motion.angle, motion.velocity, motion.scale, motion.speed};
+    for (Entity solid : registry.solidObjs.entities) {
+        Motion& motion_solid = registry.motions.get(solid);
+
+        // trying to make it so we're not checking for collision on every single solid object in the scene
+        if (distance(motion_solid.position, motion.position) > 3 * max(abs(motion.scale.x), abs(motion.scale.y))) {
+            continue;
+        }
+
+        if (collides(motion_solid, new_motion_y)) {
+            motion.velocity.y = 0;
+            break;
+        }
+    }
+
+    // update y value
+    motion.position[1] += motion.velocity[1] * step_seconds;
+}
+
 void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current_map)
 {
     map = current_map;
@@ -1171,7 +1231,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                             update_swarm_movement(entity, step_seconds);
                             
                         }
-                        else if (registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::DASHING || (registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::FINAL_BOSS && registry.bosses.get(entity).stage == FinalLevelStage::STAGE3)) {
+                        else if (registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::DASHING) {
                             Motion& player_motion = registry.motions.get(registry.players.entities[0]);
                             auto& dashing_enemy = registry.enemyDashes.get(entity);
                             if (has_dashing_los(registry.motions.get(entity).position, player_motion.position) || dashing_enemy.current_charge_timer > dashing_enemy.charge_time) {
@@ -1233,6 +1293,8 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                                 }
                                 update_enemy_movement(entity, step_seconds);
                             }
+                        } else if (registry.deadlys.get(entity).enemy_type == ENEMY_TYPES::FINAL_BOSS) {
+                            update_boss_movement(entity, step_seconds);
                         }
                         else{
                             update_enemy_movement(entity, step_seconds);

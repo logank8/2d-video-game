@@ -13,6 +13,7 @@ public:
 	bool has_los(const vec2& start, const vec2& end);
 	void update_enemy_movement(Entity enemy, float step_seconds);
 	void update_swarm_movement(Entity leader, float step_seconds);
+	void update_boss_movement(Entity enemy, float step_seconds);
 
 	PhysicsSystem()
 	{
