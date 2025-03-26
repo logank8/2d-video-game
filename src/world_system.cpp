@@ -1029,7 +1029,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			}
 
 
-			if ((current_map != map_final || registry.bosses.get(final_boss).stage == FinalLevelStage::STAGE3) && !goal_reached)
+			if ((current_map != map_final) && !goal_reached)
 			{
 				if (current_map[j][i] == 3 && num_enemies < enemy_spawn_cap)
 				{
@@ -1141,7 +1141,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	player.levels_unlocked = levels_unlocked;
 
 
-	if ((current_map != map_final || registry.bosses.get(final_boss).stage != FinalLevelStage::STAGE1) && (!goal_reached))
+	if ((current_map != map_final) && (!goal_reached))
 	{
 		// TODO: spawn frequencies and spawn radius to be adjusted
 		//  Spawn Level 1 type enemy: slow with contact damage
@@ -1252,6 +1252,32 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				num_enemies++;
 				// tile_vec.push_back(spawnable_tiles[index]);
 			}
+		}
+	} 
+
+	// Updating boss attacks
+	if (current_map == map_final) {
+		if (registry.bosses.size() != 0) {
+			FinalBoss& boss = registry.bosses.components[0];
+			
+			boss.attack_timer_ms += elapsed_ms_since_last_update;
+
+			if (boss.attack_timer_ms >= boss.attack_frequency_ms) {
+				boss.attack_timer_ms = 0;
+
+				switch (boss.stage) {
+					case (FinalLevelStage::STAGE1):
+						// TODO: summon swarm in a radius around final boss on spawnable tile
+						break;
+					case (FinalLevelStage::STAGE2):
+						// TODO: spike attack - spend 2-ish seconds following player position (slow speed so player can evade) then send up spikes
+						break;
+					default: 
+						// TODO: fire attack - slowly chase player maybe ? and shoot 2-3 lines of fire 
+				}
+			}
+
+			
 		}
 	}
 

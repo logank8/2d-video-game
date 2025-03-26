@@ -154,6 +154,8 @@ enum FinalLevelStage
 struct FinalBoss
 {
 	FinalLevelStage stage = STAGE1;
+	float attack_timer_ms = 0;
+	float attack_frequency_ms = 5000;
 };
 
 struct Effect
