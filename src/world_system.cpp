@@ -1273,6 +1273,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 						// TODO: spike attack - spend 2-ish seconds following player position (slow speed so player can evade) then send up spikes
 						break;
 					default: 
+
+						break;
 						// TODO: fire attack - slowly chase player maybe ? and shoot 2-3 lines of fire 
 				}
 			}
@@ -1368,10 +1370,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				Deadly &deadly = registry.deadlys.get(entity);
 				Motion &enemy_motion = registry.motions.get(entity);
 
-				if (roll <= deadly.drop_chance && !registry.projectiles.has(entity) && !registry.swarms.has(entity) && !goal_reached)
-				{
-					createExperience(renderer, enemy_motion.position, deadly.experience);
-				}
+				// if (roll <= deadly.drop_chance && !registry.projectiles.has(entity) && !registry.swarms.has(entity) && !goal_reached)
+				// {
+				// 	createExperience(renderer, enemy_motion.position, deadly.experience);
+				// }
 
 				float roll_powerup = uniform_dist(rng);
 				if (roll_powerup <= POWERUP_DROP_CHANCE && !registry.projectiles.has(entity) && !registry.swarms.has(entity) && !goal_reached && registry.powerups.entities.size() == 0)
@@ -1940,8 +1942,8 @@ void WorldSystem::restart_game()
 	vec2 stamina_bar_pos = {-0.74f, 0.7f};
 	stamina_bar = createStaminaBar(renderer, stamina_bar_pos);
 
-	vec2 exp_bar_pos = {-0.74f, 0.55f};
-	experience_bar = createEmptyBar(renderer, exp_bar_pos);
+	// vec2 exp_bar_pos = {-0.74f, 0.55f};
+	// experience_bar = createEmptyBar(renderer, exp_bar_pos);
 
 	// create health bar
 	vec2 hp_bar_pos = {-0.75, 0.85f};
@@ -1956,10 +1958,10 @@ void WorldSystem::restart_game()
 	stamina_in = createUIBar(bar_pos, vec2(progress * 0.4f, 0.205f), 1);
 
 	// EXPERIENCE BAR
-	float exp_progress = std::min((float)player.experience / player.toNextLevel, 1.0f);
-	float exp_bar_offset = (exp_progress * 0.2f);
-	vec2 exp_barin_pos = vec2(-0.94f + exp_bar_offset, EXPERIENCE_BAR_Y + 1.f);
-	experience_in = createUIBar(exp_barin_pos, vec2(exp_progress * 0.4f, 0.205f), 0);
+	// float exp_progress = std::min((float)player.experience / player.toNextLevel, 1.0f);
+	// float exp_bar_offset = (exp_progress * 0.2f);
+	// vec2 exp_barin_pos = vec2(-0.94f + exp_bar_offset, EXPERIENCE_BAR_Y + 1.f);
+	// experience_in = createUIBar(exp_barin_pos, vec2(exp_progress * 0.4f, 0.205f), 0);
 
 
 	// set pause correctly
@@ -2690,7 +2692,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 				//  else -> display next dialogue
 
 				Tenant &tenant = registry.tenants.get(e);
-				if (tenant.player_in_radius)
+				if (tenant.player_in_radius && !WorldSystem::is_level_up)
 				{
 					while (registry.tutorialIcons.entities.size() != 0)
 					{
@@ -2731,6 +2733,10 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 							{
 								registry.remove_all_components_of(registry.dialogueBoxes.entities.back());
 							}
+
+							// gives player upgrade
+							set_level_up_state(true);
+							player_controller.displayUpgradeCards();
 						}
 					}
 					else if (tenant.dialogue_progress < int(tenant.dialogues.size() + tenant.extra_dialogues.size()))

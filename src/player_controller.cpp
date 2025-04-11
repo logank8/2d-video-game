@@ -329,29 +329,29 @@ void PlayerController::step(float elapsed_ms_since_last_update)
         }
 
         // Remove entity when animation is finished playing
-        if (collectible.is_collected && animation.current_frame == animation.animations[animation.current_animation].sprite_indices.size() - 1)
-        {
-            auto &collectible_experience = registry.experiences.get(entity);
+        // if (collectible.is_collected && animation.current_frame == animation.animations[animation.current_animation].sprite_indices.size() - 1)
+        // {
+        //     auto &collectible_experience = registry.experiences.get(entity);
 
-            player.experience += (collectible_experience.experience * player.experience_multiplier);
+        //     player.experience += (collectible_experience.experience * player.experience_multiplier);
 
-            if (player.experience >= player.toNextLevel && !registry.deathTimers.has(*my_player))
-            {
-                player.level++;
+        //     if (player.experience >= player.toNextLevel && !registry.deathTimers.has(*my_player))
+        //     {
+        //         player.level++;
 
-                world->set_level_up_state(true);
+        //         world->set_level_up_state(true);
 
-                displayUpgradeCards();
+        //         displayUpgradeCards();
 
-                player.experience -= player.toNextLevel;
+        //         player.experience -= player.toNextLevel;
 
-                // temporary increase
-                player.toNextLevel += 5;
-                world->update_experience_bar();
-            }
+        //         // temporary increase
+        //         player.toNextLevel += 5;
+        //         world->update_experience_bar();
+        //     }
 
-            registry.remove_all_components_of(entity);
-        }
+        //     registry.remove_all_components_of(entity);
+        // }
     }
 
     // handle stamina regen
@@ -364,7 +364,7 @@ void PlayerController::step(float elapsed_ms_since_last_update)
     }
 
     world->update_stamina_bar();
-    world->update_experience_bar();
+    // world->update_experience_bar();
 }
 
 const float STAT_FONT_SIZE = 0.5f;
