@@ -914,14 +914,16 @@ void PhysicsSystem::update_boss_movement(Entity enemy, float step_seconds) {
     vec2 playerDir = player_motion.position - motion.position;
 
     float runAway = 250;
+    vec2 runAwayDir  = normalize(playerDir);
 
     if (distance(player_motion.position, motion.position) <= runAway) {
-        vec2 runAwayDir  = normalize(playerDir);
+       
         //std::cout << "running away" << std::endl;
 
         motion.velocity = motion.speed * -runAwayDir;
     } else {
-        motion.velocity = {0, 0};
+        motion.velocity = motion.speed * runAwayDir;
+
     }
 
     // TODO: eventually merge this movement stuff with the player movement bc its the same code

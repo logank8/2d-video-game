@@ -69,6 +69,7 @@ public:
 	ComponentContainer<ProgressCircle> progressCircles;
 	ComponentContainer<HoldInteract> holdInteracts;
 	ComponentContainer<Sigil> sigils;
+	ComponentContainer<Spike> spikes;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -132,6 +133,7 @@ public:
 		registry_list.push_back(&progressCircles);
 		registry_list.push_back(&holdInteracts);
 		registry_list.push_back(&sigils);
+		registry_list.push_back(&spikes);
 	}
 
 	void clear_all_components()

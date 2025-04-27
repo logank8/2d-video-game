@@ -373,6 +373,9 @@ void WorldSystem::restart_world()
 	sigils_destroyed = 0;
 
 	camera = createCamera(renderer, vec2(window_width_px / 2, window_height_px / 2));
+
+	Mix_Volume(-1, 10.f);
+	Mix_VolumeMusic (5.f);
 }
 
 void WorldSystem::init(RenderSystem *renderer_arg)
@@ -1259,18 +1262,64 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	if (current_map == map_final) {
 		if (registry.bosses.size() != 0) {
 			FinalBoss& boss = registry.bosses.components[0];
+			Motion& boss_motion = registry.motions.get(registry.bosses.entities[0]);
+			Health& boss_health = registry.healths.get(registry.bosses.entities[0]);
+
+			// boss stage changes
+			if (boss.stage == FinalLevelStage::STAGE1 && boss_health.hit_points <= boss.stage_1_change_hp) {
+				boss.stage = FinalLevelStage::STAGE2;
+			} else if (boss.stage == FinalLevelStage::STAGE2 && boss_health.hit_points <= boss.stage_2_change_hp) {
+				boss.stage = FinalLevelStage::STAGE3;
+			}
 			
 			boss.attack_timer_ms += elapsed_ms_since_last_update;
 
 			if (boss.attack_timer_ms >= boss.attack_frequency_ms) {
 				boss.attack_timer_ms = 0;
 
-				switch (boss.stage) {
-					case (FinalLevelStage::STAGE1):
-						// TODO: summon swarm in a radius around final boss on spawnable tile
+				float randX = 0.01f * (randomInt(200) - 100);
+				float randY = 0.01f * (randomInt(200) - 100);
+
+				vec2 circle_pt = normalize(vec2(randX, randY));
+
+				float rand_offset = (0.01f * randomInt(10000)) + 200;
+
+				vec2 world_origin = {-1860, -3760};
+				vec2 world_pos = boss_motion.position;
+    			vec2 map_pos = vec2((int)((world_pos.x - world_origin.x) - ((int)abs(world_pos.x - world_origin.x) % TILE_SIZE)) / TILE_SIZE, (int)((world_pos.y - world_origin.y) - ((int)abs(world_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
+
+				int tiles = 0;
+				std::vector<vec2> tileselect = {
+					{map_pos.x + 1, map_pos.y},
+					{map_pos.x - 1, map_pos.y},
+					{map_pos.x, map_pos.y + 2},
+					{map_pos.x, map_pos.y - 1},
+					{map_pos.x + 1, map_pos.y + 2},
+					{map_pos.x + 1, map_pos.y - 1},
+					{map_pos.x - 1, map_pos.y - 1},
+					{map_pos.x - 1, map_pos.y + 2}
+				};
+				// pick random tile beside boss to spawn swarm
+				vec2 spawn_map = vec2(map_pos.x + max(1, (randomInt(1) * -1)), map_pos.y);
+				while (tiles < 8) {
+					if (current_map[spawn_map.y][spawn_map.x] != 0) {
 						break;
-					case (FinalLevelStage::STAGE2):
+					}
+					spawn_map = tileselect[tiles];
+					tiles++;
+				}
+
+				vec2 spawn_world = {-1860 + (spawn_map.x * TILE_SIZE) + (TILE_SIZE / 2), -3760 + (spawn_map.y * TILE_SIZE) + (TILE_SIZE / 2)};
+
+				switch (boss.stage) {
+					case FinalLevelStage::STAGE1:
+						// summon swarm in a radius around final boss on spawnable tile
+						// choose random point on circle with radius between 200, 300
+						createSwarm(renderer, spawn_world, 0.55f, 0.05f, 0.00005f);
+						break;
+					case FinalLevelStage::STAGE2:
 						// TODO: spike attack - spend 2-ish seconds following player position (slow speed so player can evade) then send up spikes
+						
 						break;
 					default: 
 
@@ -1836,8 +1885,8 @@ void WorldSystem::restart_game()
 
 	// Start up game music
 	Mix_FadeInMusic(background_music, -1, 400.f);
-	Mix_Volume(-1, 70.f);
-	Mix_VolumeMusic (40.f);
+	// Mix_Volume(-1, 10.f);
+	// Mix_VolumeMusic (5.f);
 	
 
 	// clear spawnable_tiles on map switch

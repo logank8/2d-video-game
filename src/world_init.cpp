@@ -2543,3 +2543,46 @@ Entity createSigil(RenderSystem *renderer, vec2 pos) {
 
 	return entity;
 }
+
+Entity createSpikes(RenderSystem *renderer, vec2 pos) {
+	auto entity = Entity();
+	Mesh &mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion &motion = registry.motions.emplace(entity);
+	motion.position = vec2(pos.x, pos.y);
+	motion.angle = 0;
+	motion.velocity = {0.f, 0.f};
+	motion.scale = vec2({400, 400});
+
+	registry.renderRequests.insert(
+		entity, {TEXTURE_ASSET_ID::TEXTURE_COUNT,
+				 SPRITE_ASSET_ID::SPIKE,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 0,
+				 RENDER_LAYER::EFFECTS});
+
+	registry.spikes.emplace(entity);
+
+	std::vector<int> follow_vec = {0, 1};
+	Animation follow = {
+		"spike_follow",
+		15,
+		SPRITE_ASSET_ID::ELEVATOR_DISPLAY,
+		follow_vec};
+
+	std::vector<int> attack_vec = {2, 3, 4, 5, 6};
+	Animation attack = {
+			"spike_attack",
+			15,
+			SPRITE_ASSET_ID::ELEVATOR_DISPLAY,
+			attack_vec};
+
+	auto &animSet = registry.animationSets.emplace(entity);
+	animSet.animations[follow.name] = follow;
+	animSet.animations[attack.name] = attack;
+
+	return entity;
+}

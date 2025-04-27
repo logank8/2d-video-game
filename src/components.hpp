@@ -150,12 +150,14 @@ enum FinalLevelStage
 	STAGE3 = STAGE2 + 1
 };
 
-// anything that is deadly to the player
 struct FinalBoss
 {
 	FinalLevelStage stage = STAGE1;
 	float attack_timer_ms = 0;
-	float attack_frequency_ms = 5000;
+	float attack_frequency_ms = 10000;
+
+	float stage_1_change_hp = 3500;
+	float stage_2_change_hp = 1000;
 };
 
 struct Effect
@@ -523,6 +525,10 @@ struct ParticleEmitter {
 	std::vector<Particle> particles;
 };
 
+struct Spike {
+	float follow_ms;
+};
+
 
 
 /**
@@ -621,7 +627,8 @@ enum class TEXTURE_ASSET_ID
 	TITLE = LEVELUP_CONFIRM + 1,
 	PROGRESS_CIRCLE = TITLE + 1,
 	SIGIL = PROGRESS_CIRCLE + 1,
-	TEXTURE_COUNT = SIGIL + 1
+	SPIKE = SIGIL + 1,
+	TEXTURE_COUNT = SPIKE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -659,7 +666,8 @@ enum class SPRITE_ASSET_ID
 	TENANT_3 = TENANT_2 + 1,
 	TENANT_4 = TENANT_3 + 1,
 	PROGRESS_CIRCLE = TENANT_4 + 1,
-	SPRITE_COUNT = PROGRESS_CIRCLE + 1
+	SPIKE = PROGRESS_CIRCLE + 1,
+	SPRITE_COUNT = SPIKE + 1
 };
 const int sprite_count = (int)SPRITE_ASSET_ID::SPRITE_COUNT;
 
