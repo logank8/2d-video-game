@@ -1925,6 +1925,7 @@ void WorldSystem::restart_game()
 	enemies_killed = 0;
 	goal_reached = false;
 	num_enemies = 0;
+	cutscene = false;
 
 	while (registry.upgradeCards.entities.size() > 0)
 	{
