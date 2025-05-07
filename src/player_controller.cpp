@@ -467,6 +467,7 @@ void PlayerController::displayUpgradeCards()
 
 void PlayerController::on_key(int key, int action, int mod)
 {
+    std::cout << "player key update" << std::endl;
     Motion &pmotion = registry.motions.get(*my_player);
     Player &player = registry.players.get(*my_player);
 

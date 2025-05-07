@@ -260,8 +260,8 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 	enemy.enemy_type = ENEMY_TYPES::FINAL_BOSS;
 
 	auto &health = registry.healths.emplace(entity);
-	health.hit_points = 5000.f;
-	health.max_hp = 5000.f;
+	health.hit_points = 500.f;
+	health.max_hp = 500.f;
 
 	auto &damage = registry.damages.emplace(entity);
 	damage.damage = 50.f;
@@ -277,26 +277,27 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 0});
 
-	std::vector<int> idle_f_vec = {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17};
+	std::vector<int> idle_f_vec = {0, 1, 2, 3, 4, 5, 6};
 	Animation idle_f = {
 		"final_boss_enemy_idle_f",
 		12,
 		SPRITE_ASSET_ID::FINAL_BOSS,
 		idle_f_vec};
 
-	std::vector<int> run_f_vec = {0, 1, 2, 3};
+	std::vector<int> run_f_vec = {10, 11, 12, 13, 14, 15};
 	Animation run_f = {
 		"final_boss_enemy_run_f",
 		10,
 		SPRITE_ASSET_ID::FINAL_BOSS,
 		run_f_vec};
 
-	std::vector<int> die_vec = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+	std::vector<int> die_vec = {38, 39, 40, 41, 42, 43, 44, 45, 46};
 	Animation die = {
 		"final_boss_enemy_die",
 		10,
-		SPRITE_ASSET_ID::FINAL_BOSS_DEATH,
+		SPRITE_ASSET_ID::FINAL_BOSS,
 		die_vec};
+
 
 	std::vector<int> attack_f_vec = {0, 1, 2, 3, 4, 5, 6, 7};
 	Animation attack_f = {
@@ -305,11 +306,19 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 		SPRITE_ASSET_ID::FINAL_BOSS_ATTACK,
 		attack_f_vec};
 
+	std::vector<int> landlord_vec = {48};
+	Animation landlord = {
+		"final_boss_landlord",	
+		10,
+		SPRITE_ASSET_ID::FINAL_BOSS,
+		landlord_vec};
+
 	auto &animSet = registry.animationSets.emplace(entity);
 	animSet.animations[idle_f.name] = idle_f;
 	animSet.animations[run_f.name] = run_f;
 	animSet.animations[die.name] = die;
 	animSet.animations[attack_f.name] = attack_f;
+	animSet.animations[landlord.name] = landlord;
 	animSet.current_animation = idle_f.name;
 
 	return entity;
@@ -2554,6 +2563,7 @@ Entity createSpikes(RenderSystem *renderer, vec2 pos) {
 	motion.position = vec2(pos.x, pos.y);
 	motion.angle = 0;
 	motion.velocity = {0.f, 0.f};
+	motion.speed = 200;
 	motion.scale = vec2({400, 400});
 
 	registry.renderRequests.insert(
@@ -2562,27 +2572,29 @@ Entity createSpikes(RenderSystem *renderer, vec2 pos) {
 				 EFFECT_ASSET_ID::TEXTURED,
 				 GEOMETRY_BUFFER_ID::SPRITE,
 				 0,
-				 RENDER_LAYER::EFFECTS});
+				 RENDER_LAYER::FLOOR_DECOR}); 
 
 	registry.spikes.emplace(entity);
+	registry.damages.emplace(entity);
 
 	std::vector<int> follow_vec = {0, 1};
 	Animation follow = {
 		"spike_follow",
-		15,
+		5,
 		SPRITE_ASSET_ID::ELEVATOR_DISPLAY,
 		follow_vec};
 
-	std::vector<int> attack_vec = {2, 3, 4, 5, 6};
+	std::vector<int> attack_vec = {2, 3, 4, 4, 5, 6};
 	Animation attack = {
 			"spike_attack",
-			15,
+			5,
 			SPRITE_ASSET_ID::ELEVATOR_DISPLAY,
 			attack_vec};
 
 	auto &animSet = registry.animationSets.emplace(entity);
 	animSet.animations[follow.name] = follow;
 	animSet.animations[attack.name] = attack;
+	animSet.current_animation = follow.name;
 
 	return entity;
 }

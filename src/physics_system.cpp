@@ -911,19 +911,26 @@ void PhysicsSystem::update_boss_movement(Entity enemy, float step_seconds) {
     Motion& motion = registry.motions.get(enemy);
     Motion& player_motion = registry.motions.get(registry.players.entities[0]);
 
+    FinalBoss& boss = registry.bosses.get(enemy);
+    if (!(boss.stage == FinalLevelStage::STAGE1 || boss.stage == FinalLevelStage::STAGE2)) {
+        return;
+    }
+
     vec2 playerDir = player_motion.position - motion.position;
 
     float runAway = 250;
     vec2 runAwayDir  = normalize(playerDir);
 
-    if (distance(player_motion.position, motion.position) <= runAway) {
+    if (distance(player_motion.position, motion.position) <= runAway - 50) {
        
         //std::cout << "running away" << std::endl;
 
         motion.velocity = motion.speed * -runAwayDir;
-    } else {
+    } else if (distance(player_motion.position, motion.position) >= runAway + 50) {
         motion.velocity = motion.speed * runAwayDir;
 
+    } else {
+        motion.velocity = {0, 0};
     }
 
     // TODO: eventually merge this movement stuff with the player movement bc its the same code
@@ -1010,7 +1017,7 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                         } else {
                             collided_solids.push_back(entity_j);
                         }
-                    } else {
+                    } else if (!(registry.spikes.has(entity_i) || registry.spikes.has(entity_j))) {
                         // Create a collisions event
                     // We are abusing the ECS system a bit in that we potentially insert multiple collisions for the same entity
                         registry.collisions.emplace_with_duplicates(entity_i, entity_j);
@@ -1242,7 +1249,6 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                                     if (registry.lightUps.has(entity)) {
                                         registry.lightUps.remove(entity);
                                     }
-                                    // TODO: change animation so it just changes to dash mode when charging
                                     int grid_x = static_cast<int>((player_motion.position.x - GRID_OFFSET_X) / TILE_SIZE);
                                     int grid_y = static_cast<int>((player_motion.position.y - GRID_OFFSET_Y) / TILE_SIZE);
                                     dashing_enemy.target_pos = { (640 - (25 * 100)) + (grid_x * TILE_SIZE) + (TILE_SIZE / 2), (640 - (44 * 100)) + (grid_y * TILE_SIZE) + (TILE_SIZE / 2) };
@@ -1314,6 +1320,28 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
                         motion.position.x -= cos(motion.angle) * motion.velocity.x * step_seconds;
                         motion.position.y -= sin(motion.angle) * motion.velocity.y * step_seconds;
                     }
+            }
+
+            if (registry.spikes.has(entity)) {
+                Motion& spike_motion = registry.motions.get(entity);
+                Motion& player_motion = registry.motions.get(registry.players.entities[0]);
+                Spike& spike = registry.spikes.get(entity);
+
+                if (!spike.attack) {
+                    vec2 follow_dir = player_motion.position - spike_motion.position;
+
+                    follow_dir = distance(vec2(0, 0), follow_dir) == 0 ? follow_dir : normalize(follow_dir);
+                    spike_motion.velocity = 200.f * follow_dir;
+
+                    spike_motion.position += spike_motion.velocity * step_seconds;
+                } else {
+                    // radius-based collision - excluded this from AABB detection, only collision entry should be here
+                    // technically would be more ideal to have player BB vs circle ... 
+                    if (ellipse_rect_collision(175, 175, spike_motion.position, player_motion.position)) {
+                        registry.collisions.emplace_with_duplicates(registry.players.entities[0], entity);
+                        registry.collisions.emplace_with_duplicates(entity, registry.players.entities[0]);
+                    }
+                }
             }
         }
     }

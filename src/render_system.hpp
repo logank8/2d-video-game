@@ -43,8 +43,7 @@ class RenderSystem
 		textures_path("mini_golem.png"),
 		textures_path("projectile.png"), // ranged projectile
 		textures_path("homing_projectile.png"),
-		textures_path("boss_run.png"),
-		textures_path("boss_death.png"),
+		textures_path("finalboss_base.png"),
 		textures_path("boss_attack.png"),
 		textures_path("hp_bar.png"),
 		textures_path("plant.png"),

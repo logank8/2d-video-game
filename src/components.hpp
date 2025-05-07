@@ -145,19 +145,23 @@ struct EnemyDash
 enum FinalLevelStage
 {
 	NOT_FINAL_LEVEL = 0,
-	STAGE1 = NOT_FINAL_LEVEL + 1,
+	INTRO = NOT_FINAL_LEVEL + 1,
+	STAGE1 = INTRO + 1,
 	STAGE2 = STAGE1 + 1,
-	STAGE3 = STAGE2 + 1
+	DEATH = STAGE2 + 1,
+	PLAYER_WIN = DEATH + 1
 };
 
 struct FinalBoss
 {
-	FinalLevelStage stage = STAGE1;
+	FinalLevelStage stage = INTRO;
 	float attack_timer_ms = 0;
 	float attack_frequency_ms = 10000;
 
-	float stage_1_change_hp = 3500;
-	float stage_2_change_hp = 1000;
+	float stage_change_hp = 4500;
+	std::string intro_dialogue = "I've been anticipating your arrival. You may think you have a chance at \n saving this building, but you are gravely mistaken.";
+
+	std::string win_dialogue = "You've defeated me. . . I will end my practices and release the building from \n its curse.";
 };
 
 struct Effect
@@ -526,7 +530,25 @@ struct ParticleEmitter {
 };
 
 struct Spike {
-	float follow_ms;
+	// track time spent following so far
+	float follow_ms = 3000;
+	float follow_ms_passed = 0;
+
+	// is attacking?
+	bool attack = false;
+
+	// time spent on attack
+	float attack_length = 1200;
+};
+
+struct Landlord {
+	std::string win_dialogue;
+	std::string lose_dialogue;
+	std::string bonus_win_dialogue;
+	int dialogue_progress = -1;
+	bool player_in_radius = false;
+
+	float initial_anim_progress_ms = 0;
 };
 
 
@@ -564,8 +586,7 @@ enum class TEXTURE_ASSET_ID
 	RANGED_PROJECTILE = RANGED_ENEMY + 1,
 	HOMING_PROJECTILE = RANGED_PROJECTILE + 1,
 	FINAL_BOSS = HOMING_PROJECTILE + 1,
-	FINAL_BOSS_DEATH = FINAL_BOSS + 1,
-	FINAL_BOSS_ATTACK = FINAL_BOSS_DEATH + 1,
+	FINAL_BOSS_ATTACK = FINAL_BOSS + 1,
 	HP_BAR = FINAL_BOSS_ATTACK + 1,
 	PLANT = HP_BAR + 1,
 	FURNITURE = PLANT + 1,

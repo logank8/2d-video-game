@@ -11,7 +11,6 @@ class ECSRegistry
 
 public:
 	// Manually created list of all components this game has
-	// TODO: A1 add a LightUp component
 	ComponentContainer<DeathTimer> deathTimers;
 	ComponentContainer<BlockedTimer> blockedTimers;
 	ComponentContainer<AttackTimer> attackTimers;
@@ -70,6 +69,7 @@ public:
 	ComponentContainer<HoldInteract> holdInteracts;
 	ComponentContainer<Sigil> sigils;
 	ComponentContainer<Spike> spikes;
+	ComponentContainer<Landlord> landlords;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -134,6 +134,7 @@ public:
 		registry_list.push_back(&holdInteracts);
 		registry_list.push_back(&sigils);
 		registry_list.push_back(&spikes);
+		registry_list.push_back(&landlords);
 	}
 
 	void clear_all_components()

@@ -657,6 +657,8 @@ void WorldSystem::enter_cutscene() {
 	Player& player = registry.players.get(my_player);
 	player.state = PLAYER_STATE::IDLE;
 	player.is_moving = false;
+	player.move_direction = {0, 0};
+	registry.motions.get(my_player).velocity = {0,0};
 	player.last_direction = {0, 1};
 	cutscene = true;
 }
@@ -879,7 +881,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			}
 		}
 	}
-
 
 
 	// Remove a spawned power up if it has been around for more than 10 seconds
@@ -1256,81 +1257,123 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 				// tile_vec.push_back(spawnable_tiles[index]);
 			}
 		}
-	} 
+	}
 
-	// Updating boss attacks
+	// Updating boss attacks + final level
 	if (current_map == map_final) {
-		if (registry.bosses.size() != 0) {
+		if (registry.bosses.size() != 0 && !cutscene) {
 			FinalBoss& boss = registry.bosses.components[0];
 			Motion& boss_motion = registry.motions.get(registry.bosses.entities[0]);
 			Health& boss_health = registry.healths.get(registry.bosses.entities[0]);
 
-			// boss stage changes
-			if (boss.stage == FinalLevelStage::STAGE1 && boss_health.hit_points <= boss.stage_1_change_hp) {
-				boss.stage = FinalLevelStage::STAGE2;
-			} else if (boss.stage == FinalLevelStage::STAGE2 && boss_health.hit_points <= boss.stage_2_change_hp) {
-				boss.stage = FinalLevelStage::STAGE3;
+			std::cout << " player pos " << player_pos.x << " " << player_pos.y << std::endl;
+			// check y : greater than -710 -> trigger cutscene
+
+			if (!finalLevel.intro_cutscene_start && player_pos.y < -710) {
+				boss.stage = FinalLevelStage::INTRO;
+				finalLevel.intro_cutscene_start = true;
+				enter_cutscene();
+				std::cout << "entered cutscene" << std::endl;
+
+				// play final boss first dialogue
+				// use E to get out (in interact fn)
+				createDialogueBox(renderer);
+
+				std::vector<std::string> text_lines = textToDialogueMode(boss.intro_dialogue);
+				for (int i = 0; i < text_lines.size(); i++)
+				{
+					std::string line = text_lines[i];
+					float offset = 40 * i;
+
+					Entity text = createText({40, 130 - offset}, 0.7, line, vec3(1.0, 1.0, 1.0));
+					registry.debugComponents.remove(text);
+				}
+			}
+
+			
+			// if not out of cutscene - do not continue into boss fight stuff
+			if (!cutscene) {
+				boss.attack_timer_ms += elapsed_ms_since_last_update;
+
+				if (boss.attack_timer_ms >= boss.attack_frequency_ms) {
+
+					float randX = 0.01f * (randomInt(200) - 100);
+					float randY = 0.01f * (randomInt(200) - 100);
+
+					vec2 circle_pt = normalize(vec2(randX, randY));
+
+					float rand_offset = (0.01f * randomInt(10000)) + 200;
+
+					vec2 world_origin = {-1860, -3760};
+					vec2 world_pos = boss_motion.position;
+					vec2 map_pos = vec2((int)((world_pos.x - world_origin.x) - ((int)abs(world_pos.x - world_origin.x) % TILE_SIZE)) / TILE_SIZE, (int)((world_pos.y - world_origin.y) - ((int)abs(world_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
+
+					int tiles = 0;
+					std::vector<vec2> tileselect = {
+						{map_pos.x + 1, map_pos.y},
+						{map_pos.x - 1, map_pos.y},
+						{map_pos.x, map_pos.y + 2},
+						{map_pos.x, map_pos.y - 1},
+						{map_pos.x + 1, map_pos.y + 2},
+						{map_pos.x + 1, map_pos.y - 1},
+						{map_pos.x - 1, map_pos.y - 1},
+						{map_pos.x - 1, map_pos.y + 2}
+					};
+					// pick random tile beside boss to spawn swarm
+					vec2 spawn_map = vec2(map_pos.x + max(1, (randomInt(1) * -1)), map_pos.y);
+					while (tiles < 8) {
+						if (current_map[spawn_map.y][spawn_map.x] != 0) {
+							break;
+						}
+						spawn_map = tileselect[tiles];
+						tiles++;
+					}
+
+					vec2 spawn_world = {-1860 + (spawn_map.x * TILE_SIZE) + (TILE_SIZE / 2), -3760 + (spawn_map.y * TILE_SIZE) + (TILE_SIZE / 2)};
+
+					switch (boss.stage) {
+						case FinalLevelStage::STAGE1:
+							// summon swarm in a radius around final boss on spawnable tile
+							// choose random point on circle with radius between 200, 300
+							boss.attack_timer_ms = 0;
+							if (registry.swarms.size() == 0) {
+								createSwarm(renderer, spawn_world, 0.55f, 0.05f, 0.00005f);
+							} 
+							break;
+						case FinalLevelStage::STAGE2:
+							boss.attack_timer_ms = 0;
+							if (registry.spikes.size() == 0) {
+								createSpikes(renderer, registry.motions.get(registry.players.entities[0]).position);
+							}
+						default:
+							break;
+					}
+				}
+
 			}
 			
-			boss.attack_timer_ms += elapsed_ms_since_last_update;
-
-			if (boss.attack_timer_ms >= boss.attack_frequency_ms) {
-				boss.attack_timer_ms = 0;
-
-				float randX = 0.01f * (randomInt(200) - 100);
-				float randY = 0.01f * (randomInt(200) - 100);
-
-				vec2 circle_pt = normalize(vec2(randX, randY));
-
-				float rand_offset = (0.01f * randomInt(10000)) + 200;
-
-				vec2 world_origin = {-1860, -3760};
-				vec2 world_pos = boss_motion.position;
-    			vec2 map_pos = vec2((int)((world_pos.x - world_origin.x) - ((int)abs(world_pos.x - world_origin.x) % TILE_SIZE)) / TILE_SIZE, (int)((world_pos.y - world_origin.y) - ((int)abs(world_pos.y - world_origin.y) % TILE_SIZE)) / TILE_SIZE);
-
-				int tiles = 0;
-				std::vector<vec2> tileselect = {
-					{map_pos.x + 1, map_pos.y},
-					{map_pos.x - 1, map_pos.y},
-					{map_pos.x, map_pos.y + 2},
-					{map_pos.x, map_pos.y - 1},
-					{map_pos.x + 1, map_pos.y + 2},
-					{map_pos.x + 1, map_pos.y - 1},
-					{map_pos.x - 1, map_pos.y - 1},
-					{map_pos.x - 1, map_pos.y + 2}
-				};
-				// pick random tile beside boss to spawn swarm
-				vec2 spawn_map = vec2(map_pos.x + max(1, (randomInt(1) * -1)), map_pos.y);
-				while (tiles < 8) {
-					if (current_map[spawn_map.y][spawn_map.x] != 0) {
-						break;
-					}
-					spawn_map = tileselect[tiles];
-					tiles++;
-				}
-
-				vec2 spawn_world = {-1860 + (spawn_map.x * TILE_SIZE) + (TILE_SIZE / 2), -3760 + (spawn_map.y * TILE_SIZE) + (TILE_SIZE / 2)};
-
-				switch (boss.stage) {
-					case FinalLevelStage::STAGE1:
-						// summon swarm in a radius around final boss on spawnable tile
-						// choose random point on circle with radius between 200, 300
-						createSwarm(renderer, spawn_world, 0.55f, 0.05f, 0.00005f);
-						break;
-					case FinalLevelStage::STAGE2:
-						// TODO: spike attack - spend 2-ish seconds following player position (slow speed so player can evade) then send up spikes
-						
-						break;
-					default: 
-
-						break;
-						// TODO: fire attack - slowly chase player maybe ? and shoot 2-3 lines of fire 
-				}
-			}
+			
 
 			
 		}
+
+		for (auto &spike : registry.spikes.entities) {
+			Spike& s = registry.spikes.get(spike);
+			AnimationSet& spike_anim = registry.animationSets.get(spike);
+
+			if (!s.attack) {
+				s.follow_ms_passed += elapsed_ms_since_last_update;
+
+				if (s.follow_ms_passed >= s.follow_ms) {
+					s.attack = true;
+					registry.deathTimers.insert(spike, {s.attack_length});
+
+					spike_anim.current_animation = "spike_attack";
+				}
+			}
+		}
 	}
+
 
 	// Spawn projectiles for ranged enemies
 	for (auto &ranged : registry.ranged.entities)
@@ -1407,10 +1450,37 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			// Enemy death - animation finished, remove entity
 			if (registry.deadlys.has(entity))
 			{
-				if (registry.animationSets.has(entity))
+			
+				// Check if final boss is dead then start win cutscene
+				if (registry.bosses.has(entity))
 				{
-					AnimationSet animSet_enemy = registry.animationSets.get(entity);
-					Animation anim = animSet_enemy.animations[animSet_enemy.current_animation];
+					// Halts music
+					Mix_FadeOutMusic(400.f);
+
+					FinalBoss& boss = registry.bosses.get(entity);
+					std::cout << "boss dies" << std::endl;
+					boss.stage = PLAYER_WIN;
+
+					// enter cutscene and add player win dialogue
+					enter_cutscene();
+
+					std::cout << "entered cutscene" << std::endl;
+
+					createDialogueBox(renderer);
+
+					std::vector<std::string> text_lines = textToDialogueMode(boss.win_dialogue);
+
+					for (int i = 0; i < text_lines.size(); i++)
+					{
+						std::string line = text_lines[i];
+						float offset = 40 * i;
+
+						Entity text = createText({40, 130 - offset}, 0.7, line, vec3(1.0, 1.0, 1.0));
+						registry.debugComponents.remove(text);
+					}
+
+					continue;
+
 				}
 
 				// might need to move enemy kill count stuff here to stop powerup drop - kind of useless at last enemy kill
@@ -1469,33 +1539,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					}
 				}
 
-				// Check if final boss is dead then stop game
-				if (registry.bosses.has(entity))
-				{
-					for (Entity enemy : registry.deadlys.entities)
-					{
-						registry.healths.get(enemy).hit_points = 0;
-						registry.deadlys.get(enemy).state = ENEMY_STATE::DEAD;
-
-						if (!registry.deathTimers.has(enemy))
-						{
-							DeathTimer &death = registry.deathTimers.emplace(enemy);
-							death.counter_ms = 440.4f;
-						}
-					}
-					goal_reached = true;
-
-					// Halts music
-					Mix_FadeOutMusic(400.f);
-
-
-					screen.state = GameState::GAME_OVER;
-
-					screen.darken_screen_factor = 0.9f;
-					gameWinText();
-
-					return true;
-				}
 				if (!(registry.projectiles.has(entity) || deadly.enemy_type == ENEMY_TYPES::SWARM))
 				{
 					createSmoke(renderer, {enemy_motion.position.x, enemy_motion.position.y});
@@ -1505,6 +1548,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					enemies_killed++;
 					num_enemies--;
 				}
+			} else if (registry.spikes.has(entity)) {
+				registry.remove_all_components_of(entity);
 			}
 		}
 	}
@@ -1567,7 +1612,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	}
 
 	player_controller.step(elapsed_ms_since_last_update);
-
+	
 	for (Entity e : registry.holdInteracts.entities) {
 		HoldInteract& interact = registry.holdInteracts.get(e);
 
@@ -1598,6 +1643,99 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			registry.remove_all_components_of(e);
 		}
 
+	}
+
+	for (Entity &e : registry.deadlys.entities)
+	{
+		Deadly &enemy = registry.deadlys.get(e);
+		if (registry.projectiles.has(e))
+		{
+			continue;
+		}
+
+		AnimationSet &animSet_enemy = registry.animationSets.get(e);
+		std::string enemy_name = "";
+		switch (enemy.enemy_type)
+		{
+		case ENEMY_TYPES::PROJECTILE:
+			continue;
+		case ENEMY_TYPES::HOMING_PROJECTILE:
+			continue;
+		case ENEMY_TYPES::RANGED:
+			enemy_name = "ranged";
+			break;
+		case ENEMY_TYPES::CONTACT_DMG:
+			enemy_name = "slow";
+			break;
+		case ENEMY_TYPES::CONTACT_DMG_2:
+			enemy_name = "fast";
+			break;
+		case ENEMY_TYPES::SWARM:
+			enemy_name = "swarm";
+			break;
+		case ENEMY_TYPES::SLOWING_CONTACT:
+			enemy_name = "fast";
+			break;
+		case ENEMY_TYPES::RANGED_HOMING:
+			enemy_name = "ranged";
+			break;
+		case ENEMY_TYPES::FINAL_BOSS:
+			enemy_name = "final_boss_";
+			break;
+		case ENEMY_TYPES::DASHING:
+			enemy_name = "slow";
+			break;
+		default:
+			break;
+		}
+		switch (enemy.state)
+		{
+		case ENEMY_STATE::IDLE:
+			std::cout << "idle" << std::endl;
+			animSet_enemy.current_animation = enemy_name + "enemy_idle_f";
+			break;
+		case ENEMY_STATE::RUN:
+			std::cout << "run" << std::endl;
+			if (registry.bosses.has(e))
+			{
+				auto &render_rqst = registry.renderRequests.get(e);
+				render_rqst.used_sprite = SPRITE_ASSET_ID::FINAL_BOSS;
+			}
+
+			animSet_enemy.current_animation = enemy_name + "enemy_run_f";
+			break;
+		case ENEMY_STATE::DEAD:
+			// seems fine
+			if (registry.bosses.has(e) && registry.bosses.get(e).stage == FinalLevelStage::PLAYER_WIN) {
+				if (animSet_enemy.current_animation != enemy_name + "landlord") {
+					animSet_enemy.current_animation = enemy_name + "landlord";
+					animSet_enemy.current_frame = 0;
+				}
+				std::cout << "landlord stage" << std::endl;
+			} else {
+				std::cout << "dying" << std::endl;
+				if (animSet_enemy.current_animation != enemy_name + "enemy_die") {
+					animSet_enemy.current_animation = enemy_name + "enemy_die";
+					animSet_enemy.current_frame = 0;
+				}
+			}
+				
+			
+			break;
+		case ENEMY_STATE::ATTACK:
+			std::cout << "attack" << std::endl;
+			if (registry.bosses.has(e))
+			{
+				auto &render_rqst = registry.renderRequests.get(e);
+				render_rqst.used_sprite = SPRITE_ASSET_ID::FINAL_BOSS_ATTACK;
+
+				animSet_enemy.current_animation = enemy_name + "enemy_attack_f";
+			}
+			break;
+		default:
+			std::cout << "default" << std::endl;
+			animSet_enemy.current_animation = enemy_name + "enemy_idle_f";
+		}
 	}
 
 
@@ -1764,90 +1902,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 	}
 
 
-	for (Entity &e : registry.deadlys.entities)
-	{
-		Deadly &enemy = registry.deadlys.get(e);
-		if (registry.projectiles.has(e))
-		{
-			continue;
-		}
-
-		AnimationSet &animSet_enemy = registry.animationSets.get(e);
-		std::string enemy_name = "";
-		switch (enemy.enemy_type)
-		{
-		case ENEMY_TYPES::PROJECTILE:
-			continue;
-		case ENEMY_TYPES::HOMING_PROJECTILE:
-			continue;
-		case ENEMY_TYPES::RANGED:
-			enemy_name = "ranged";
-			break;
-		case ENEMY_TYPES::CONTACT_DMG:
-			enemy_name = "slow";
-			break;
-		case ENEMY_TYPES::CONTACT_DMG_2:
-			enemy_name = "fast";
-			break;
-		case ENEMY_TYPES::SWARM:
-			enemy_name = "swarm";
-			break;
-		case ENEMY_TYPES::SLOWING_CONTACT:
-			enemy_name = "fast";
-			break;
-		case ENEMY_TYPES::RANGED_HOMING:
-			enemy_name = "ranged";
-			break;
-		case ENEMY_TYPES::FINAL_BOSS:
-			enemy_name = "final_boss_";
-			break;
-		case ENEMY_TYPES::DASHING:
-			enemy_name = "slow";
-			break;
-		default:
-			break;
-		}
-		switch (enemy.state)
-		{
-		case ENEMY_STATE::IDLE:
-			animSet_enemy.current_animation = enemy_name + "enemy_idle_f";
-			break;
-		case ENEMY_STATE::RUN:
-			if (registry.bosses.has(e))
-			{
-				auto &render_rqst = registry.renderRequests.get(e);
-				render_rqst.used_sprite = SPRITE_ASSET_ID::FINAL_BOSS;
-			}
-
-			animSet_enemy.current_animation = enemy_name + "enemy_run_f";
-			break;
-		case ENEMY_STATE::DEAD:
-			if (registry.bosses.has(e))
-			{
-				auto &render_rqst = registry.renderRequests.get(e);
-				render_rqst.used_sprite = SPRITE_ASSET_ID::FINAL_BOSS_DEATH;
-			}
-
-			// seems fine
-			if (animSet_enemy.current_animation != enemy_name + "enemy_die")
-			{
-				animSet_enemy.current_animation = enemy_name + "enemy_die";
-				animSet_enemy.current_frame = 0;
-			}
-			break;
-		case ENEMY_STATE::ATTACK:
-			if (registry.bosses.has(e))
-			{
-				auto &render_rqst = registry.renderRequests.get(e);
-				render_rqst.used_sprite = SPRITE_ASSET_ID::FINAL_BOSS_ATTACK;
-
-				animSet_enemy.current_animation = enemy_name + "enemy_attack_f";
-			}
-			break;
-		default:
-			animSet_enemy.current_animation = enemy_name + "enemy_idle_f";
-		}
-	}
 
 	for (Entity entity : registry.lightUps.entities)
 	{
@@ -1915,7 +1969,7 @@ void WorldSystem::restart_game()
 		}
 	}
 
-	// Create final boss
+	// Create final boss 
 	for (int i = 0; i < current_map.size(); i++)
 	{
 		for (int j = 0; j < current_map[0].size(); j++)
@@ -2054,11 +2108,12 @@ void WorldSystem::handle_collisions(float step_seconds)
 			// Player& player = registry.players.get(entity);
 
 			// Checking Player - Deadly collisions
-			if (registry.deadlys.has(entity_other))
+			if (registry.deadlys.has(entity_other) || registry.spikes.has(entity_other))
 			{
+
 				float &player_hp = registry.healths.get(entity).hit_points;
 				Player &player = registry.players.get(entity);
-				if (!player.invulnerable && !registry.deathTimers.has(entity_other))
+				if (!player.invulnerable && (registry.spikes.has(entity_other) || (registry.deadlys.has(entity_other) && !registry.deathTimers.has(entity_other))))
 				{
 					if (registry.powerups.has(entity))
 					{
@@ -2073,7 +2128,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 						}	
 					}
 
-					if (registry.bosses.has(entity_other))
+					if (registry.bosses.has(entity_other) && (registry.bosses.get(entity_other).stage == STAGE1 || registry.bosses.get(entity_other).stage == STAGE2))
 					{
 						registry.deadlys.get(entity_other).state = ENEMY_STATE::ATTACK;
 						registry.attackTimers.emplace(entity_other);
@@ -2081,6 +2136,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 					// player takes damage
 					player_hp -= registry.damages.get(entity_other).damage;
+
 					// damage sound
 					Mix_PlayChannel(-1, player_damage_sound, 0);
 					// avoid negative hp values for hp bar
@@ -2100,11 +2156,13 @@ void WorldSystem::handle_collisions(float step_seconds)
 						registry.animationSets.get(hp_bar).current_animation = new_anim;
 					}
 
-					if (registry.deadlys.get(entity_other).enemy_type == ENEMY_TYPES::SLOWING_CONTACT)
-					{
-						Slows &slows = registry.slows.get(entity_other);
-						player.slowed_amount = slows.speed_dec;
-						player.slowed_duration_ms = slows.duration;
+					if (registry.deadlys.has(entity_other)) {
+						if (registry.deadlys.get(entity_other).enemy_type == ENEMY_TYPES::SLOWING_CONTACT)
+						{
+							Slows &slows = registry.slows.get(entity_other);
+							player.slowed_amount = slows.speed_dec;
+							player.slowed_duration_ms = slows.duration;
+						}
 					}
 					player.invulnerable = true;
 					player.invulnerable_duration_ms = 1000.f;
@@ -2137,7 +2195,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 					motion.velocity[0] = 0.0f;
 					motion.velocity[1] = 0.0f;
 				}
-			}
+			} 
 			// Checking Player - Eatable collisions (e.g. powerups)
 			else if (registry.eatables.has(entity_other))
 			{
@@ -2188,7 +2246,7 @@ void WorldSystem::handle_collisions(float step_seconds)
 			{
 				registry.remove_all_components_of(entity);
 			}
-		}
+		} 
 		else if (registry.playerAttacks.has(entity))
 		{
 			auto &playerAttacks = registry.playerAttacks.get(entity);
@@ -2240,11 +2298,10 @@ void WorldSystem::handle_collisions(float step_seconds)
 				std::string new_anim = "hpbar_" + std::to_string(hp_level);
 				registry.animationSets.get(hp_bar).current_animation = new_anim;
 
-				// std::cout << damage_rng << std::endl;
 
 				// check if entity is final boss and if the boss has taken enough damage to go to next stage
 				auto &boss_registry = registry.bosses;
-				if (boss_registry.has(entity_other) && boss_registry.get(entity_other).stage == FinalLevelStage::STAGE1 && deadly_health.hit_points < (2 * deadly_health.max_hp / 3))
+				if (boss_registry.has(entity_other) && boss_registry.get(entity_other).stage == FinalLevelStage::STAGE1 && deadly_health.hit_points < boss_registry.get(entity_other).stage_change_hp)
 				{
 					boss_registry.get(entity_other).stage = FinalLevelStage::STAGE2;
 
@@ -2254,17 +2311,6 @@ void WorldSystem::handle_collisions(float step_seconds)
 					// play summon enemies sound
 					Mix_PlayChannel(-1, summon_sound, 0);
 				}
-				else if (boss_registry.has(entity_other) && boss_registry.get(entity_other).stage == FinalLevelStage::STAGE2 && deadly_health.hit_points < (deadly_health.max_hp / 3))
-				{
-					boss_registry.get(entity_other).stage = FinalLevelStage::STAGE3;
-
-					darken_counter_ms = 1000;
-					registry.screenStates.components[0].darken_screen_factor = 0.9;
-
-					// play summon enemies sound
-					Mix_PlayChannel(-1, summon_sound, 0);
-				}
-
 				if (!registry.projectiles.has(entity_other)) {
 					createDamageIndicator(renderer, damage_dealt, enemy_motion.position, damage_rng, temp_multiplier);
 				}
@@ -2300,11 +2346,11 @@ void WorldSystem::handle_collisions(float step_seconds)
 
 				if (deadly_health.hit_points <= 0.0f && (!registry.deathTimers.has(entity_other)))
 				{
+					std::cout << "die" << std::endl;
 					Deadly &d = registry.deadlys.get(entity_other);
 					d.state = ENEMY_STATE::DEAD;
 					DeathTimer &death = registry.deathTimers.emplace(entity_other);
 					death.counter_ms = 550.4f;
-					
 				}
 			}
 		}
@@ -2827,8 +2873,44 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 					}
 				}
 			}
+
+			FinalBoss& boss = registry.bosses.components[0];
+
+			if (finalLevel.intro_cutscene_start && !finalLevel.intro_cutscene_done) {
+				finalLevel.intro_cutscene_done = true;
+
+				exit_cutscene();
+
+				while (registry.dialogueBoxes.size() != 0)
+				{
+					
+					registry.remove_all_components_of(registry.dialogueBoxes.entities.back());
+				}
+				while (registry.texts.size() != 0)
+				{
+					registry.remove_all_components_of(registry.texts.entities.back());
+				}		
+
+				boss.stage = FinalLevelStage::STAGE1;
+			} else if (boss.stage == FinalLevelStage::PLAYER_WIN) {
+				while (registry.dialogueBoxes.size() != 0)
+				{
+					
+					registry.remove_all_components_of(registry.dialogueBoxes.entities.back());
+				}
+				while (registry.texts.size() != 0)
+				{
+					registry.remove_all_components_of(registry.texts.entities.back());
+				}
+
+				screen.state = GameState::GAME_OVER;
+
+				screen.darken_screen_factor = 0.9f;
+				gameWinText();
+
+				// does this work ???
+			}
 		}
-		
 	}
 
 
