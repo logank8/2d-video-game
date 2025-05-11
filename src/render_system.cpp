@@ -20,7 +20,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	transform.rotate(motion.angle);
 
 	// adjusting for discrepancies in texture vs. bb size
-	if (registry.players.has(entity) || registry.tenants.has(entity))
+	if (registry.players.has(entity) || registry.tenants.has(entity) || registry.bosses.has(entity))
 	{
 		transform.scale(vec2(2.6f, 2.f));
 	}
@@ -43,10 +43,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		else if (registry.projectiles.has(entity))
 		{
 			transform.scale(vec2(5, 5));
-		}
-		else if (enemy.enemy_type == ENEMY_TYPES::FINAL_BOSS)
-		{
-			transform.scale(vec2(2.6, 2));
 		}
 	}
 

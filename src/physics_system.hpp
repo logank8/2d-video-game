@@ -21,17 +21,42 @@ public:
 
 private:
 	
-	// compares elliptical bounding box to rectangular bounding box
-	bool static ellipse_rect_collision(float x_rad, float y_rad, vec2 circle_pos, vec2 rect_pos) {
-		vec2 pos = rect_pos - circle_pos;
+	// compares circular bounding box to rectangular bounding box
+	bool static circle_rect_collision(float rad, Motion circle_motion, Motion rect_motion) {
+		vec2 circle_pos = circle_motion.position;
+		vec2 rect_pos = rect_motion.position;
+
+		std::vector<vec2> corners = {
+			{rect_pos.x + rect_motion.scale.x, rect_pos.y + rect_motion.scale.y},
+			{rect_pos.x - rect_motion.scale.x, rect_pos.y + rect_motion.scale.y},
+			{rect_pos.x + rect_motion.scale.x, rect_pos.y - rect_motion.scale.y},
+			{rect_pos.x - rect_motion.scale.x, rect_pos.y - rect_motion.scale.y}
+		};
+
+		if ((circle_pos.x < rect_pos.x + rect_motion.scale.x) && (circle_pos.x > rect_pos.x - rect_motion.scale.x)) {
+			// check if center y is between top - rad and bottom + rad
+			if (circle_pos.y < rect_pos.y + rect_motion.scale.y + rad && circle_pos.y > rect_pos.y - rect_motion.scale.y - rad) {
+				return true;
+			}
+		}
+		if ((circle_pos.y < rect_pos.y + rect_motion.scale.y) && (circle_pos.y > rect_pos.y - rect_motion.scale.y)) {
+			// check if center x is between left - rad and right + rad
+			if (circle_pos.x < rect_pos.x + rect_motion.scale.x + rad && circle_pos.x > rect_pos.x - rect_motion.scale.x - rad) {
+				return true;
+			}
+		}
 
 		// constructing elliptical formula given x and y radii:
 		// (1/xrad^2)x^2 + (1/yrad^2)y^2 <= 1 confirms if point is within bounding box
 		// TODO: add check for if edge intersects ellipse ? or just rename this to point intersects
+		for (int i = 0; i < corners.size(); i++) {
+			vec2 c = corners[i];
 
-		if (((pow((1/x_rad) * pos.x, 2)) + pow((1/x_rad) * pos.y, 2)) <= 1) {
-			return true;
+			if (pow(circle_pos.x - c.x, 2) + pow(circle_pos.y - c.y, 2) <= pow(rad, 2)) {
+				return true;
+			}
 		}
+
 		return false;
 	}
 };

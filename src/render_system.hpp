@@ -106,7 +106,15 @@ class RenderSystem
 		textures_path("title.png"), 
 		textures_path("progress_circle.png"),
 		textures_path("sigil_1.png"),
-		textures_path("spikes.png")};
+		textures_path("spikes.png"),
+		textures_path("finalmap_furniture/bookcase.png"),
+		textures_path("finalmap_furniture/broken_tv.png"),
+		textures_path("finalmap_furniture/cabinet.png"),
+		textures_path("finalmap_furniture/dresser.png"),
+		textures_path("finalmap_furniture/dresser2.png"),
+		textures_path("finalmap_furniture/fruit.png"),
+		textures_path("finalmap_furniture/laundry.png")
+	};
 
 	std::array<GLuint, effect_count> effects;
 	// Make sure these paths remain in sync with the associated enumerators.

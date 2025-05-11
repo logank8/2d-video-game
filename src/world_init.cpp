@@ -260,8 +260,8 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 	enemy.enemy_type = ENEMY_TYPES::FINAL_BOSS;
 
 	auto &health = registry.healths.emplace(entity);
-	health.hit_points = 500.f;
-	health.max_hp = 500.f;
+	health.hit_points = 5000.f;
+	health.max_hp = 5000.f;
 
 	auto &damage = registry.damages.emplace(entity);
 	damage.damage = 50.f;
@@ -1212,114 +1212,127 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos, int type)
 	TEXTURE_ASSET_ID texture;
 
 	// Selecting asset and scale based on furniture type
-	if (type == 20)
-	{
-		motion.scale = vec2({PLANT_BB_WIDTH, PLANT_BB_HEIGHT});
-		texture = TEXTURE_ASSET_ID::PLANT;
-	}
-	else if (type == 21)
-	{
-		motion.scale = vec2({COAT_RACK_BB_WIDTH, COAT_RACK_BB_HEIGHT});
-		motion.position.y += 50.f;
-		texture = TEXTURE_ASSET_ID::COAT_RACK;
-	}
-	else if (type == 22)
-	{
-		motion.scale = vec2({LONG_TABLE_BB_WIDTH, LONG_TABLE_BB_HEIGHT});
-		texture = TEXTURE_ASSET_ID::FURNITURE;
-	}
-	else if (type == 23)
-	{
-		motion.scale = vec2({CHAIR_FRONT_BB_WIDTH, CHAIR_FRONT_BB_HEIGHT});
-		texture = TEXTURE_ASSET_ID::CHAIR_FRONT;
-	}
-	else if (type == 24)
-	{
-		motion.scale = vec2({CHAIR_BACK_BB_WIDTH, CHAIR_BACK_BB_HEIGHT});
-		texture = TEXTURE_ASSET_ID::CHAIR_BACK;
-		motion.position.y -= 20;
-	}
-	else if (type == 25)
-	{
-		motion.scale = vec2({CHAIR_SIDE_BB_WIDTH, CHAIR_SIDE_BB_HEIGHT});
-		texture = TEXTURE_ASSET_ID::CHAIR_SIDE;
-	}
-	else if (type == 26)
-	{
-		motion.scale = vec2({-CHAIR_SIDE_BB_WIDTH, CHAIR_SIDE_BB_HEIGHT});
-		texture = TEXTURE_ASSET_ID::CHAIR_SIDE;
-	}
-	else if (type == 27)
-	{
-		motion.scale = vec2({KITCHEN_COUNTER_1_BB_WIDTH, KITCHEN_COUNTER_1_BB_HEIGHT});
-		motion.position.x += 50;
-		motion.position.y += 17;
-		texture = TEXTURE_ASSET_ID::KITCHEN_COUNTER_1;
-	}
-	else if (type == 28)
-	{
-		motion.scale = vec2({KITCHEN_COUNTER_2_BB_WIDTH, KITCHEN_COUNTER_2_BB_HEIGHT});
-		motion.position.y -= 50;
-		texture = TEXTURE_ASSET_ID::KITCHEN_COUNTER_2;
-	}
-	else if (type == 29)
-	{
-		motion.scale = vec2({FRIDGE_BB_WIDTH, FRIDGE_BB_HEIGHT});
-		motion.position.y -= 50;
-		texture = TEXTURE_ASSET_ID::FRIDGE;
-	}
-	else if (type == 30)
-	{
-		motion.scale = vec2({STOVE_BB_WIDTH, STOVE_BB_HEIGHT});
-		motion.position.y += 17;
-		texture = TEXTURE_ASSET_ID::STOVE;
-	}
-	else if (type == 31)
-	{
-		motion.scale = vec2({BOOK_CASE_BB_WIDTH, BOOK_CASE_BB_HEIGHT});
-		motion.position.x += 50;
-		motion.position.y -= 50;
-		texture = TEXTURE_ASSET_ID::BOOK_CASE;
-	}
-	else if (type == 32)
-	{
-		motion.scale = vec2({COFFEE_TABLE_BB_WIDTH, COFFEE_TABLE_BB_HEIGHT});
-		texture = TEXTURE_ASSET_ID::COFFEE_TABLE;
-	}
-	else if (type == 33)
-	{
-		motion.scale = vec2({COUCH_BB_WIDTH, COUCH_BB_HEIGHT});
-		motion.position.x += 50;
-		motion.position.y -= 50;
-		texture = TEXTURE_ASSET_ID::COUCH;
-	}
-	else if (type == 34)
-	{
-		motion.scale = vec2({DRESSER_BB_WIDTH, DRESSER_BB_HEIGHT});
-		motion.position.y -= 50;
-		texture = TEXTURE_ASSET_ID::DRESSER;
-	}
-	else if (type == 35)
-	{
-		motion.scale = vec2({GRANDFATHER_CLOCK_BB_WIDTH, GRANDFATHER_CLOCK_BB_HEIGHT});
-		motion.position.y -= 50;
-		texture = TEXTURE_ASSET_ID::GRANDFATHER_CLOCK;
-	}
-	else if (type == 36)
-	{
-		motion.scale = vec2({LAMP_BB_WIDTH, LAMP_BB_HEIGHT});
-		motion.position.y -= 50;
-		texture = TEXTURE_ASSET_ID::LAMP;
-	}
-	else if (type == 37)
-	{
-		motion.scale = vec2({ROUND_TABLE_BB_WIDTH, ROUND_TABLE_BB_HEIGHT});
-		texture = TEXTURE_ASSET_ID::ROUND_TABLE;
-	}
-	else if (type == 38)
-	{
-		motion.scale = vec2({SIDE_TABLE_BB_WIDTH, SIDE_TABLE_BB_HEIGHT});
-		texture = TEXTURE_ASSET_ID::SIDE_TABLE;
+	switch (type) {
+
+		case 20:
+			motion.scale = vec2({PLANT_BB_WIDTH, PLANT_BB_HEIGHT});
+			texture = TEXTURE_ASSET_ID::PLANT;
+			break;
+		case 21:
+			motion.scale = vec2({COAT_RACK_BB_WIDTH, COAT_RACK_BB_HEIGHT});
+			motion.position.y += 50.f;
+			texture = TEXTURE_ASSET_ID::COAT_RACK;
+			break;
+		case 22: 
+			motion.scale = vec2({LONG_TABLE_BB_WIDTH, LONG_TABLE_BB_HEIGHT});
+			texture = TEXTURE_ASSET_ID::FURNITURE;
+			break;
+		case 23:
+			motion.scale = vec2({CHAIR_FRONT_BB_WIDTH, CHAIR_FRONT_BB_HEIGHT});
+			texture = TEXTURE_ASSET_ID::CHAIR_FRONT;
+			break;
+		case 24:
+			motion.scale = vec2({CHAIR_BACK_BB_WIDTH, CHAIR_BACK_BB_HEIGHT});
+			texture = TEXTURE_ASSET_ID::CHAIR_BACK;
+			motion.position.y -= 20;
+			break;
+		case 25: 
+			motion.scale = vec2({CHAIR_SIDE_BB_WIDTH, CHAIR_SIDE_BB_HEIGHT});
+			texture = TEXTURE_ASSET_ID::CHAIR_SIDE;
+			break;
+		case 26:
+			motion.scale = vec2({-CHAIR_SIDE_BB_WIDTH, CHAIR_SIDE_BB_HEIGHT});
+			texture = TEXTURE_ASSET_ID::CHAIR_SIDE;
+			break;
+		case 27:
+			motion.scale = vec2({KITCHEN_COUNTER_1_BB_WIDTH, KITCHEN_COUNTER_1_BB_HEIGHT});
+			motion.position.x += 50;
+			motion.position.y += 17;
+			texture = TEXTURE_ASSET_ID::KITCHEN_COUNTER_1;
+			break;
+		case 28:
+			motion.scale = vec2({KITCHEN_COUNTER_2_BB_WIDTH, KITCHEN_COUNTER_2_BB_HEIGHT});
+			motion.position.y -= 50;
+			texture = TEXTURE_ASSET_ID::KITCHEN_COUNTER_2;
+			break;
+		case 29:
+			motion.scale = vec2({FRIDGE_BB_WIDTH, FRIDGE_BB_HEIGHT});
+			motion.position.y -= 50;
+			texture = TEXTURE_ASSET_ID::FRIDGE;
+			break;
+		case 30:
+			motion.scale = vec2({STOVE_BB_WIDTH, STOVE_BB_HEIGHT});
+			motion.position.y += 17;
+			texture = TEXTURE_ASSET_ID::STOVE;
+			break;
+		case 31:
+			motion.scale = vec2({BOOK_CASE_BB_WIDTH, BOOK_CASE_BB_HEIGHT});
+			motion.position.x += 50;
+			motion.position.y -= 50;
+			texture = TEXTURE_ASSET_ID::BOOK_CASE;
+			break;
+		case 32:
+			motion.scale = vec2({COFFEE_TABLE_BB_WIDTH, COFFEE_TABLE_BB_HEIGHT});
+			texture = TEXTURE_ASSET_ID::COFFEE_TABLE;
+			break;
+		case 33:
+			motion.scale = vec2({COUCH_BB_WIDTH, COUCH_BB_HEIGHT});
+			motion.position.x += 50;
+			motion.position.y -= 50;
+			texture = TEXTURE_ASSET_ID::COUCH;
+			break;
+		case 34:
+			motion.scale = vec2({DRESSER_BB_WIDTH, DRESSER_BB_HEIGHT});
+			motion.position.y -= 50;
+			texture = TEXTURE_ASSET_ID::DRESSER;
+			break;
+		case 35:
+			motion.scale = vec2({GRANDFATHER_CLOCK_BB_WIDTH, GRANDFATHER_CLOCK_BB_HEIGHT});
+			motion.position.y -= 50;
+			texture = TEXTURE_ASSET_ID::GRANDFATHER_CLOCK;
+			break;
+		case 36:
+			motion.scale = vec2({LAMP_BB_WIDTH, LAMP_BB_HEIGHT});
+			motion.position.y -= 50;
+			texture = TEXTURE_ASSET_ID::LAMP;
+			break;
+		case 37:
+			motion.scale = vec2({ROUND_TABLE_BB_WIDTH, ROUND_TABLE_BB_HEIGHT});
+			texture = TEXTURE_ASSET_ID::ROUND_TABLE;
+			break;
+		case 39:
+			motion.scale = vec2({SIDE_TABLE_BB_WIDTH, SIDE_TABLE_BB_HEIGHT});
+			texture = TEXTURE_ASSET_ID::SIDE_TABLE;
+			break;
+		case 40:
+			motion.scale = vec2({F_BOOKCASE_WIDTH, F_BOOKCASE_HEIGHT});
+			texture = TEXTURE_ASSET_ID::F_BOOKCASE;
+			motion.position.y -= 50;
+			break;
+		case 41:
+			motion.scale = vec2({F_TV_WIDTH, F_TV_HEIGHT});
+			texture = TEXTURE_ASSET_ID::F_TV;
+			break;
+		case 42:
+			motion.scale = vec2({F_CABINET_WIDTH, F_CABINET_HEIGHT});
+			texture = TEXTURE_ASSET_ID::F_CABINET;
+			motion.position.y -= 50;
+			break;
+		case 43:
+			motion.scale = vec2({F_DRESSER_WIDTH, F_DRESSER_HEIGHT});
+			texture = TEXTURE_ASSET_ID::F_DRESSER;
+			motion.position.y -= 50;
+			break;
+		case 44:
+			motion.scale = vec2({F_DRESSER2_WIDTH, F_DRESSER2_HEIGHT});
+			texture = TEXTURE_ASSET_ID::F_DRESSER_2;
+			break;
+		case 45:
+			motion.scale = vec2({F_FRUIT_WIDTH, F_FRUIT_HEIGHT});
+			texture = TEXTURE_ASSET_ID::F_FRUIT;
+			break;
+		default:
+			break;
 	}
 
 	// create an empty component for the furniture as a solid object

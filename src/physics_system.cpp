@@ -276,25 +276,25 @@ bool is_walkable(const vec2 &pos, vec2 dir)
     if (dir == diagonals[0]) {  // Moving top-right
         if (map[grid_y][grid_x - 1] == -1 || map[grid_y - 1][grid_x] == -1) return false;
         if (map[grid_y][grid_x - 1] == 0 || map[grid_y - 1][grid_x] == 0) return false;
-        if ((map[grid_y][grid_x - 1] >= 20 && map[grid_y][grid_x - 1] <= 38) || (map[grid_y - 1][grid_x] >= 20 && map[grid_y - 1][grid_x] <= 38)) return false;
+        if ((map[grid_y][grid_x - 1] >= 20 && map[grid_y][grid_x - 1] <= 45) || (map[grid_y - 1][grid_x] >= 20 && map[grid_y - 1][grid_x] <= 45)) return false;
     }
     else if (dir == diagonals[1]) {  // Moving top-left
         if (map[grid_y][grid_x + 1] == -1 || map[grid_y - 1][grid_x] == -1) return false;
         if (map[grid_y][grid_x + 1] == 0 || map[grid_y - 1][grid_x] == 0) return false;
-        if ((map[grid_y][grid_x + 1] >= 20 && map[grid_y][grid_x + 1] <= 38) || (map[grid_y - 1][grid_x] >= 20 && map[grid_y - 1][grid_x] <= 38)) return false;
+        if ((map[grid_y][grid_x + 1] >= 20 && map[grid_y][grid_x + 1] <= 45) || (map[grid_y - 1][grid_x] >= 20 && map[grid_y - 1][grid_x] <= 45)) return false;
     }
     else if (dir == diagonals[2]) {  // Moving bottom-right
         if (map[grid_y + 1][grid_x] == -1 || map[grid_y + 1][grid_x] == -1) return false;
         if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x - 1] == 0) return false;
-        if ((map[grid_y][grid_x + 1] >= 20 && map[grid_y + 1][grid_x] <= 38) || (map[grid_y + 1][grid_x] >= 20 && map[grid_y + 1][grid_x] <= 38)) return false;
+        if ((map[grid_y][grid_x + 1] >= 20 && map[grid_y + 1][grid_x] <= 45) || (map[grid_y + 1][grid_x] >= 20 && map[grid_y + 1][grid_x] <= 45)) return false;
     }
     else if (dir == diagonals[3]) {  // Moving bottom-left
         if (map[grid_y + 1][grid_x] == -1 || map[grid_y][grid_x + 1] == -1) return false;
         if (map[grid_y + 1][grid_x] == 0 || map[grid_y][grid_x + 1] == 0) return false;
-        if ((map[grid_y][grid_x + 1] >= 20 && map[grid_y + 1][grid_x] <= 38) || (map[grid_y][grid_x + 1] >= 20 && map[grid_y][grid_x + 1] <= 38)) return false;
+        if ((map[grid_y][grid_x + 1] >= 20 && map[grid_y + 1][grid_x] <= 45) || (map[grid_y][grid_x + 1] >= 20 && map[grid_y][grid_x + 1] <= 45)) return false;
     }
 
-    return map[grid_y][grid_x] == 1 || (map[grid_y][grid_x] >= 3 && map[grid_y][grid_x] <= 8) || map[grid_y][grid_x] > 38;
+    return map[grid_y][grid_x] == 1 || (map[grid_y][grid_x] >= 3 && map[grid_y][grid_x] <= 8) || map[grid_y][grid_x] > 45;
 }
 
 //strictly for checking map tile integers
@@ -302,7 +302,7 @@ bool is_tile_walkable(int x, int y) {
     if (y < 0 || x < 0 || y >= map.size() || x >= map[0].size()) {
         return false;
     }
-    return map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8) || map[y][x] > 38;
+    return map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8) || map[y][x] > 45;
 };
 
 // Checking for line of sight using Bresenham's algorithm
@@ -371,7 +371,7 @@ bool PhysicsSystem::has_los(const vec2 &start, const vec2 &end)
     {
         return false;
     }
-    return map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8) || map[y][x] > 38;
+    return map[y][x] == 1 || (map[y][x] >= 3 && map[y][x] <= 8) || map[y][x] > 45;
 }
 
 // Checking for dashing line of sight using Bresenham's algorithm
@@ -1335,9 +1335,8 @@ void PhysicsSystem::step(float elapsed_ms, std::vector<std::vector<int>> current
 
                     spike_motion.position += spike_motion.velocity * step_seconds;
                 } else {
-                    // radius-based collision - excluded this from AABB detection, only collision entry should be here
-                    // technically would be more ideal to have player BB vs circle ... 
-                    if (ellipse_rect_collision(175, 175, spike_motion.position, player_motion.position)) {
+                    // circle vs rectangle collision for damage detection :3
+                    if (circle_rect_collision(175, spike_motion, player_motion)) {
                         registry.collisions.emplace_with_duplicates(registry.players.entities[0], entity);
                         registry.collisions.emplace_with_duplicates(entity, registry.players.entities[0]);
                     }

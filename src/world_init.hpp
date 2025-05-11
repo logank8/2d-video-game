@@ -14,8 +14,8 @@ const float PROJ_SIZE = 0.1f * 30.f;
 const float PLAYER_BB_WIDTH = 0.7f * 90.f;
 const float PLAYER_BB_HEIGHT = 0.7f * 110.f;
 
-const float BOSS_BB_WIDTH = 70.f;
-const float BOSS_BB_HEIGHT = 140.f;
+const float BOSS_BB_WIDTH = 63.f;
+const float BOSS_BB_HEIGHT = 90.f;
 
 const float EEL_BB_WIDTH = 0.6f * 80.f;  // 1001
 const float EEL_BB_HEIGHT = 0.6f * 70.f; // 870
@@ -83,6 +83,24 @@ const float HPBAR_BB_HEIGHT = 0.20f;
 const float TILE_PX_SIZE = 16.f;
 const float BASIC_ATTACK_WIDTH = 100.f;
 const float BASIC_ATTACK_HEIGHT = 100.f;
+
+const float F_BOOKCASE_WIDTH = 180.f;
+const float F_BOOKCASE_HEIGHT = 200.f;
+
+const float F_TV_WIDTH = 100.f;
+const float F_TV_HEIGHT = 80.f;
+
+const float F_CABINET_WIDTH = 100.f;
+const float F_CABINET_HEIGHT = 200.f;
+
+const float F_DRESSER_WIDTH = 120.f;
+const float F_DRESSER_HEIGHT = 240.f;
+
+const float F_DRESSER2_WIDTH = 120.f;
+const float F_DRESSER2_HEIGHT = 80.f;
+
+const float F_FRUIT_WIDTH = 60.f;
+const float F_FRUIT_HEIGHT = 55.f;
 
 const float UPGRADE_CARD_TITLE_Y = 0.2f;
 

@@ -1016,13 +1016,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			}
 
 			// furniture spawning
-			if (current_map[j][i] >= 20 && current_map[j][i] <= 38)
+			if (current_map[j][i] >= 20 && current_map[j][i] <= 45)
 			{
 				createFurniture(renderer, {world_pos.x, world_pos.y}, current_map[j][i]);
 				tile_vec.push_back(vec2(i, j));
 			}
 
-			if (current_map[j][i] == 39) 
+			if (current_map[j][i] == 46) 
 			{
 				Entity e = createSigil(renderer, {world_pos.x, world_pos.y});
 				registry.holdInteracts.get(e).onInteractCallback = [this](Entity e){
@@ -1918,6 +1918,7 @@ void WorldSystem::restart_game()
 	goal_reached = false;
 	num_enemies = 0;
 	cutscene = false;
+	finalLevel = {false, false};
 
 	while (registry.upgradeCards.entities.size() > 0)
 	{
