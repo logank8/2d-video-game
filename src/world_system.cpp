@@ -870,7 +870,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 
 			if (registry.tenants.get(tenant).player_in_radius && registry.tutorialIcons.size() == 0)
 			{
-				std::cout << "creating interact key" << std::endl;
 				createInteractKey(renderer, {registry.motions.get(tenant).position.x, registry.motions.get(tenant).position.y + 60});
 				
 			} else if (!registry.tenants.get(tenant).player_in_radius) {
@@ -1266,14 +1265,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			Motion& boss_motion = registry.motions.get(registry.bosses.entities[0]);
 			Health& boss_health = registry.healths.get(registry.bosses.entities[0]);
 
-			std::cout << " player pos " << player_pos.x << " " << player_pos.y << std::endl;
 			// check y : greater than -710 -> trigger cutscene
 
 			if (!finalLevel.intro_cutscene_start && player_pos.y < -710) {
 				boss.stage = FinalLevelStage::INTRO;
 				finalLevel.intro_cutscene_start = true;
 				enter_cutscene();
-				std::cout << "entered cutscene" << std::endl;
 
 				// play final boss first dialogue
 				// use E to get out (in interact fn)
@@ -1450,7 +1447,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			// Enemy death - animation finished, remove entity
 			if (registry.deadlys.has(entity))
 			{
-			
 				// Check if final boss is dead then start win cutscene
 				if (registry.bosses.has(entity))
 				{
@@ -1458,13 +1454,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					Mix_FadeOutMusic(400.f);
 
 					FinalBoss& boss = registry.bosses.get(entity);
-					std::cout << "boss dies" << std::endl;
 					boss.stage = PLAYER_WIN;
+					
+					while (registry.spikes.entities.size() > 0) {
+						registry.remove_all_components_of(registry.spikes.entities.back());
+					}
 
 					// enter cutscene and add player win dialogue
 					enter_cutscene();
 
-					std::cout << "entered cutscene" << std::endl;
 
 					createDialogueBox(renderer);
 
@@ -1691,11 +1689,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 		switch (enemy.state)
 		{
 		case ENEMY_STATE::IDLE:
-			std::cout << "idle" << std::endl;
 			animSet_enemy.current_animation = enemy_name + "enemy_idle_f";
 			break;
 		case ENEMY_STATE::RUN:
-			std::cout << "run" << std::endl;
 			if (registry.bosses.has(e))
 			{
 				auto &render_rqst = registry.renderRequests.get(e);
@@ -1711,9 +1707,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 					animSet_enemy.current_animation = enemy_name + "landlord";
 					animSet_enemy.current_frame = 0;
 				}
-				std::cout << "landlord stage" << std::endl;
 			} else {
-				std::cout << "dying" << std::endl;
 				if (animSet_enemy.current_animation != enemy_name + "enemy_die") {
 					animSet_enemy.current_animation = enemy_name + "enemy_die";
 					animSet_enemy.current_frame = 0;
@@ -1723,7 +1717,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			
 			break;
 		case ENEMY_STATE::ATTACK:
-			std::cout << "attack" << std::endl;
 			if (registry.bosses.has(e))
 			{
 				auto &render_rqst = registry.renderRequests.get(e);
@@ -1733,7 +1726,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update)
 			}
 			break;
 		default:
-			std::cout << "default" << std::endl;
 			animSet_enemy.current_animation = enemy_name + "enemy_idle_f";
 		}
 	}
@@ -2129,10 +2121,14 @@ void WorldSystem::handle_collisions(float step_seconds)
 						}	
 					}
 
-					if (registry.bosses.has(entity_other) && (registry.bosses.get(entity_other).stage == STAGE1 || registry.bosses.get(entity_other).stage == STAGE2))
+					if (registry.bosses.has(entity_other))
 					{
-						registry.deadlys.get(entity_other).state = ENEMY_STATE::ATTACK;
-						registry.attackTimers.emplace(entity_other);
+						if (registry.bosses.get(entity_other).stage == STAGE1 || registry.bosses.get(entity_other).stage == STAGE2) {
+							registry.deadlys.get(entity_other).state = ENEMY_STATE::ATTACK;
+							registry.attackTimers.emplace(entity_other);
+						} else {
+							continue;
+						}
 					}
 
 					// player takes damage
@@ -2339,15 +2335,16 @@ void WorldSystem::handle_collisions(float step_seconds)
 					deadly.state = ENEMY_STATE::KNOCKED_BACK;
 
 				}
+
 				if (registry.lightUps.has(entity_other))
 				{
 					registry.lightUps.remove(entity_other);
 				}
 				registry.lightUps.emplace(entity_other);
+				
 
 				if (deadly_health.hit_points <= 0.0f && (!registry.deathTimers.has(entity_other)))
 				{
-					std::cout << "die" << std::endl;
 					Deadly &d = registry.deadlys.get(entity_other);
 					d.state = ENEMY_STATE::DEAD;
 					DeathTimer &death = registry.deathTimers.emplace(entity_other);
@@ -2664,13 +2661,14 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	}
 
 	// Debugging
-	/*
+	
 	if (key == GLFW_KEY_X)
 	{
 		if (action == GLFW_RELEASE)
 			debugging.in_debug_mode = !debugging.in_debug_mode;
+			std::cout << "debug mode " << ((debugging.in_debug_mode) ? "ON" : "OFF") << std::endl;
 	}
-	*/
+	
 
 	// player key stuff starts here
 

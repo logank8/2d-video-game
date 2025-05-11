@@ -299,12 +299,20 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 		die_vec};
 
 
-	std::vector<int> attack_f_vec = {0, 1, 2, 3, 4, 5, 6, 7};
+	std::vector<int> attack_f_vec = {0, 1, 2, 3, 4, 5, 6, 7, 8};
 	Animation attack_f = {
 		"final_boss_enemy_attack_f",
-		10,
+		12,
 		SPRITE_ASSET_ID::FINAL_BOSS_ATTACK,
 		attack_f_vec};
+
+	std::vector<int> damage_f_vec = {28, 29};
+	Animation damage_f = {
+		"final_boss_damage_f",
+		16,
+		SPRITE_ASSET_ID::FINAL_BOSS,
+		damage_f_vec
+	};
 
 	std::vector<int> landlord_vec = {48};
 	Animation landlord = {
@@ -318,6 +326,7 @@ Entity createBossEnemy(RenderSystem *renderer, vec2 position)
 	animSet.animations[run_f.name] = run_f;
 	animSet.animations[die.name] = die;
 	animSet.animations[attack_f.name] = attack_f;
+	animSet.animations[damage_f.name] = damage_f;
 	animSet.animations[landlord.name] = landlord;
 	animSet.current_animation = idle_f.name;
 
