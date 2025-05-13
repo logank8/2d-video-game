@@ -1300,6 +1300,7 @@ Entity createFurniture(RenderSystem *renderer, vec2 pos, int type)
 			motion.scale = vec2({ROUND_TABLE_BB_WIDTH, ROUND_TABLE_BB_HEIGHT});
 			texture = TEXTURE_ASSET_ID::ROUND_TABLE;
 			break;
+		case 38:
 		case 39:
 			motion.scale = vec2({SIDE_TABLE_BB_WIDTH, SIDE_TABLE_BB_HEIGHT});
 			texture = TEXTURE_ASSET_ID::SIDE_TABLE;
@@ -2567,7 +2568,7 @@ Entity createSigil(RenderSystem *renderer, vec2 pos) {
 				 EFFECT_ASSET_ID::TEXTURED,
 				 GEOMETRY_BUFFER_ID::SPRITE,
 				 -1,
-				 RENDER_LAYER::FLOOR_DECOR});
+				 RENDER_LAYER::EFFECTS});
 
 	registry.sigils.emplace(entity);
 	registry.holdInteracts.emplace(entity);

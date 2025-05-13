@@ -2874,6 +2874,9 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 				}
 			}
 
+			if (registry.bosses.entities.size() <= 0) {
+				return;
+			}
 			FinalBoss& boss = registry.bosses.components[0];
 
 			if (finalLevel.intro_cutscene_start && !finalLevel.intro_cutscene_done) {

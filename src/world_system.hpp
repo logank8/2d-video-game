@@ -97,7 +97,7 @@ public:
 
 	int enemies_killed = 0;
 
-	int enemy_spawn_cap = 4;
+	int enemy_spawn_cap = 30;
 
 	bool goal_reached = false;
 

@@ -46,9 +46,6 @@ private:
 			}
 		}
 
-		// constructing elliptical formula given x and y radii:
-		// (1/xrad^2)x^2 + (1/yrad^2)y^2 <= 1 confirms if point is within bounding box
-		// TODO: add check for if edge intersects ellipse ? or just rename this to point intersects
 		for (int i = 0; i < corners.size(); i++) {
 			vec2 c = corners[i];
 
